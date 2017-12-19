@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/VRSolidModeling.iml" filepath="$PROJECT_DIR$/VRSolidModeling.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/jcsg/jscg.iml" filepath="$PROJECT_DIR$/jcsg/jscg.iml" />
+      <module fileurl="file://$PROJECT_DIR$/libgdxgvr/libgdxgvr.iml" filepath="$PROJECT_DIR$/libgdxgvr/libgdxgvr.iml" />
+    </modules>
+  </component>
+</project>
