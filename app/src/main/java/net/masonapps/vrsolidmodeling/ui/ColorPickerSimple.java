@@ -9,13 +9,11 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
-import com.badlogic.gdx.utils.Scaling;
 
-import net.masonapps.clayvr.Style;
+import net.masonapps.vrsolidmodeling.Style;
 
 import org.masonapps.libgdxgooglevr.ui.WindowTableVR;
 
@@ -30,12 +28,9 @@ public class ColorPickerSimple extends WindowTableVR {
     public static final int PADDING = 10;
     @Nullable
     private Consumer<Color> colorListener = null;
-    @Nullable
-    private Runnable dropperListener = null;
     private Texture colorGridTexture;
     private Image highlightImage;
     private int[][] colors;
-    private Image dropperColorImage;
 
     public ColorPickerSimple(Batch batch, Skin skin, int width, int height, String title, WindowVrStyle windowStyle) {
         super(batch, skin, width, height, title, windowStyle);
@@ -63,18 +58,7 @@ public class ColorPickerSimple extends WindowTableVR {
         colorGridTexture = new Texture(pixmap);
         final Image colorGridImage = new Image(colorGridTexture);
         highlightImage = new Image(skin.newDrawable(Style.Drawables.ic_color_selector));
-        getTable().add(colorGridImage).size(tableWidth, tableHeight).pad(PADDING).colspan(2).row();
-        final ImageButton dropperBtn = new ImageButton(Style.createImageButtonStyle(skin, Style.Drawables.ic_dropper));
-        dropperBtn.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                if (dropperListener != null) dropperListener.run();
-            }
-        });
-        getTable().add(dropperBtn).padLeft(PADDING).padRight(PADDING).padBottom(PADDING);
-        dropperColorImage = new Image(skin.newDrawable(Style.Drawables.white), Scaling.stretch);
-        dropperColorImage.setColor(Color.CLEAR);
-        getTable().add(dropperColorImage).width(80f).fill().padRight(PADDING).padBottom(PADDING);
+        getTable().add(colorGridImage).size(tableWidth, tableHeight).pad(PADDING);
         colorGridImage.setTouchable(Touchable.enabled);
 
         highlightImage.setSize(w, h);
@@ -90,7 +74,6 @@ public class ColorPickerSimple extends WindowTableVR {
                 int c = colors[col][row];
                 final Color color = new Color((c >> 16 & 0xff) / 255f, (c >> 8 & 0xff) / 255f, (c & 0xff) / 255f, 1f);
                 highlightImage.setPosition(col * w + colorGridImage.getX(), row * h + colorGridImage.getY(), Align.bottomLeft);
-                dropperColorImage.setColor(Color.CLEAR);
                 if (colorListener != null)
                     colorListener.accept(color);
             }
@@ -103,20 +86,9 @@ public class ColorPickerSimple extends WindowTableVR {
         this.colorListener = colorListener;
     }
 
-
-    public void setDropperListener(@Nullable Runnable dropperListener) {
-        this.dropperListener = dropperListener;
-    }
-
     @Override
     public void dispose() {
         super.dispose();
         colorGridTexture.dispose();
-    }
-
-    public void setDropperColor(Color color) {
-        dropperColorImage.setColor(color);
-        if (colorListener != null)
-            colorListener.accept(color);
     }
 }

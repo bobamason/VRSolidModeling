@@ -6,7 +6,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 
-import net.masonapps.clayvr.SculptingVrGame;
+import net.masonapps.vrsolidmodeling.SolidModelingGame;
 
 import org.masonapps.libgdxgooglevr.gfx.VrGame;
 import org.masonapps.libgdxgooglevr.gfx.VrWorldScreen;
@@ -16,13 +16,13 @@ import org.masonapps.libgdxgooglevr.gfx.World;
  * Created by Bob on 12/28/2016.
  */
 public abstract class RoomScreen extends VrWorldScreen {
-    private final SculptingVrGame sculptingVrGame;
+    private final SolidModelingGame solidModelingGame;
 
     public RoomScreen(VrGame game) {
         super(game);
-        if (!(game instanceof SculptingVrGame))
+        if (!(game instanceof SolidModelingGame))
             throw new IllegalArgumentException("game must be SculptingVrGame");
-        sculptingVrGame = (SculptingVrGame) game;
+        solidModelingGame = (SolidModelingGame) game;
     }
 
     @Override
@@ -37,7 +37,7 @@ public abstract class RoomScreen extends VrWorldScreen {
         return new World() {
             @Override
             public void render(ModelBatch batch, Environment lights) {
-                final ModelInstance roomInstance = sculptingVrGame.getRoomInstance();
+                final ModelInstance roomInstance = solidModelingGame.getRoomInstance();
                 if (roomInstance != null)
                     batch.render(roomInstance, getEnvironment());
                 super.render(batch, lights);
@@ -45,8 +45,8 @@ public abstract class RoomScreen extends VrWorldScreen {
         };
     }
 
-    public SculptingVrGame getSculptingVrGame() {
-        return sculptingVrGame;
+    public SolidModelingGame getSolidModelingGame() {
+        return solidModelingGame;
     }
 
     public abstract void onControllerBackButtonClicked();

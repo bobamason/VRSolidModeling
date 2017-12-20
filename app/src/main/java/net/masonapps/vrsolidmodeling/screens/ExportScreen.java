@@ -39,13 +39,12 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pools;
 import com.google.vr.sdk.controller.Controller;
 
-import net.masonapps.clayvr.Constants;
-import net.masonapps.clayvr.R;
-import net.masonapps.clayvr.SculptingVrGame;
-import net.masonapps.clayvr.Style;
-import net.masonapps.clayvr.bvh.BVH;
-import net.masonapps.clayvr.math.UnitConversion;
-import net.masonapps.clayvr.sculpt.SculptMesh;
+import net.masonapps.jcsg.CSG;
+import net.masonapps.vrsolidmodeling.Constants;
+import net.masonapps.vrsolidmodeling.R;
+import net.masonapps.vrsolidmodeling.SolidModelingGame;
+import net.masonapps.vrsolidmodeling.Style;
+import net.masonapps.vrsolidmodeling.math.UnitConversion;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.Entity;
@@ -60,9 +59,9 @@ import org.masonapps.libgdxgooglevr.ui.WindowVR;
 
 import java.text.DecimalFormat;
 
-import static net.masonapps.clayvr.screens.SculptingScreen.TransformAction.ACTION_NONE;
-import static net.masonapps.clayvr.screens.SculptingScreen.TransformAction.ROTATE;
-import static net.masonapps.clayvr.screens.SculptingScreen.TransformAction.ZOOM;
+import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.TransformAction.ACTION_NONE;
+import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.TransformAction.ROTATE;
+import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.TransformAction.ZOOM;
 
 /**
  * Created by Bob on 9/25/2017.
@@ -76,11 +75,10 @@ public class ExportScreen extends RoomScreen {
     private final LabelVR xLabel;
     private final LabelVR yLabel;
     private final LabelVR zLabel;
-    private final SculptMesh sculptMesh;
-    private final BVH bvh;
+    private final CSG csg;
     private final String projectName;
     private final ExportListener listener;
-    private final Entity sculptEntity;
+    private final Entity solidEntity;
     private final Entity box;
     private final LoadingSpinnerVR loadingSpinnerVR;
     private WindowTableVR fileTable;
@@ -92,7 +90,7 @@ public class ExportScreen extends RoomScreen {
     private float targetSizeMeters = 1f;
     private Vector3 hitPoint = new Vector3();
     private Plane hitPlane = new Plane();
-    private SculptingScreen.TransformAction transformAction = ACTION_NONE;
+    private ModelingScreen.TransformAction transformAction = ACTION_NONE;
     private CylindricalWindowUiContainer ui;
     private UnitConversion.Unit units = UnitConversion.Unit.meter;
     private DecimalFormat df = new DecimalFormat("#.##");
@@ -100,10 +98,9 @@ public class ExportScreen extends RoomScreen {
     private float offsetLabels = 0.1f;
     private Slider sizeSlider;
 
-    public ExportScreen(SculptingVrGame game, SculptMesh sculptMesh, BVH bvh, String projectName, ExportListener listener) {
+    public ExportScreen(SolidModelingGame game, CSG csg, String projectName, ExportListener listener) {
         super(game);
-        this.sculptMesh = sculptMesh;
-        this.bvh = bvh;
+        this.csg = csg;
         this.projectName = projectName;
         this.listener = listener;
         ui = new CylindricalWindowUiContainer(2f, 4f);
@@ -128,11 +125,11 @@ public class ExportScreen extends RoomScreen {
         ui.addProcessor(zLabel);
 
         final ModelBuilder builder = new ModelBuilder();
-        sculptEntity = SculptMesh.createSculptEntity(builder, sculptMesh, bvh.root.bb, Style.createSculptMaterial());
-        sculptEntity.setPosition(modelPosition);
-        getWorld().add(sculptEntity);
+        solidEntity = new Entity(null);
+        solidEntity.setPosition(modelPosition);
+        getWorld().add(solidEntity);
 
-        box = getWorld().add(new Entity(new ModelInstance(createBoxModel(builder, Color.WHITE, sculptEntity.getBounds())))).setPosition(modelPosition);
+        box = getWorld().add(new Entity(new ModelInstance(createBoxModel(builder, Color.WHITE, solidEntity.getBounds())))).setPosition(modelPosition);
 
         loadingSpinnerVR = new LoadingSpinnerVR(spriteBatch, skin.newDrawable(Style.Drawables.loading_spinner, Style.COLOR_ACCENT));
         loadingSpinnerVR.setPosition(0, 0, -1.5f);
@@ -360,7 +357,7 @@ public class ExportScreen extends RoomScreen {
     private void exportClicked(String fileType) {
         loadingSpinnerVR.setVisible(true);
         fileTable.getTable().setTouchable(Touchable.disabled);
-        listener.onExportFile(projectName, fileType, sculptEntity.getTransform(new Matrix4()));
+        listener.onExportFile(projectName, fileType, solidEntity.getTransform(new Matrix4()));
     }
 
     public void onExportComplete() {
@@ -398,13 +395,13 @@ public class ExportScreen extends RoomScreen {
         final Matrix4 tmpMat = Pools.obtain(Matrix4.class);
         final Vector3 tmp1 = Pools.obtain(Vector3.class);
         final Vector3 tmp2 = Pools.obtain(Vector3.class);
-        final BoundingBox bounds = sculptEntity.getBounds();
+        final BoundingBox bounds = solidEntity.getBounds();
 
         final float offset = offsetLabels * 0.5f;
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setProjectionMatrix(camera.combined);
-        shapeRenderer.setTransformMatrix(sculptEntity.getTransform(tmpMat));
+        shapeRenderer.setTransformMatrix(solidEntity.getTransform(tmpMat));
 
         shapeRenderer.setColor(Color.RED);
         shapeRenderer.line(bounds.getCorner001(tmp1).add(0, -offset, 0), bounds.getCorner101(tmp2).add(0, -offset, 0));
@@ -481,26 +478,24 @@ public class ExportScreen extends RoomScreen {
 
     private void updateTransform() {
         final Vector3 tmpV = Pools.obtain(Vector3.class);
-        final Vector3 testPoint = Pools.obtain(Vector3.class);
         final Matrix4 tmpMat = Pools.obtain(Matrix4.class);
         final Matrix4 tmpInvMat = Pools.obtain(Matrix4.class);
 
-        final Vector3 dimensions = sculptEntity.getDimensions();
-        final BoundingBox bounds = sculptEntity.getBounds();
+        final Vector3 dimensions = solidEntity.getDimensions();
+        final BoundingBox bounds = solidEntity.getBounds();
 
         final float maxDimen = Math.max(dimensions.x, Math.max(dimensions.y, dimensions.z));
         scale = targetSizeMeters / maxDimen;
         tmpMat.set(rotation).scale(scale, scale, scale);
         tmpInvMat.set(tmpMat).inv();
 
-        testPoint.set(0, -1000, 0).mul(tmpInvMat);
-        final Vector3 closestPoint = bvh.closestPoint(testPoint).mul(tmpMat);
-        position.set(modelPosition).sub(0, closestPoint.y, 0);
+        // TODO: 12/20/2017 
+        position.set(modelPosition);
 
 //        position.set(modelPosition).sub(0, -bounds.min.y * scale, 0);
-        sculptEntity.setPosition(position).setRotation(rotation).setScale(scale);
-        sculptEntity.recalculateTransform();
-        sculptEntity.getTransform(tmpMat);
+        solidEntity.setPosition(position).setRotation(rotation).setScale(scale);
+        solidEntity.recalculateTransform();
+        solidEntity.getTransform(tmpMat);
 //        Logger.d("transform = " + tmpMat);
         box.setTransform(tmpMat);
 
@@ -527,11 +522,11 @@ public class ExportScreen extends RoomScreen {
 
     @Override
     public void onControllerBackButtonClicked() {
-        final SculptingScreen sculptingScreen = getSculptingVrGame().getSculptingScreen();
-        if (sculptingScreen != null)
-            getSculptingVrGame().setScreen(sculptingScreen);
+        final ModelingScreen modelingScreen = getSolidModelingGame().getModelingScreen();
+        if (modelingScreen != null)
+            getSolidModelingGame().setScreen(modelingScreen);
         else
-            getSculptingVrGame().switchToStartupScreen();
+            getSolidModelingGame().switchToStartupScreen();
     }
 
     public interface ExportListener {

@@ -13,9 +13,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Array;
 
-import net.masonapps.clayvr.R;
-import net.masonapps.clayvr.SculptingVrGame;
-import net.masonapps.clayvr.Style;
+import net.masonapps.vrsolidmodeling.R;
+import net.masonapps.vrsolidmodeling.SolidModelingGame;
+import net.masonapps.vrsolidmodeling.Style;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.ui.VirtualStage;
@@ -30,9 +30,9 @@ public class StartupScreen extends RoomScreen {
 
     private final StartupInterface ui;
 
-    public StartupScreen(SculptingVrGame sculptingVrGame, StartupScreenListener listener) {
-        super(sculptingVrGame);
-        ui = new StartupInterface(new SpriteBatch(), ((SculptingVrGame) game).getSkin(), listener);
+    public StartupScreen(SolidModelingGame solidModelingGame, StartupScreenListener listener) {
+        super(solidModelingGame);
+        ui = new StartupInterface(new SpriteBatch(), ((SolidModelingGame) game).getSkin(), listener);
 //        getWorld().add(Style.newGradientBackground(getVrCamera().far - 1f));
 //        getWorld().add(Grid.newInstance(20f, 0.5f, 0.02f, Color.WHITE, Color.DARK_GRAY)).setPosition(0, -1.3f, 0);
     }

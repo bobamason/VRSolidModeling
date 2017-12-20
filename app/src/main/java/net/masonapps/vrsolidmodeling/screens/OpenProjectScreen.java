@@ -5,9 +5,8 @@ import android.util.Log;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g3d.model.data.ModelData;
 
-import net.masonapps.clayvr.SculptingVrGame;
-import net.masonapps.clayvr.io.FileUtils;
-import net.masonapps.clayvr.io.SculptLoader;
+import net.masonapps.vrsolidmodeling.SolidModelingGame;
+import net.masonapps.vrsolidmodeling.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,14 +21,15 @@ public class OpenProjectScreen extends ModelSelectionScreen<File> {
 
     private final OpenProjectListener listener;
 
-    public OpenProjectScreen(SculptingVrGame game, List<File> list, OpenProjectListener listener) {
+    public OpenProjectScreen(SolidModelingGame game, List<File> list, OpenProjectListener listener) {
         super(game, game.getSkin(), list);
         this.listener = listener;
     }
 
     @Override
     public ModelData loadModelData(File file) throws IOException {
-        return SculptLoader.getModelData(file);
+        //todo create project file
+        return null;
     }
 
     @Override
@@ -84,7 +84,7 @@ public class OpenProjectScreen extends ModelSelectionScreen<File> {
             try {
                 copy.createNewFile();
                 FileUtils.copyFile(file, copy);
-                ui.setList(((SculptingVrGame) game).getProjectFileList());
+                ui.setList(((SolidModelingGame) game).getProjectFileList());
                 Log.d(OpenProjectScreen.class.getSimpleName(), "file copied to " + copy.getName());
             } catch (IOException e) {
                 e.printStackTrace();
@@ -98,7 +98,7 @@ public class OpenProjectScreen extends ModelSelectionScreen<File> {
             final String fileName = file.getName();
             final boolean deleted = file.delete();
             if (deleted) {
-                ui.setList(((SculptingVrGame) game).getProjectFileList());
+                ui.setList(((SolidModelingGame) game).getProjectFileList());
                 Log.d(OpenProjectScreen.class.getSimpleName(), "file " + fileName + " deleted");
             }
         });

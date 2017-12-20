@@ -6,9 +6,9 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
-import net.masonapps.clayvr.R;
-import net.masonapps.clayvr.Style;
-import net.masonapps.clayvr.math.Side;
+import net.masonapps.vrsolidmodeling.R;
+import net.masonapps.vrsolidmodeling.Style;
+import net.masonapps.vrsolidmodeling.math.Side;
 
 import org.masonapps.libgdxgooglevr.ui.WindowTableVR;
 

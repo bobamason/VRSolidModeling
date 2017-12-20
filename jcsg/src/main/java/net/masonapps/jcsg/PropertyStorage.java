@@ -33,8 +33,6 @@
  */
 package net.masonapps.jcsg;
 
-import com.badlogic.gdx.graphics.Color;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -48,15 +46,21 @@ public class PropertyStorage {
 
     private final Map<String, Object> map = new HashMap<>();
 
-    private static final Color[] colors = {
-        Color.RED, Color.YELLOW, Color.GREEN, Color.BLUE, Color.MAGENTA,
-        Color.WHITE, Color.BLACK, Color.GRAY, Color.ORANGE};
-
     /**
      * Constructor. Creates a new property storage.
      */
     public PropertyStorage() {
        randomColor(this);
+    }
+
+    static void randomColor(PropertyStorage storage) {
+        final float r = (float) (Math.random()) * 0.75f + 0.25f;
+        final float g = (float) (Math.random()) * 0.75f + 0.25f;
+        final float b = (float) (Math.random()) * 0.75f + 0.25f;
+        storage.set("material:color",
+                "" + r
+                        + " " + g
+                        + " " + b);
     }
 
     /**
@@ -106,14 +110,5 @@ public class PropertyStorage {
      */
     public boolean contains(String key) {
         return map.containsKey(key);
-    }
-
-    static void randomColor(PropertyStorage storage) {
-        Color c = colors[(int) (Math.random() * colors.length)];
-
-        storage.set("material:color",
-                "" + c.r
-                + " " + c.g
-                + " " + c.b);
     }
 }

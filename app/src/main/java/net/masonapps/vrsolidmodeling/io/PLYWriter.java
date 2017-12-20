@@ -6,7 +6,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.NumberUtils;
 
-import net.masonapps.clayvr.Constants;
+import net.masonapps.vrsolidmodeling.Constants;
 
 import java.io.BufferedWriter;
 import java.io.File;

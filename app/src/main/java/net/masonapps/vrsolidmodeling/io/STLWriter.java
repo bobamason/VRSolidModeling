@@ -6,9 +6,9 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
 
-import net.masonapps.clayvr.mesh.SculptMeshData;
-import net.masonapps.clayvr.mesh.Triangle;
-import net.masonapps.clayvr.mesh.Vertex;
+import net.masonapps.vrsolidmodeling.mesh.MeshData;
+import net.masonapps.vrsolidmodeling.mesh.Triangle;
+import net.masonapps.vrsolidmodeling.mesh.Vertex;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -24,7 +24,7 @@ import java.util.Locale;
 
 public class STLWriter {
 
-    public static void writeToFile(File file, SculptMeshData meshData, Matrix4 transform) throws IOException {
+    public static void writeToFile(File file, MeshData meshData, Matrix4 transform) throws IOException {
         writeToOutputStream(new FileOutputStream(file), meshData, transform);
     }
 
@@ -33,7 +33,7 @@ public class STLWriter {
     }
 
     @SuppressLint("DefaultLocale")
-    public static void writeToOutputStream(OutputStream outputStream, SculptMeshData meshData, Matrix4 transform) throws IOException {
+    public static void writeToOutputStream(OutputStream outputStream, MeshData meshData, Matrix4 transform) throws IOException {
         final BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream));
         try {
             writer.write("solid");

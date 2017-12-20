@@ -17,7 +17,7 @@ import com.google.vr.ndk.base.DaydreamApi;
 import com.google.vr.ndk.base.GvrLayout;
 import com.google.vr.sdk.base.AndroidCompat;
 
-import net.masonapps.clayvr.service.ExportService;
+import net.masonapps.vrsolidmodeling.service.ExportService;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.utils.Logger;
@@ -35,7 +35,7 @@ public class MainActivity extends VrActivity {
     private RequestStoragePermissionAction action = null;
     @Nullable
     private DaydreamApi daydreamApi = null;
-    private SculptingVrGame vrGame;
+    private SolidModelingGame vrGame;
     private BroadcastReceiver exportCompleteReceiver;
 
     @Override
@@ -43,8 +43,8 @@ public class MainActivity extends VrActivity {
         super.onCreate(savedInstanceState);
 
 //        deleteAllProjects();
-        
-        vrGame = new SculptingVrGame();
+
+        vrGame = new SolidModelingGame();
         initialize(vrGame);
         exportCompleteReceiver = new BroadcastReceiver() {
             @Override
@@ -60,7 +60,7 @@ public class MainActivity extends VrActivity {
     private void deleteAllProjects() {
         final File[] files = getFilesDir().listFiles();
         Arrays.stream(files)
-                .filter(file -> file.getName().endsWith(Constants.FILE_TYPE_SCULPT) || file.getName().endsWith(Constants.FILE_TYPE_SAVE_DATA))
+                .filter(file -> file.getName().endsWith(Constants.FILE_TYPE_PROJECT))
                 .forEach(File::delete);
         Toast.makeText(this, "all projects deleted", Toast.LENGTH_LONG).show();
     }

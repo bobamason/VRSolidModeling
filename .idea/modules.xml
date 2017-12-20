@@ -4,7 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/VRSolidModeling.iml" filepath="$PROJECT_DIR$/VRSolidModeling.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/jcsg/jscg.iml" filepath="$PROJECT_DIR$/jcsg/jscg.iml" />
+      <module fileurl="file://$PROJECT_DIR$/jcsg/jcsg.iml" filepath="$PROJECT_DIR$/jcsg/jcsg.iml" />
       <module fileurl="file://$PROJECT_DIR$/libgdxgvr/libgdxgvr.iml" filepath="$PROJECT_DIR$/libgdxgvr/libgdxgvr.iml" />
     </modules>
   </component>

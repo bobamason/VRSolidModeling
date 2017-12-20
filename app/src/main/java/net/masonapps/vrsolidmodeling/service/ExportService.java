@@ -13,17 +13,16 @@ import android.util.Log;
 
 import com.badlogic.gdx.math.Matrix4;
 
-import net.masonapps.clayvr.Constants;
-import net.masonapps.clayvr.R;
-import net.masonapps.clayvr.SculptVrApplication;
-import net.masonapps.clayvr.io.FileUtils;
-import net.masonapps.clayvr.io.OBJWriter;
-import net.masonapps.clayvr.io.PLYWriter;
-import net.masonapps.clayvr.io.STLWriter;
-import net.masonapps.clayvr.io.SculptMeshWriter;
-import net.masonapps.clayvr.mesh.SculptMeshData;
-import net.masonapps.clayvr.mesh.Triangle;
-import net.masonapps.clayvr.mesh.Vertex;
+import net.masonapps.vrsolidmodeling.Constants;
+import net.masonapps.vrsolidmodeling.R;
+import net.masonapps.vrsolidmodeling.SolidModelingApplication;
+import net.masonapps.vrsolidmodeling.io.FileUtils;
+import net.masonapps.vrsolidmodeling.io.OBJWriter;
+import net.masonapps.vrsolidmodeling.io.PLYWriter;
+import net.masonapps.vrsolidmodeling.io.STLWriter;
+import net.masonapps.vrsolidmodeling.mesh.MeshData;
+import net.masonapps.vrsolidmodeling.mesh.Triangle;
+import net.masonapps.vrsolidmodeling.mesh.Vertex;
 
 import org.masonapps.libgdxgooglevr.utils.Logger;
 
@@ -36,7 +35,7 @@ import java.io.IOException;
 
 public class ExportService extends IntentService {
 
-    public static final String ACTION_EXPORT_COMPLETE = "masonapps.exportservice.action.ACTION_COMPLETE";
+    public static final String ACTION_EXPORT_COMPLETE = "vrsolidmodeling.exportservice.action.ACTION_COMPLETE";
     public static final String TAG = ExportService.class.getName();
     private static final int NOTIFICATION_ID = 1;
 
@@ -52,8 +51,8 @@ public class ExportService extends IntentService {
 
         Logger.d("service started");
 
-        final SculptMeshData meshData = ((SculptVrApplication) getApplication()).getMeshData();
-        final Matrix4 transform = new Matrix4(((SculptVrApplication) getApplication()).getTransform());
+        final MeshData meshData = ((SolidModelingApplication) getApplication()).getMeshData();
+        final Matrix4 transform = new Matrix4(((SolidModelingApplication) getApplication()).getTransform());
         Logger.d("export transform:\n" + transform);
         if (meshData == null)
             return;
@@ -76,7 +75,7 @@ public class ExportService extends IntentService {
                 notificationManager.createNotificationChannel(channel);
         }
         final NotificationCompat.Builder nb = new NotificationCompat.Builder(getApplicationContext(), channelId);
-        final boolean isSavingProject = fileType.equals(Constants.FILE_TYPE_SCULPT) || fileType.equals(Constants.FILE_TYPE_SAVE_DATA);
+        final boolean isSavingProject = fileType.equals(Constants.FILE_TYPE_PROJECT);
         nb.setContentTitle(getString(isSavingProject ? R.string.notification_title_saving : R.string.notification_title_exporting))
                 .setContentText(isSavingProject ? "saving..." : "creating " + fileType.toUpperCase() + " file...")
                 .setSmallIcon(android.R.drawable.stat_notify_sdcard)
@@ -139,8 +138,9 @@ public class ExportService extends IntentService {
                 case Constants.FILE_TYPE_STL:
                     STLWriter.writeToFile(file, meshData, transform);
                     break;
-                case Constants.FILE_TYPE_SCULPT:
-                    SculptMeshWriter.writeToFile(file, meshData, transform);
+                case Constants.FILE_TYPE_PROJECT:
+                    //todo create project file writer
+//                    CSGWriter.writeToFile(file, meshData, transform);
                     break;
             }
 

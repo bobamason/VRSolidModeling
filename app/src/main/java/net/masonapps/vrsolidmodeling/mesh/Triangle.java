@@ -6,8 +6,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 
-import net.masonapps.clayvr.bvh.BVH;
-
 public class Triangle {
 
     public final Plane plane = new Plane();
@@ -22,7 +20,6 @@ public class Triangle {
     public float a1 = 0;
     public float a2 = 0;
     public float a3 = 0;
-    public BVH.Node node = null;
     public int index;
     private boolean needsUpdate = false;
 
@@ -93,8 +90,6 @@ public class Triangle {
 
     public void flagNeedsUpdate() {
         needsUpdate = true;
-        if (node != null)
-            node.flagNeedsRefit();
     }
 
     public void clearUpdateFlag() {

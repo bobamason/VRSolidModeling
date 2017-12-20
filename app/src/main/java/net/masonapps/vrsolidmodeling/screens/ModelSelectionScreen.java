@@ -10,8 +10,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Array;
 import com.google.vr.sdk.controller.Controller;
 
-import net.masonapps.clayvr.ui.FileButtonBar;
-import net.masonapps.clayvr.ui.ModelSelectionUI;
+import net.masonapps.vrsolidmodeling.ui.FileButtonBar;
+import net.masonapps.vrsolidmodeling.ui.ModelSelectionUI;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.VrGame;
@@ -83,7 +83,7 @@ public abstract class ModelSelectionScreen<T> extends RoomScreen implements File
 
     @Override
     public void onControllerBackButtonClicked() {
-        getSculptingVrGame().switchToStartupScreen();
+        getSolidModelingGame().switchToStartupScreen();
     }
 
     @Override

@@ -8,7 +8,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Align;
 
-import net.masonapps.clayvr.Style;
+import net.masonapps.vrsolidmodeling.Style;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.VrGame;
@@ -102,7 +102,7 @@ public class ProgressLoadingScreen extends RoomScreen {
 
     @Override
     public void onControllerBackButtonClicked() {
-        if (getSculptingVrGame().isLoadingFailed())
-            getSculptingVrGame().switchToStartupScreen();
+        if (getSolidModelingGame().isLoadingFailed())
+            getSolidModelingGame().switchToStartupScreen();
     }
 }

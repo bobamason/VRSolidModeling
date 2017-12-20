@@ -29,8 +29,8 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Pools;
 import com.google.vr.sdk.controller.Controller;
 
-import net.masonapps.clayvr.R;
-import net.masonapps.clayvr.Style;
+import net.masonapps.vrsolidmodeling.R;
+import net.masonapps.vrsolidmodeling.Style;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.Entity;

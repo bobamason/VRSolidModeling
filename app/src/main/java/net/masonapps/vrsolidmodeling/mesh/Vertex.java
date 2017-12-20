@@ -1,12 +1,8 @@
 package net.masonapps.vrsolidmodeling.mesh;
 
-import android.support.annotation.Nullable;
-
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-
-import net.masonapps.clayvr.sculpt.SaveData;
 
 import java.util.Arrays;
 
@@ -15,25 +11,17 @@ import java.util.Arrays;
  */
 
 public class Vertex {
-    public static final int FLAG_UPDATE = 2;
-    public static final int FLAG_POSITION_SAVED = 4;
-    public static final int FLAG_SKIP_SPHERE_TEST = 8;
     public final Vector3 position = new Vector3();
     public final Vector3 normal = new Vector3();
     public final Vector2 uv = new Vector2();
-    public final SaveData savedState;
     public Color color = Color.GRAY.cpy();
     public int index = -1;
-    public float tmpVal = 0f;
     public Triangle[] triangles = new Triangle[0];
     public Vertex[] adjacentVertices = new Vertex[0];
     public volatile int flag = 0;
-    @Nullable
-    public Vertex symmetricPair = null;
     private Edge[] edges = new Edge[0];
 
     public Vertex() {
-        savedState = new SaveData(this);
     }
 
     private static boolean isDuplicateVertex(Vertex[] vertices, Vertex vertex) {
@@ -56,7 +44,6 @@ public class Vertex {
         uv.set(vertex.uv);
         color.set(vertex.color);
         index = vertex.index;
-        symmetricPair = vertex.symmetricPair;
         triangles = Arrays.copyOf(vertex.triangles, vertex.triangles.length);
         edges = Arrays.copyOf(vertex.edges, vertex.edges.length);
         return this;
@@ -106,42 +93,5 @@ public class Vertex {
                 adjacentVertices[length] = v2;
             }
         }
-    }
-
-    public void savePosition() {
-        savedState.set(this);
-        flag |= FLAG_POSITION_SAVED;
-    }
-
-    public void clearSavedFlag() {
-        flag &= ~Vertex.FLAG_POSITION_SAVED;
-    }
-
-    public void clearUpdateFlag() {
-        flag &= ~Vertex.FLAG_UPDATE;
-    }
-
-    public boolean needsUpdate() {
-        return (flag & Vertex.FLAG_UPDATE) == Vertex.FLAG_UPDATE;
-    }
-
-    public boolean shouldSkipSphereTest() {
-        return (flag & Vertex.FLAG_SKIP_SPHERE_TEST) == Vertex.FLAG_SKIP_SPHERE_TEST;
-    }
-
-    public boolean isSavedPositionUpdated() {
-        return (flag & Vertex.FLAG_POSITION_SAVED) == Vertex.FLAG_POSITION_SAVED;
-    }
-
-    public void clearFlagSkipSphereTest() {
-        flag &= ~Vertex.FLAG_SKIP_SPHERE_TEST;
-    }
-
-    public void flagNeedsUpdate() {
-        flag |= Vertex.FLAG_UPDATE;
-    }
-
-    public void flagSkipSphereTest() {
-        flag |= Vertex.FLAG_SKIP_SPHERE_TEST;
     }
 }

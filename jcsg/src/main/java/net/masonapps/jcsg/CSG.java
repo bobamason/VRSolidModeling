@@ -33,8 +33,6 @@
  */
 package net.masonapps.jcsg;
 
-import com.badlogic.gdx.graphics.Color;
-
 import net.masonapps.jcsg.ext.quickhull3d.HullUtil;
 
 import java.util.ArrayList;
@@ -94,8 +92,8 @@ import eu.mihosoft.vvecmath.Vector3d;
  */
 public class CSG {
 
-    private List<Polygon> polygons;
     private static OptType defaultOptType = OptType.NONE;
+    private List<Polygon> polygons;
     private OptType optType = null;
     private PropertyStorage storage;
 
@@ -157,6 +155,13 @@ public class CSG {
      */
     public static CSG fromPolygons(PropertyStorage storage, Polygon... polygons) {
         return fromPolygons(storage, Arrays.asList(polygons));
+    }
+
+    /**
+     * @param optType the optType to set
+     */
+    public static void setDefaultOptType(OptType optType) {
+        defaultOptType = optType;
     }
 
     @Override
@@ -737,14 +742,14 @@ public class CSG {
         return sb;
     }
 
-    public CSG color(Color c) {
+    public CSG color(float r, float g, float b) {
 
         CSG result = this.clone();
 
         storage.set("material:color",
-                "" + c.r
-                + " " + c.g
-                + " " + c.b);
+                "" + r
+                        + " " + g
+                        + " " + b);
 
         return result;
     }
@@ -1023,13 +1028,6 @@ public class CSG {
      */
     private OptType getOptType() {
         return optType != null ? optType : defaultOptType;
-    }
-
-    /**
-     * @param optType the optType to set
-     */
-    public static void setDefaultOptType(OptType optType) {
-        defaultOptType = optType;
     }
 
     /**

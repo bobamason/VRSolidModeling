@@ -7,8 +7,8 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.Align;
 
-import net.masonapps.clayvr.Assets;
-import net.masonapps.clayvr.Style;
+import net.masonapps.vrsolidmodeling.Assets;
+import net.masonapps.vrsolidmodeling.Style;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.VrGame;
