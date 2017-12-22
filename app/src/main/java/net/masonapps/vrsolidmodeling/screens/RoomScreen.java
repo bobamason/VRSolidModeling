@@ -33,6 +33,13 @@ public abstract class RoomScreen extends VrWorldScreen {
     }
 
     @Override
+    public void show() {
+        super.show();
+        getVrCamera().position.set(0, 0, 0);
+        getVrCamera().lookAt(0, 0, 0);
+    }
+
+    @Override
     protected World createWorld() {
         return new World() {
             @Override

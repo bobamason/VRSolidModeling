@@ -112,7 +112,7 @@ public class ModelDataBuilder {
         data.nodes.add(node);
         data.meshes.add(mesh);
         ModelMaterial mat = new ModelMaterial();
-        mat.id = "mat1";
+        mat.id = materialName;
         mat.diffuse = new Color(Color.GREEN);
         data.materials.add(mat);
 

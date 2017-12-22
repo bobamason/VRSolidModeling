@@ -119,7 +119,7 @@ public class SolidModelingGame extends VrGame {
                 if (Math.abs(x) % 2 != Math.abs(z) % 2) continue;
                 float y = -2.6f;
                 if (x * x + z * z > r2)
-                    y += MathUtils.random(4);
+                    y += MathUtils.random(4) * 0.25f + 0.25f;
                 BoxShapeBuilder.build(g2, x + 0.5f, y, z - 0.5f, 1f, 1f, 1f);
             }
         }
@@ -151,7 +151,7 @@ public class SolidModelingGame extends VrGame {
     protected void doneLoading(AssetManager assets) {
         if (!isAtlasLoaded) {
             final Texture skyTexture = assets.get(Assets.SKY_TEXTURE, Texture.class);
-            final Model skySphere = createSkySphere(new ModelBuilder(), skyTexture, getVrCamera().far - 1f);
+            final Model skySphere = createSkySphere(new ModelBuilder(), skyTexture, getVrCamera().far - 10f);
             roomInstance = new ModelInstance(skySphere, new Matrix4().rotate(Vector3.Y, 180));
 
             final TextureAtlas atlas = assets.get(Style.ATLAS_FILE, TextureAtlas.class);

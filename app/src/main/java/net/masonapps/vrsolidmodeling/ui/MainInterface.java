@@ -32,13 +32,13 @@ public class MainInterface extends CylindricalWindowUiContainer {
     public static final String WINDOW_VIEW_CONTROLS = "winViewControls";
     private static final float PADDING = 8f;
     private final Skin skin;
-    private final SculptUiEventListener eventListener;
+    private final UiEventListener eventListener;
     private final WindowTableVR buttonBar;
     private final ColorPickerSimple colorPicker;
     private final ConfirmDialog confirmDialog;
     private final ViewControls viewControls;
 
-    public MainInterface(Batch spriteBatch, Skin skin, SculptUiEventListener listener) {
+    public MainInterface(Batch spriteBatch, Skin skin, UiEventListener listener) {
         super(2f, 4f);
         this.skin = skin;
         this.eventListener = listener;
@@ -167,7 +167,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
         viewControls.setListener(listener);
     }
 
-    public interface SculptUiEventListener {
+    public interface UiEventListener {
         void onUndoClicked();
 
         void onRedoClicked();

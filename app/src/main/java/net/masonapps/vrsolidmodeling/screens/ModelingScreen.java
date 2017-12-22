@@ -6,6 +6,8 @@ import android.preference.PreferenceManager;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -15,6 +17,8 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pools;
 import com.google.vr.sdk.controller.Controller;
 
+import net.masonapps.jcsg.RoundedCube;
+import net.masonapps.vrsolidmodeling.csg.ModelDataBuilder;
 import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
 import net.masonapps.vrsolidmodeling.ui.MainInterface;
@@ -22,9 +26,13 @@ import net.masonapps.vrsolidmodeling.ui.UndoRedoCache;
 import net.masonapps.vrsolidmodeling.ui.ViewControls;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
+import org.masonapps.libgdxgooglevr.gfx.Entity;
 import org.masonapps.libgdxgooglevr.gfx.VrGame;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 
+import java.util.concurrent.CompletableFuture;
+
+import eu.mihosoft.vvecmath.Vector3d;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_NONE;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_VIEW_TRANSFORM;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.TransformAction.ACTION_NONE;
@@ -58,7 +66,7 @@ public class ModelingScreen extends RoomScreen {
         final SpriteBatch spriteBatch = new SpriteBatch();
         manageDisposable(spriteBatch);
 
-        final MainInterface.SculptUiEventListener sculptUiEventListener = new MainInterface.SculptUiEventListener() {
+        final MainInterface.UiEventListener uiEventListener = new MainInterface.UiEventListener() {
 
             @Override
             public void onUndoClicked() {
@@ -81,9 +89,18 @@ public class ModelingScreen extends RoomScreen {
                 getSolidModelingGame().switchToExportScreen();
             }
         };
-        mainInterface = new MainInterface(spriteBatch, getSolidModelingGame().getSkin(), sculptUiEventListener);
+        mainInterface = new MainInterface(spriteBatch, getSolidModelingGame().getSkin(), uiEventListener);
         mainInterface.loadWindowPositions(PreferenceManager.getDefaultSharedPreferences(GdxVr.app.getContext()));
         undoRedoCache = new UndoRedoCache();
+
+        // TODO: 12/22/2017 remove csg test
+        CompletableFuture.supplyAsync(() -> new RoundedCube(Vector3d.xyz(0., 0.5, 0.), Vector3d.xyz(0.75, 1., 0.5)).cornerRadius(0.1f).toCSG())
+                .thenAccept(csg -> ModelDataBuilder.fromCsgAsync(csg)
+                        .thenAccept(modelData -> runOnGLThread(() -> {
+                            final ModelInstance modelInstance = new ModelInstance(new Model(modelData));
+                            getWorld().add(new Entity(modelInstance));
+                        })));
+
 
         mainInterface.setViewControlsListener(new ViewControls.ViewControlListener() {
             @Override
@@ -125,6 +142,7 @@ public class ModelingScreen extends RoomScreen {
     public void show() {
         super.show();
         GdxVr.input.setInputProcessor(mainInterface);
+        getVrCamera().position.set(0, 0, 2);
 //        buttonControls.attachListener();
     }
 
@@ -168,11 +186,15 @@ public class ModelingScreen extends RoomScreen {
 
     private void rotate() {
         final Quaternion rotDiff = Pools.obtain(Quaternion.class);
+        final Vector3 axis = Pools.obtain(Vector3.class);
         rotDiff.set(lastRotation).conjugate().mulLeft(GdxVr.input.getControllerOrientation());
         rotation.mulLeft(rotDiff);
-        Pools.free(rotDiff);
         // TODO: 12/20/2017 rotate camera
+        getVrCamera().position.mul(rotDiff);
+        getVrCamera().lookAt(Vector3.Zero);
         lastRotation.set(GdxVr.input.getControllerOrientation());
+        Pools.free(rotDiff);
+        Pools.free(axis);
     }
 
     @Override
@@ -199,13 +221,12 @@ public class ModelingScreen extends RoomScreen {
         if (currentState == STATE_VIEW_TRANSFORM) {
             getSolidModelingGame().setCursorVisible(false);
             mainInterface.setVisible(false);
-//            if (transformAction == ROTATE)
-//                rotate();
+            if (transformAction == ROTATE)
+                rotate();
 //            else if (transformAction == PAN)
 //                pan();
 //            else if (transformAction == ZOOM)
 //                zoom();
-            return;
         } else {
             getSolidModelingGame().setCursorVisible(true);
         }
@@ -236,6 +257,7 @@ public class ModelingScreen extends RoomScreen {
                 startRotation.set(GdxVr.input.getControllerOrientation());
                 lastRotation.set(GdxVr.input.getControllerOrientation());
                 transformAction = ROTATE;
+                currentState = STATE_VIEW_TRANSFORM;
                 break;
         }
     }
