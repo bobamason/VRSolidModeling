@@ -17,7 +17,8 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pools;
 import com.google.vr.sdk.controller.Controller;
 
-import net.masonapps.jcsg.RoundedCube;
+import net.masonapps.jcsg.CSG;
+import net.masonapps.jcsg.Cylinder;
 import net.masonapps.vrsolidmodeling.csg.ModelDataBuilder;
 import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
@@ -33,6 +34,7 @@ import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 import java.util.concurrent.CompletableFuture;
 
 import eu.mihosoft.vvecmath.Vector3d;
+
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_NONE;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_VIEW_TRANSFORM;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.TransformAction.ACTION_NONE;
@@ -94,7 +96,7 @@ public class ModelingScreen extends RoomScreen {
         undoRedoCache = new UndoRedoCache();
 
         // TODO: 12/22/2017 remove csg test
-        CompletableFuture.supplyAsync(() -> new RoundedCube(Vector3d.xyz(0., 0.5, 0.), Vector3d.xyz(0.75, 1., 0.5)).cornerRadius(0.1f).toCSG())
+        CompletableFuture.supplyAsync(this::createTestCSG)
                 .thenAccept(csg -> ModelDataBuilder.fromCsgAsync(csg)
                         .thenAccept(modelData -> runOnGLThread(() -> {
                             final ModelInstance modelInstance = new ModelInstance(new Model(modelData));
@@ -116,6 +118,12 @@ public class ModelingScreen extends RoomScreen {
 
 //        brush.setUseSymmetry(false);
         undoRedoCache.save(null);
+    }
+
+    private CSG createTestCSG() {
+        final Cylinder cylinder1 = new Cylinder(Vector3d.xyz(0., -0.5, 0.), Vector3d.xyz(0., 0.5, 0.), 1f, 12);
+        final Cylinder cylinder2 = new Cylinder(Vector3d.xyz(-1., 0., 0.), Vector3d.xyz(1., 0., 0.), 0.25f, 12);
+        return cylinder1.toCSG().difference(cylinder2.toCSG());
     }
 
     @Override
