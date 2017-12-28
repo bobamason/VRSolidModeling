@@ -6,8 +6,6 @@ import android.preference.PreferenceManager;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -17,22 +15,20 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pools;
 import com.google.vr.sdk.controller.Controller;
 
-import net.masonapps.jcsg.RoundedCube;
-import net.masonapps.vrsolidmodeling.csg.ModelDataBuilder;
+import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
+import net.masonapps.vrsolidmodeling.modeling.ModelingWorld;
 import net.masonapps.vrsolidmodeling.ui.MainInterface;
 import net.masonapps.vrsolidmodeling.ui.UndoRedoCache;
 import net.masonapps.vrsolidmodeling.ui.ViewControls;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
-import org.masonapps.libgdxgooglevr.gfx.Entity;
 import org.masonapps.libgdxgooglevr.gfx.VrGame;
+import org.masonapps.libgdxgooglevr.gfx.VrWorldScreen;
+import org.masonapps.libgdxgooglevr.gfx.World;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 
-import java.util.concurrent.CompletableFuture;
-
-import eu.mihosoft.vvecmath.Vector3d;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_NONE;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_VIEW_TRANSFORM;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.TransformAction.ACTION_NONE;
@@ -42,7 +38,7 @@ import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.TransformActi
  * Created by Bob Mason on 12/20/2017.
  */
 
-public class ModelingScreen extends RoomScreen {
+public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.OnControllerBackPressedListener {
 
     private static final String TAG = ModelingScreen.class.getSimpleName();
     private static final float UI_ALPHA = 0.25f;
@@ -70,18 +66,12 @@ public class ModelingScreen extends RoomScreen {
 
             @Override
             public void onUndoClicked() {
-//                isMeshUpdating = true;
-//                CompletableFuture.runAsync(() ->
                 UndoRedoCache.applySaveData();
-//                        .thenRun(() -> isMeshUpdating = false);
             }
 
             @Override
             public void onRedoClicked() {
-//                isMeshUpdating = true;
-//                CompletableFuture.runAsync(() ->
                 UndoRedoCache.applySaveData();
-//                        .thenRun(() -> isMeshUpdating = false);
             }
 
             @Override
@@ -92,14 +82,6 @@ public class ModelingScreen extends RoomScreen {
         mainInterface = new MainInterface(spriteBatch, getSolidModelingGame().getSkin(), uiEventListener);
         mainInterface.loadWindowPositions(PreferenceManager.getDefaultSharedPreferences(GdxVr.app.getContext()));
         undoRedoCache = new UndoRedoCache();
-
-        // TODO: 12/22/2017 remove csg test
-        CompletableFuture.supplyAsync(() -> new RoundedCube(Vector3d.xyz(0., 0.5, 0.), Vector3d.xyz(0.75, 1., 0.5)).cornerRadius(0.1f).toCSG())
-                .thenAccept(csg -> ModelDataBuilder.fromCsgAsync(csg)
-                        .thenAccept(modelData -> runOnGLThread(() -> {
-                            final ModelInstance modelInstance = new ModelInstance(new Model(modelData));
-                            getWorld().add(new Entity(modelInstance));
-                        })));
 
 
         mainInterface.setViewControlsListener(new ViewControls.ViewControlListener() {
@@ -118,12 +100,21 @@ public class ModelingScreen extends RoomScreen {
         undoRedoCache.save(null);
     }
 
+    private SolidModelingGame getSolidModelingGame() {
+        return (SolidModelingGame) game;
+    }
+
     @Override
     protected void addLights(Array<BaseLight> lights) {
         final DirectionalLight light = new DirectionalLight();
         light.setColor(Color.WHITE);
         light.setDirection(new Vector3(1, -1, -1).nor());
         lights.add(light);
+    }
+
+    @Override
+    protected World createWorld() {
+        return new ModelingWorld();
     }
 
     @Override
@@ -165,22 +156,6 @@ public class ModelingScreen extends RoomScreen {
     @Override
     public void render(Camera camera, int whichEye) {
         super.render(camera, whichEye);
-//        final Matrix4 tmpMat = Pools.obtain(Matrix4.class);
-//        sculptMesh.renderEdges(camera, solidEntity.getTransform(tmpMat));
-//        Pools.free(tmpMat);
-//        drawBrushStroke(camera);
-
-//        if (currentState == STATE_SCULPTING) {
-//            final Matrix4 tmpMat = Pools.obtain(Matrix4.class);
-//            shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-//            shapeRenderer.setProjectionMatrix(camera.combined);
-//            shapeRenderer.setTransformMatrix(solidEntity.getTransform(tmpMat));
-//            shapeRenderer.setColor(Color.BLACK);
-//            shapeRenderer.box(searchBB.getCenterX(), searchBB.getCenterY(), searchBB.getCenterZ(), searchBB.getWidth(), searchBB.getHeight(), searchBB.getDepth());
-//            shapeRenderer.end();
-//            Pools.free(tmpMat);
-//        }
-
         mainInterface.draw(camera);
     }
 

@@ -47,7 +47,6 @@ import net.masonapps.vrsolidmodeling.screens.LoadingScreen;
 import net.masonapps.vrsolidmodeling.screens.ModelingScreen;
 import net.masonapps.vrsolidmodeling.screens.OpenProjectScreen;
 import net.masonapps.vrsolidmodeling.screens.ProgressLoadingScreen;
-import net.masonapps.vrsolidmodeling.screens.RoomScreen;
 import net.masonapps.vrsolidmodeling.screens.StartupScreen;
 import net.masonapps.vrsolidmodeling.service.ExportService;
 
@@ -364,8 +363,8 @@ public class SolidModelingGame extends VrGame {
     }
 
     private void onControllerBackButtonClicked() {
-        if (getScreen() instanceof RoomScreen)
-            ((RoomScreen) getScreen()).onControllerBackButtonClicked();
+        if (getScreen() instanceof OnControllerBackPressedListener)
+            ((OnControllerBackPressedListener) getScreen()).onControllerBackButtonClicked();
     }
 
     public void closeModelingScreen() {
@@ -501,5 +500,9 @@ public class SolidModelingGame extends VrGame {
         final VrScreen screen = getScreen();
         if (screen instanceof ExportScreen)
             ((ExportScreen) screen).onExportComplete();
+    }
+
+    public interface OnControllerBackPressedListener {
+        void onControllerBackButtonClicked();
     }
 }

@@ -15,7 +15,7 @@ import org.masonapps.libgdxgooglevr.gfx.World;
 /**
  * Created by Bob on 12/28/2016.
  */
-public abstract class RoomScreen extends VrWorldScreen {
+public abstract class RoomScreen extends VrWorldScreen implements SolidModelingGame.OnControllerBackPressedListener {
     private final SolidModelingGame solidModelingGame;
 
     public RoomScreen(VrGame game) {
@@ -55,6 +55,4 @@ public abstract class RoomScreen extends VrWorldScreen {
     public SolidModelingGame getSolidModelingGame() {
         return solidModelingGame;
     }
-
-    public abstract void onControllerBackButtonClicked();
 }

@@ -23,37 +23,39 @@ import com.badlogic.gdx.utils.Pools;
 public class Entity implements Disposable {
     protected final Vector3 position = new Vector3();
     protected final Quaternion rotation = new Quaternion();
-    protected final Matrix4 inverseTransform = new Matrix4();
     protected final Vector3 scale = new Vector3(1f, 1f, 1f);
     private final Vector3 dimensions = new Vector3();
     private final Vector3 center = new Vector3();
-    private final float radius;
     public ModelInstance modelInstance;
     @Nullable
     protected BaseShader shader = null;
     protected boolean updated = false;
-    private BoundingBox bounds = new BoundingBox();
+    protected BoundingBox bounds = new BoundingBox();
+    private float radius;
     private boolean visible = true;
     private boolean lightingEnabled = true;
 
     public Entity(ModelInstance modelInstance) {
         this.modelInstance = modelInstance;
-        setTransform(modelInstance.transform);
-        bounds.inf();
-        for (Node node : modelInstance.nodes) {
-            node.extendBoundingBox(bounds, false);
+        if (modelInstance != null) {
+            bounds.inf();
+            for (Node node : modelInstance.nodes) {
+                node.extendBoundingBox(bounds, false);
+            }
+            setTransform(modelInstance.transform);
         }
-        bounds.getDimensions(dimensions);
-        bounds.getCenter(center);
-        radius = dimensions.len() / 2f;
     }
 
     public Entity(ModelInstance modelInstance, BoundingBox bounds) {
         this.modelInstance = modelInstance;
-        setTransform(modelInstance.transform);
+        if (bounds != null)
         this.bounds.set(bounds);
-        this.bounds.getDimensions(dimensions);
-        this.bounds.getCenter(center);
+        setTransform(modelInstance.transform);
+    }
+
+    protected void updateDimensions() {
+        bounds.getDimensions(dimensions);
+        bounds.getCenter(center);
         radius = dimensions.len() / 2f;
     }
 
@@ -410,6 +412,7 @@ public class Entity implements Disposable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        updateDimensions();
         updated = true;
         return this;
     }
