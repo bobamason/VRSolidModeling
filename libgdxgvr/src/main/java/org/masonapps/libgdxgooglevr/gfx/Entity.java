@@ -23,39 +23,42 @@ import com.badlogic.gdx.utils.Pools;
 public class Entity implements Disposable {
     protected final Vector3 position = new Vector3();
     protected final Quaternion rotation = new Quaternion();
+    protected final Matrix4 transform = new Matrix4();
+    protected final Matrix4 inverseTransform = new Matrix4();
     protected final Vector3 scale = new Vector3(1f, 1f, 1f);
     private final Vector3 dimensions = new Vector3();
     private final Vector3 center = new Vector3();
+    private final float radius;
+    @Nullable
     public ModelInstance modelInstance;
     @Nullable
     protected BaseShader shader = null;
     protected boolean updated = false;
-    protected BoundingBox bounds = new BoundingBox();
-    private float radius;
+    private BoundingBox bounds = new BoundingBox();
     private boolean visible = true;
     private boolean lightingEnabled = true;
 
-    public Entity(ModelInstance modelInstance) {
+    public Entity(@Nullable ModelInstance modelInstance) {
         this.modelInstance = modelInstance;
         if (modelInstance != null) {
+            setTransform(modelInstance.transform);
             bounds.inf();
             for (Node node : modelInstance.nodes) {
                 node.extendBoundingBox(bounds, false);
             }
-            setTransform(modelInstance.transform);
         }
-    }
-
-    public Entity(ModelInstance modelInstance, BoundingBox bounds) {
-        this.modelInstance = modelInstance;
-        if (bounds != null)
-        this.bounds.set(bounds);
-        setTransform(modelInstance.transform);
-    }
-
-    protected void updateDimensions() {
         bounds.getDimensions(dimensions);
         bounds.getCenter(center);
+        radius = dimensions.len() / 2f;
+    }
+
+    public Entity(@Nullable ModelInstance modelInstance, BoundingBox bounds) {
+        this.modelInstance = modelInstance;
+        if (modelInstance != null)
+            setTransform(modelInstance.transform);
+        this.bounds.set(bounds);
+        this.bounds.getDimensions(dimensions);
+        this.bounds.getCenter(center);
         radius = dimensions.len() / 2f;
     }
 
@@ -133,7 +136,7 @@ public class Entity implements Disposable {
 
         tmpRay.set(ray).mul(inverseTransform);
         final boolean intersectRayBounds = Intersector.intersectRayBounds(tmpRay, bounds, hitPoint);
-        if (intersectRayBounds && hitPoint != null) hitPoint.mul(modelInstance.transform);
+        if (intersectRayBounds && hitPoint != null) hitPoint.mul(transform);
 
         Pools.free(tmpRay);
         return intersectRayBounds;
@@ -365,8 +368,8 @@ public class Entity implements Disposable {
         return this;
     }
 
-    public Entity translate(Vector3 trans) {
-        this.position.add(trans);
+    public Entity translate(Vector3 translate) {
+        this.position.add(translate);
         invalidate();
         return this;
     }
@@ -392,9 +395,11 @@ public class Entity implements Disposable {
     }
 
     public void recalculateTransform() {
-        modelInstance.transform.set(position, rotation, scale);
+        transform.set(position, rotation, scale);
+        if (modelInstance != null)
+            modelInstance.transform.set(transform);
         try {
-            inverseTransform.set(modelInstance.transform).inv();
+            inverseTransform.set(transform).inv();
         } catch (Exception e) {
             inverseTransform.idt();
             Log.e(Entity.class.getName(), e.getLocalizedMessage());
@@ -403,16 +408,17 @@ public class Entity implements Disposable {
     }
 
     public Entity setTransform(Matrix4 transform) {
-        modelInstance.transform.set(transform);
-        modelInstance.transform.getTranslation(position);
-        modelInstance.transform.getRotation(rotation);
-        modelInstance.transform.getScale(scale);
+        this.transform.set(transform);
+        this.transform.getTranslation(position);
+        this.transform.getRotation(rotation);
+        this.transform.getScale(scale);
+        if (modelInstance != null)
+            modelInstance.transform.set(transform);
         try {
-            inverseTransform.set(modelInstance.transform).inv();
+            inverseTransform.set(this.transform).inv();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        updateDimensions();
         updated = true;
         return this;
     }

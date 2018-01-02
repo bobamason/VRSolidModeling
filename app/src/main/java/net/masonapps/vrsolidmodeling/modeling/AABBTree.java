@@ -12,7 +12,6 @@ import org.masonapps.libgdxgooglevr.gfx.Entity;
 public class AABBTree {
 
     public AABBTree() {
-        root = new GroupNode();
     }
 
     public abstract class Node {

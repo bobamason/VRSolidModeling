@@ -18,7 +18,7 @@ public class ModelingWorld extends World {
     }
 
     @Nullable
-    public ModelingEntity rayTest(Ray ray, Vector3 hitPoint) {
+    public Primitive rayTest(Ray ray, Vector3 hitPoint) {
         return null;
     }
 }
