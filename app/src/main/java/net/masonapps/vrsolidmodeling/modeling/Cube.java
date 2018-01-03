@@ -52,7 +52,7 @@ public class Cube extends Primitive {
 
     @Override
     public BoundingBox createBounds() {
-        return boundingBox;
+        return new BoundingBox(boundingBox);
     }
 
     @Override

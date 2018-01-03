@@ -62,47 +62,7 @@ public class ModelDataBuilder {
         final Vector3 pos = new Vector3();
         final Vector3 nor = new Vector3();
 
-        int offset = 0;
-        for (Polygon polygon : polygons) {
-            final List<Vertex> verts = polygon.vertices;
-            for (int i = 0; i < verts.size() - 2; i++) {
-                final Vertex v0 = verts.get(0);
-                final Vertex v1 = verts.get(i + 1);
-                final Vertex v2 = verts.get(i + 2);
-
-                ConversionUtil.toVector3(v0.pos, pos);
-                vertices.add(pos.x);
-                vertices.add(pos.y);
-                vertices.add(pos.z);
-                ConversionUtil.toVector3(v0.normal, nor);
-                vertices.add(nor.x);
-                vertices.add(nor.y);
-                vertices.add(nor.z);
-
-                ConversionUtil.toVector3(v1.pos, pos);
-                vertices.add(pos.x);
-                vertices.add(pos.y);
-                vertices.add(pos.z);
-                ConversionUtil.toVector3(v1.normal, nor);
-                vertices.add(nor.x);
-                vertices.add(nor.y);
-                vertices.add(nor.z);
-
-                ConversionUtil.toVector3(v2.pos, pos);
-                vertices.add(pos.x);
-                vertices.add(pos.y);
-                vertices.add(pos.z);
-                ConversionUtil.toVector3(v2.normal, nor);
-                vertices.add(nor.x);
-                vertices.add(nor.y);
-                vertices.add(nor.z);
-
-                indices.add(offset);
-                indices.add(offset + i + 1);
-                indices.add(offset + i + 2);
-            }
-            offset += verts.size();
-        }
+        // TODO: 1/3/2018 
 
         Array<VertexAttribute> attributes = new Array<>();
         attributes.add(new VertexAttribute(VertexAttributes.Usage.Position, 3, ShaderProgram.POSITION_ATTRIBUTE));
@@ -154,10 +114,10 @@ public class ModelDataBuilder {
         int offset = 0;
         for (Polygon polygon : polygons) {
             final List<Vertex> verts = polygon.vertices;
-            for (int i = 0; i < verts.size() - 2; i++) {
+            for (int i = 2; i < verts.size(); i++) {
                 final Vertex v0 = verts.get(0);
-                final Vertex v1 = verts.get(i + 1);
-                final Vertex v2 = verts.get(i + 2);
+                final Vertex v1 = verts.get(i - 1);
+                final Vertex v2 = verts.get(i);
 
                 ConversionUtil.toVector3(v0.pos, pos);
                 vertices.add(pos.x);
@@ -187,8 +147,8 @@ public class ModelDataBuilder {
                 vertices.add(nor.z);
 
                 indices.add(offset);
-                indices.add(offset + i + 1);
-                indices.add(offset + i + 2);
+                indices.add(offset + i - 1);
+                indices.add(offset + i);
             }
             offset += verts.size();
         }

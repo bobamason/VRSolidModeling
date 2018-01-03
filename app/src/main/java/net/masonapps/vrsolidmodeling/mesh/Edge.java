@@ -1,7 +1,7 @@
 package net.masonapps.vrsolidmodeling.mesh;
 
 /**
- * Created by Bob on 7/12/2017.
+ * Created by Bob Mason on 7/12/2017.
  */
 
 public class Edge {

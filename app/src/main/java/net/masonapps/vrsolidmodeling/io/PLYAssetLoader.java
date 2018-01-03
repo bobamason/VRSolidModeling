@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.utils.FloatArray;
 import com.badlogic.gdx.utils.ShortArray;
 
+import net.masonapps.vrsolidmodeling.mesh.Face;
 import net.masonapps.vrsolidmodeling.mesh.MeshData;
 import net.masonapps.vrsolidmodeling.mesh.Triangle;
 import net.masonapps.vrsolidmodeling.mesh.Vertex;
@@ -23,10 +24,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Bob on 7/11/2017.
+ * Created by Bob Mason on 7/11/2017.
  */
 
-public class PLYConverter {
+public class PLYAssetLoader {
 //    private static final SimpleDateFormat df = new SimpleDateFormat("mm:ss.SSS");
 
     private static int parseStream(InputStream inputStream, boolean flipV, FloatArray vertices, ShortArray indices) {
@@ -141,7 +142,7 @@ public class PLYConverter {
                 currentVertex++;
             }
 
-            Log.d(PLYConverter.class.getSimpleName(), "vertices " + (vertices.size / vertexSize) + " file count " + vertexCount);
+            Log.d(PLYAssetLoader.class.getSimpleName(), "vertices " + (vertices.size / vertexSize) + " file count " + vertexCount);
 
             while (currentFace < faceCount) {
                 line = reader.readLine();
@@ -160,19 +161,151 @@ public class PLYConverter {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            Log.e(PLYConverter.class.getSimpleName(), "load ply file failed: " + e.getMessage());
+            Log.e(PLYAssetLoader.class.getSimpleName(), "load ply file failed: " + e.getMessage());
             return -1;
         }
-        Log.d(PLYConverter.class.getSimpleName(), "faces " + (indices.size / 3));
+        Log.d(PLYAssetLoader.class.getSimpleName(), "faces " + (indices.size / 3));
 //        Log.d(PLYLoader.class.getSimpleName(), "parseStream eT: " + df.format(System.currentTimeMillis() - t));
         return vertexSize;
     }
 
-    public static MeshData createMeshData(File file, String assetName) throws FileNotFoundException {
-        return createMeshData(new FileInputStream(file), assetName);
+    private static List<Face> parseFaceList(InputStream inputStream, boolean flipV) {
+//        long t = System.currentTimeMillis();
+        List<Vertex> vertices = new ArrayList<>();
+        List<Face> faces = new ArrayList<>();
+        String line;
+        String[] tokens;
+        int xIndex = -1, yIndex = -1, zIndex = -1, nxIndex = -1, nyIndex = -1, nzIndex = -1, uIndex = -1, vIndex = -1;
+        boolean hasNormal = false;
+        boolean hasUV = false;
+        int propertyIndex = 0;
+        int vertexCount = 0, faceCount = 0, currentVertex = 0, currentFace = 0;
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
+        try {
+            while ((line = reader.readLine()) != null) {
+                tokens = line.split("\\s+");
+                if (tokens.length < 1) break;
+
+                if (tokens[0].length() == 0) {
+                    continue;
+                }
+
+                if (tokens[0].equals("element")) {
+                    if (tokens[1].equals("vertex")) {
+                        vertexCount = Integer.parseInt(tokens[2]);
+                    } else if (tokens[1].equals("face")) {
+                        faceCount = Integer.parseInt(tokens[2]);
+                    }
+
+                } else if (tokens[0].equals("property")) {
+                    if (tokens[2].equals("x")) {
+                        xIndex = propertyIndex;
+                        propertyIndex++;
+                    }
+                    if (tokens[2].equals("y")) {
+                        yIndex = propertyIndex;
+                        propertyIndex++;
+                    }
+                    if (tokens[2].equals("z")) {
+                        zIndex = propertyIndex;
+                        propertyIndex++;
+                    }
+                    if (tokens[2].equals("nx")) {
+                        nxIndex = propertyIndex;
+                        propertyIndex++;
+                        hasNormal = true;
+                    }
+                    if (tokens[2].equals("ny")) {
+                        nyIndex = propertyIndex;
+                        propertyIndex++;
+                        hasNormal = true;
+                    }
+                    if (tokens[2].equals("nz")) {
+                        nzIndex = propertyIndex;
+                        propertyIndex++;
+                        hasNormal = true;
+                    }
+                    if (tokens[2].equals("s")) {
+                        uIndex = propertyIndex;
+                        propertyIndex++;
+                        hasUV = true;
+                    }
+                    if (tokens[2].equals("t")) {
+                        vIndex = propertyIndex;
+                        propertyIndex++;
+                        hasUV = true;
+                    }
+                } else if (tokens[0].equals("end_header")) {
+                    break;
+                }
+            }
+
+            while (currentVertex < vertexCount) {
+                line = reader.readLine();
+                if (line == null) break;
+                tokens = line.split("\\s+");
+                float x = 0, y = 0, z = 0, nx = 0, ny = 0, nz = 0, u = 0, v = 0;
+                try {
+                    x = Float.parseFloat(tokens[xIndex]);
+                    y = Float.parseFloat(tokens[yIndex]);
+                    z = Float.parseFloat(tokens[zIndex]);
+                    if (hasNormal) {
+                        nx = Float.parseFloat(tokens[nxIndex]);
+                        ny = Float.parseFloat(tokens[nyIndex]);
+                        nz = Float.parseFloat(tokens[nzIndex]);
+                    }
+                    if (hasUV) {
+                        u = Float.parseFloat(tokens[uIndex]);
+                        v = Float.parseFloat(tokens[vIndex]);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                final Vertex vertex = new Vertex();
+                vertex.position.set(x, y, z);
+                if (hasNormal) {
+                    vertex.normal.set(nx, ny, nz);
+                }
+                if (hasUV) {
+                    vertex.uv.set(u, flipV ? 1f - v : v);
+                }
+                vertices.add(vertex);
+                currentVertex++;
+            }
+
+            Log.d(PLYAssetLoader.class.getSimpleName(), "vertices " + vertices.size() + " file count " + vertexCount);
+
+            while (currentFace < faceCount) {
+                List<Vertex> tempVerts = new ArrayList<>();
+                line = reader.readLine();
+                if (line == null) break;
+                tokens = line.split("\\s+");
+                final int n = Integer.parseInt(tokens[0]);
+                for (int i = 0; i < n; i++) {
+                    tempVerts.add(vertices.get(Integer.parseInt(tokens[i])));
+                }
+                final Face face = new Face(tempVerts);
+                face.update();
+                faces.add(face);
+                tempVerts.clear();
+                currentFace++;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e(PLYAssetLoader.class.getSimpleName(), "load ply file failed: " + e.getMessage());
+        }
+        Log.d(PLYAssetLoader.class.getSimpleName(), "faces " + faces.size());
+//        Log.d(PLYLoader.class.getSimpleName(), "parseStream eT: " + df.format(System.currentTimeMillis() - t));
+        return faces;
     }
 
-    public static MeshData createMeshData(InputStream inputStream, String assetName) {
+    public static MeshData createMeshData(File file) throws FileNotFoundException {
+        return createMeshData(new FileInputStream(file));
+    }
+
+    public static MeshData createMeshData(InputStream inputStream) {
 //        long t = System.currentTimeMillis();
         final FloatArray vertexArray = new FloatArray();
         final ShortArray indexArray = new ShortArray();
@@ -231,7 +364,7 @@ public class PLYConverter {
             triangles.add(triangle);
         }
 //        Log.d(PLYLoader.class.getSimpleName(), "createTriangleList eT: " + df.format(System.currentTimeMillis() - t));
-        Log.d(PLYConverter.class.getSimpleName(), numDuplicates + " duplicate vertices removed");
+        Log.d(PLYAssetLoader.class.getSimpleName(), numDuplicates + " duplicate vertices removed");
         final MeshData sculptMeshData = new MeshData(vertexList.toArray(new Vertex[vertexList.size()]), triangles.toArray(new Triangle[triangles.size()]));
         return sculptMeshData;
     }

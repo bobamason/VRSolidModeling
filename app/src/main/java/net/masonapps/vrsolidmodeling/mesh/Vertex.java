@@ -7,7 +7,7 @@ import com.badlogic.gdx.math.Vector3;
 import java.util.Arrays;
 
 /**
- * Created by Bob on 5/11/2017.
+ * Created by Bob Mason on 5/11/2017.
  */
 
 public class Vertex {

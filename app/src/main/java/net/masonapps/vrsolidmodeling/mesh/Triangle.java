@@ -6,6 +6,10 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 
+/**
+ * Created by Bob Mason on 5/11/2017.
+ */
+
 public class Triangle {
 
     public final Plane plane = new Plane();
@@ -78,6 +82,7 @@ public class Triangle {
 
         clearUpdateFlag();
     }
+
     public float getWeight(Vertex vertex) {
         if (vertex.index == v1.index)
             return a1;
