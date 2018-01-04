@@ -50,7 +50,7 @@ public class ModelingEntity extends Entity {
     @Override
     public Entity setTransform(Matrix4 transform) {
         super.setTransform(transform);
-        if (modelInstance != null)
+        if (modelInstance != null && parentTransform != null)
             modelInstance.transform.mulLeft(parentTransform);
         return this;
     }

@@ -89,7 +89,7 @@ public class SolidModelingGame extends VrGame {
     private ModelInstance roomInstance = null;
     private boolean loadingFailed = false;
     private boolean appButtonDown = false;
-    private HashMap<String, Primitive> primitiveMap;
+    private HashMap<String, Primitive> primitiveMap = new HashMap<>();
 
     @SuppressLint("SimpleDateFormat")
     private static String generateNewProjectName() {

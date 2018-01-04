@@ -6,21 +6,27 @@ import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pools;
 import com.google.vr.sdk.controller.Controller;
 
-import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
 import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
@@ -32,7 +38,6 @@ import net.masonapps.vrsolidmodeling.ui.ViewControls;
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.Transformable;
 import org.masonapps.libgdxgooglevr.gfx.VrGame;
-import org.masonapps.libgdxgooglevr.gfx.VrWorldScreen;
 import org.masonapps.libgdxgooglevr.gfx.World;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 
@@ -45,13 +50,14 @@ import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.TransformActi
  * Created by Bob Mason on 12/20/2017.
  */
 
-public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.OnControllerBackPressedListener {
+public class ModelingScreen extends RoomScreen {
 
     private static final String TAG = ModelingScreen.class.getSimpleName();
     private static final float UI_ALPHA = 0.25f;
     private final MainInterface mainInterface;
     private final UndoRedoCache undoRedoCache;
     private final Transformable transformable;
+    private final ShapeRenderer shapeRenderer;
     private boolean isTouchPadClicked = false;
     private Quaternion rotation = new Quaternion();
     private Quaternion lastRotation = new Quaternion();
@@ -61,7 +67,6 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private TransformAction transformAction = ACTION_NONE;
     private InputMode currentInputMode = InputMode.VIEW;
     private State currentState = STATE_NONE;
-    private Ray transformedRay = new Ray();
     @Nullable
     private ModelingEntity focusedEntity = null;
 
@@ -69,10 +74,10 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         super(game);
         this.projectName = projectName;
 
-        final ShapeRenderer shapeRenderer = new ShapeRenderer();
+        shapeRenderer = new ShapeRenderer();
         shapeRenderer.setAutoShapeType(true);
         final SpriteBatch spriteBatch = new SpriteBatch();
-        manageDisposable(spriteBatch);
+        manageDisposable(shapeRenderer, spriteBatch);
 
         transformable = new Transformable();
         transformable.setPosition(0, 4, 0);
@@ -123,12 +128,15 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         undoRedoCache.save(null);
     }
 
-    private ModelingWorld getModelingWorld() {
-        return (ModelingWorld) getWorld();
+    private static Model createBoxModel(ModelBuilder builder, Color color, BoundingBox bounds) {
+        builder.begin();
+        final MeshPartBuilder part = builder.part("s", GL20.GL_LINES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal, new Material(ColorAttribute.createDiffuse(color), new BlendingAttribute(true, 0.5f)));
+        BoxShapeBuilder.build(part, bounds);
+        return builder.end();
     }
 
-    private SolidModelingGame getSolidModelingGame() {
-        return (SolidModelingGame) game;
+    private ModelingWorld getModelingWorld() {
+        return (ModelingWorld) getWorld();
     }
 
     @Override
@@ -182,6 +190,9 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     @Override
     public void render(Camera camera, int whichEye) {
         super.render(camera, whichEye);
+        shapeRenderer.begin();
+        shapeRenderer.setProjectionMatrix(camera.combined);
+        shapeRenderer.end();
         mainInterface.draw(camera);
     }
 
@@ -285,7 +296,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             case STATE_NONE:
                 if (mainInterface.isCursorOver())
                     currentInputMode = InputMode.UI;
-                else if ((focusedEntity = getModelingWorld().rayTest(transformedRay, getSolidModelingGame().getCursor().position)) != null)
+                else if ((focusedEntity = getModelingWorld().rayTest(GdxVr.input.getInputRay(), getSolidModelingGame().getCursor().position)) != null)
                     currentInputMode = InputMode.SELECT;
                 else
                     currentInputMode = InputMode.VIEW;

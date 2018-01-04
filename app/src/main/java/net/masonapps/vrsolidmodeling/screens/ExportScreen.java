@@ -129,7 +129,8 @@ public class ExportScreen extends RoomScreen {
         solidEntity.setPosition(modelPosition);
         getWorld().add(solidEntity);
 
-        box = getWorld().add(new Entity(new ModelInstance(createBoxModel(builder, Color.WHITE, solidEntity.getBounds())))).setPosition(modelPosition);
+        box = new Entity(new ModelInstance(createBoxModel(builder, Color.WHITE, solidEntity.getBounds())));
+        getWorld().add(box).setPosition(modelPosition);
 
         loadingSpinnerVR = new LoadingSpinnerVR(spriteBatch, skin.newDrawable(Style.Drawables.loading_spinner, Style.COLOR_ACCENT));
         loadingSpinnerVR.setPosition(0, 0, -1.5f);
