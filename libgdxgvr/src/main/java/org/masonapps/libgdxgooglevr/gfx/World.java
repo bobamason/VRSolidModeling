@@ -59,7 +59,7 @@ public class World implements Disposable {
 
     public void render(final ModelBatch batch, final Environment lights, final Entity entity) {
         if (!entity.updated) entity.recalculateTransform();
-        if (entity.isInCameraFrustum(batch.getCamera())) {
+        if (entity.isInCameraFrustum(batch.getCamera()) && entity.modelInstance != null) {
             if (entity.isLightingEnabled()) {
                 if (entity.shader != null)
                     batch.render(entity.modelInstance, lights, entity.shader);

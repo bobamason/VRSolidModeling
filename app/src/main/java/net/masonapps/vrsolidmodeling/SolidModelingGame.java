@@ -42,6 +42,8 @@ import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.environment.SkyDomeBuilder;
 import net.masonapps.vrsolidmodeling.mesh.MeshData;
+import net.masonapps.vrsolidmodeling.modeling.Cube;
+import net.masonapps.vrsolidmodeling.modeling.Primitive;
 import net.masonapps.vrsolidmodeling.screens.ExportScreen;
 import net.masonapps.vrsolidmodeling.screens.LoadingScreen;
 import net.masonapps.vrsolidmodeling.screens.ModelingScreen;
@@ -62,6 +64,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -86,6 +89,7 @@ public class SolidModelingGame extends VrGame {
     private ModelInstance roomInstance = null;
     private boolean loadingFailed = false;
     private boolean appButtonDown = false;
+    private HashMap<String, Primitive> primitiveMap;
 
     @SuppressLint("SimpleDateFormat")
     private static String generateNewProjectName() {
@@ -138,6 +142,10 @@ public class SolidModelingGame extends VrGame {
         textureParameter.minFilter = Texture.TextureFilter.Linear;
         textureParameter.magFilter = Texture.TextureFilter.Linear;
         loadAsset(Assets.SKY_TEXTURE, Texture.class, textureParameter);
+
+        final Cube cube = new Cube();
+        cube.initialize();
+        primitiveMap.put("cube", cube);
     }
 
     @Override
@@ -500,6 +508,10 @@ public class SolidModelingGame extends VrGame {
         final VrScreen screen = getScreen();
         if (screen instanceof ExportScreen)
             ((ExportScreen) screen).onExportComplete();
+    }
+
+    public Primitive getPrimitive(String name) {
+        return primitiveMap.get(name);
     }
 
     public interface OnControllerBackPressedListener {

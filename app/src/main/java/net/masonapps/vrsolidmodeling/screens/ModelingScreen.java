@@ -2,15 +2,20 @@ package net.masonapps.vrsolidmodeling.screens;
 
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pools;
 import com.google.vr.sdk.controller.Controller;
@@ -18,12 +23,14 @@ import com.google.vr.sdk.controller.Controller;
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
+import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
 import net.masonapps.vrsolidmodeling.modeling.ModelingWorld;
 import net.masonapps.vrsolidmodeling.ui.MainInterface;
 import net.masonapps.vrsolidmodeling.ui.UndoRedoCache;
 import net.masonapps.vrsolidmodeling.ui.ViewControls;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
+import org.masonapps.libgdxgooglevr.gfx.Transformable;
 import org.masonapps.libgdxgooglevr.gfx.VrGame;
 import org.masonapps.libgdxgooglevr.gfx.VrWorldScreen;
 import org.masonapps.libgdxgooglevr.gfx.World;
@@ -44,14 +51,19 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private static final float UI_ALPHA = 0.25f;
     private final MainInterface mainInterface;
     private final UndoRedoCache undoRedoCache;
+    private final Transformable transformable;
     private boolean isTouchPadClicked = false;
     private Quaternion rotation = new Quaternion();
     private Quaternion lastRotation = new Quaternion();
     private Quaternion startRotation = new Quaternion();
+    private Quaternion snappedRotation = new Quaternion();
     private String projectName;
     private TransformAction transformAction = ACTION_NONE;
     private InputMode currentInputMode = InputMode.VIEW;
     private State currentState = STATE_NONE;
+    private Ray transformedRay = new Ray();
+    @Nullable
+    private ModelingEntity focusedEntity = null;
 
     public ModelingScreen(VrGame game, String projectName) {
         super(game);
@@ -62,7 +74,18 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         final SpriteBatch spriteBatch = new SpriteBatch();
         manageDisposable(spriteBatch);
 
+        transformable = new Transformable();
+        transformable.setPosition(0, 4, 0);
+        transformable.getTransform(getModelingWorld().transform);
+
         final MainInterface.UiEventListener uiEventListener = new MainInterface.UiEventListener() {
+
+            @Override
+            public void onAddClicked() {
+                final Color color = new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1f);
+                final Vector3 pos = new Vector3(MathUtils.random(-2f, 2f), MathUtils.random(-2f, 2f), MathUtils.random(-2f, 2f));
+                getModelingWorld().add(new ModelingEntity(getSolidModelingGame().getPrimitive("cube"), new Material(ColorAttribute.createDiffuse(color)))).setPosition(pos).scale(0.25f);
+            }
 
             @Override
             public void onUndoClicked() {
@@ -100,6 +123,10 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         undoRedoCache.save(null);
     }
 
+    private ModelingWorld getModelingWorld() {
+        return (ModelingWorld) getWorld();
+    }
+
     private SolidModelingGame getSolidModelingGame() {
         return (SolidModelingGame) game;
     }
@@ -133,7 +160,6 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     public void show() {
         super.show();
         GdxVr.input.setInputProcessor(mainInterface);
-        getVrCamera().position.set(0, 0, 2);
 //        buttonControls.attachListener();
     }
 
@@ -164,9 +190,9 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         final Vector3 axis = Pools.obtain(Vector3.class);
         rotDiff.set(lastRotation).conjugate().mulLeft(GdxVr.input.getControllerOrientation());
         rotation.mulLeft(rotDiff);
-        // TODO: 12/20/2017 rotate camera
-        getVrCamera().position.mul(rotDiff);
-        getVrCamera().lookAt(Vector3.Zero);
+        transformable.setPosition(0, -4, 0);
+        transformable.setRotation(rotation);
+        transformable.getTransform(getModelingWorld().transform);
         lastRotation.set(GdxVr.input.getControllerOrientation());
         Pools.free(rotDiff);
         Pools.free(axis);
@@ -242,6 +268,9 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             case STATE_NONE:
                 break;
             case STATE_VIEW_TRANSFORM:
+                RotationUtil.snap(rotation, rotation);
+                transformable.setRotation(rotation);
+                transformable.getTransform(getModelingWorld().transform);
                 transformAction = ACTION_NONE;
                 currentState = STATE_NONE;
                 break;
@@ -256,6 +285,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             case STATE_NONE:
                 if (mainInterface.isCursorOver())
                     currentInputMode = InputMode.UI;
+                else if ((focusedEntity = getModelingWorld().rayTest(transformedRay, getSolidModelingGame().getCursor().position)) != null)
+                    currentInputMode = InputMode.SELECT;
                 else
                     currentInputMode = InputMode.VIEW;
                 break;
@@ -270,7 +301,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     }
 
     enum InputMode {
-        UI, VIEW
+        UI, SELECT, VIEW
     }
 
     enum State {

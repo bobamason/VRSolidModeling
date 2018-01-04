@@ -75,6 +75,15 @@ public class MainInterface extends CylindricalWindowUiContainer {
         });
         buttonBarTable.add(redoBtn).padTop(PADDING).padBottom(PADDING).padRight(PADDING);
 
+        final VerticalImageTextButton addBtn = new VerticalImageTextButton("add", Style.createImageTextButtonStyle(skin, Style.Drawables.ic_copy));
+        addBtn.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                eventListener.onAddClicked();
+            }
+        });
+        buttonBarTable.add(addBtn).padTop(PADDING).padBottom(PADDING).padRight(PADDING);
+
         final VerticalImageTextButton viewBtn = new VerticalImageTextButton(Style.getStringResource(R.string.view, "view"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_rotate));
         viewBtn.addListener(new ClickListener() {
             @Override
@@ -168,6 +177,9 @@ public class MainInterface extends CylindricalWindowUiContainer {
     }
 
     public interface UiEventListener {
+        // TODO: 1/4/2018 remove test add method
+        void onAddClicked();
+        
         void onUndoClicked();
 
         void onRedoClicked();

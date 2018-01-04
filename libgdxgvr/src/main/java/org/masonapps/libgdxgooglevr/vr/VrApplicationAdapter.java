@@ -24,12 +24,13 @@ public abstract class VrApplicationAdapter implements ApplicationListener, Daydr
     protected VrCamera vrCamera;
 
     public VrApplicationAdapter() {
-        vrCamera = new VrCamera();
     }
 
     @Override
     @CallSuper
     public void create() {
+        vrCamera = new VrCamera();
+        GdxVr.input.addDaydreamControllerListener(this);
     }
 
     public void preloadSoundFiles(GvrAudioEngine gvrAudioEngine) {

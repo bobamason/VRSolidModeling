@@ -591,6 +591,8 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
                 }
             }
 
+            app.input.getController().update();
+            app.input.onDaydreamControllerUpdate();
             ((VrApplicationAdapter) GdxVr.app.getApplicationListener()).onDrawFrame(headTransform, leftEye, rightEye);
             frameId++;
         }

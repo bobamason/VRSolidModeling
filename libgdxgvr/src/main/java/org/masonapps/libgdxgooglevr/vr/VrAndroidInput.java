@@ -67,14 +67,13 @@ public class VrAndroidInput implements Input, View.OnKeyListener {
     private boolean isInputProcessorTouched = false;
     private GridPoint2 touch = new GridPoint2(-1, -1);
     private GridPoint2 lastTouch = new GridPoint2(-1, -1);
+    private int connectionState = Controller.ConnectionStates.CONNECTED;
 
     public VrAndroidInput(VrActivity.VrApplication application, WeakReference<Context> contextRef) {
 //        this.onscreenKeyboard = new AndroidOnscreenKeyboard(context, new Handler(), this);
         daydreamControllerHandler = new DaydreamControllerHandler();
         app = application;
-        addDaydreamControllerListener(app.getVrApplicationAdapter());
         armModel = ArmModel.getInstance();
-
         vibrator = (Vibrator) contextRef.get().getSystemService(Context.VIBRATOR_SERVICE);
     }
 
@@ -573,7 +572,7 @@ public class VrAndroidInput implements Input, View.OnKeyListener {
         }
     }
 
-    public void onDaydreamControllerUpdate(Controller controller, int connectionState) {
+    public void onDaydreamControllerUpdate() {
         if (connectionState == Controller.ConnectionStates.CONNECTED) {
             isControllerConnected = true;
             armModel.updateHeadDirection(GdxVr.app.getVrApplicationAdapter().getVrCamera().direction);
@@ -629,10 +628,6 @@ public class VrAndroidInput implements Input, View.OnKeyListener {
         return isControllerConnected;
     }
 
-    public void setController(Controller controller) {
-        this.controller = controller;
-    }
-
     public DaydreamControllerHandler getDaydreamControllerHandler() {
         return daydreamControllerHandler;
     }
@@ -643,6 +638,18 @@ public class VrAndroidInput implements Input, View.OnKeyListener {
 
     public void removeDaydreamControllerListener(DaydreamControllerInputListener listener) {
         getDaydreamControllerHandler().removeListener(listener);
+    }
+
+    public void setConnectionState(int connectionState) {
+        this.connectionState = connectionState;
+    }
+
+    public Controller getController() {
+        return controller;
+    }
+
+    public void setController(Controller controller) {
+        this.controller = controller;
     }
 
     protected static class KeyEvent {

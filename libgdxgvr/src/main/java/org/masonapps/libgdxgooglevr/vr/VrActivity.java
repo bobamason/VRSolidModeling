@@ -601,14 +601,14 @@ public class VrActivity extends Activity {
 
         @Override
         public void onUpdate() {
-            app.postRunnable(this);
+//            app.postRunnable(this);
         }
 
         // Update the various TextViews in the UI thread.
         @Override
         public void run() {
             controller.update();
-            app.input.onDaydreamControllerUpdate(controller, connectionState);
+            app.input.setConnectionState(connectionState);
         }
     }
 }
