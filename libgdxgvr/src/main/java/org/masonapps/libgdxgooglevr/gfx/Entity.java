@@ -22,7 +22,6 @@ public class Entity extends Transformable implements Disposable {
     private final Vector3 dimensions = new Vector3();
     private final Vector3 center = new Vector3();
     private final float radius;
-    @Nullable
     public ModelInstance modelInstance;
     @Nullable
     protected BaseShader shader = null;
@@ -30,15 +29,13 @@ public class Entity extends Transformable implements Disposable {
     private boolean visible = true;
     private boolean lightingEnabled = true;
 
-    public Entity(@Nullable ModelInstance modelInstance) {
+    public Entity(ModelInstance modelInstance) {
         this.modelInstance = modelInstance;
-        if (modelInstance != null) {
             setTransform(modelInstance.transform);
             bounds.inf();
             for (Node node : modelInstance.nodes) {
                 node.extendBoundingBox(bounds, false);
             }
-        }
         bounds.getDimensions(dimensions);
         bounds.getCenter(center);
         radius = dimensions.len() / 2f;
@@ -57,9 +54,13 @@ public class Entity extends Transformable implements Disposable {
     public boolean isInCameraFrustum(Camera camera) {
         if (!visible) return false;
         if (!updated) recalculateTransform();
-        final Vector3 tmp = Pools.obtain(Vector3.class);
-        final boolean inFrustum = camera.frustum.sphereInFrustum(tmp.set(position).add(center), radius * Math.max(scale.x, Math.max(scale.y, scale.z)));
-        Pools.free(tmp);
+        final Vector3 pos = Pools.obtain(Vector3.class);
+        final Vector3 s = Pools.obtain(Vector3.class);
+        pos.set(center).mul(modelInstance.transform);
+        modelInstance.transform.getScale(s);
+        final boolean inFrustum = camera.frustum.sphereInFrustum(pos, radius * Math.max(s.x, Math.max(s.y, s.z)));
+        Pools.free(pos);
+        Pools.free(s);
         return inFrustum;
     }
 

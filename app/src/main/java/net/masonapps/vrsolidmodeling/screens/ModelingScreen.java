@@ -9,8 +9,10 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
@@ -27,6 +29,8 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pools;
 import com.google.vr.sdk.controller.Controller;
 
+import net.masonapps.vrsolidmodeling.SolidModelingGame;
+import net.masonapps.vrsolidmodeling.math.Animator;
 import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
 import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
@@ -36,8 +40,8 @@ import net.masonapps.vrsolidmodeling.ui.UndoRedoCache;
 import net.masonapps.vrsolidmodeling.ui.ViewControls;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
-import org.masonapps.libgdxgooglevr.gfx.Transformable;
 import org.masonapps.libgdxgooglevr.gfx.VrGame;
+import org.masonapps.libgdxgooglevr.gfx.VrWorldScreen;
 import org.masonapps.libgdxgooglevr.gfx.World;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 
@@ -50,14 +54,14 @@ import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.TransformActi
  * Created by Bob Mason on 12/20/2017.
  */
 
-public class ModelingScreen extends RoomScreen {
+public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.OnControllerBackPressedListener {
 
     private static final String TAG = ModelingScreen.class.getSimpleName();
     private static final float UI_ALPHA = 0.25f;
     private final MainInterface mainInterface;
     private final UndoRedoCache undoRedoCache;
-    private final Transformable transformable;
     private final ShapeRenderer shapeRenderer;
+    private final Animator snapAnimator;
     private boolean isTouchPadClicked = false;
     private Quaternion rotation = new Quaternion();
     private Quaternion lastRotation = new Quaternion();
@@ -74,14 +78,28 @@ public class ModelingScreen extends RoomScreen {
         super(game);
         this.projectName = projectName;
 
+        setBackgroundColor(Color.SKY);
+
+        snapAnimator = new Animator(new Animator.AnimationListener() {
+            @Override
+            public void apply(float value) {
+                getModelingWorld().transformable.getRotation().set(rotation).slerp(snappedRotation, value);
+                getModelingWorld().transformable.recalculateTransform();
+            }
+
+            @Override
+            public void finished() {
+                rotation.set(snappedRotation);
+                lastRotation.set(rotation);
+            }
+        });
+
         shapeRenderer = new ShapeRenderer();
         shapeRenderer.setAutoShapeType(true);
         final SpriteBatch spriteBatch = new SpriteBatch();
         manageDisposable(shapeRenderer, spriteBatch);
 
-        transformable = new Transformable();
-        transformable.setPosition(0, 4, 0);
-        transformable.getTransform(getModelingWorld().transform);
+        getModelingWorld().transformable.setPosition(0, 0, -4);
 
         final MainInterface.UiEventListener uiEventListener = new MainInterface.UiEventListener() {
 
@@ -135,8 +153,8 @@ public class ModelingScreen extends RoomScreen {
         return builder.end();
     }
 
-    private ModelingWorld getModelingWorld() {
-        return (ModelingWorld) getWorld();
+    private SolidModelingGame getSolidModelingGame() {
+        return (SolidModelingGame) game;
     }
 
     @Override
@@ -149,7 +167,19 @@ public class ModelingScreen extends RoomScreen {
 
     @Override
     protected World createWorld() {
-        return new ModelingWorld();
+        return new ModelingWorld() {
+            @Override
+            public void render(ModelBatch batch, Environment lights) {
+//                final ModelInstance roomInstance = getSolidModelingGame().getRoomInstance();
+//                if (roomInstance != null)
+//                    batch.render(roomInstance, getEnvironment());
+                super.render(batch, lights);
+            }
+        };
+    }
+
+    private ModelingWorld getModelingWorld() {
+        return (ModelingWorld) getWorld();
     }
 
     @Override
@@ -185,6 +215,7 @@ public class ModelingScreen extends RoomScreen {
     public void update() {
         super.update();
         mainInterface.act();
+        snapAnimator.update(GdxVr.graphics.getDeltaTime());
     }
 
     @Override
@@ -201,9 +232,7 @@ public class ModelingScreen extends RoomScreen {
         final Vector3 axis = Pools.obtain(Vector3.class);
         rotDiff.set(lastRotation).conjugate().mulLeft(GdxVr.input.getControllerOrientation());
         rotation.mulLeft(rotDiff);
-        transformable.setPosition(0, -4, 0);
-        transformable.setRotation(rotation);
-        transformable.getTransform(getModelingWorld().transform);
+        getModelingWorld().transformable.setRotation(rotation);
         lastRotation.set(GdxVr.input.getControllerOrientation());
         Pools.free(rotDiff);
         Pools.free(axis);
@@ -279,9 +308,9 @@ public class ModelingScreen extends RoomScreen {
             case STATE_NONE:
                 break;
             case STATE_VIEW_TRANSFORM:
-                RotationUtil.snap(rotation, rotation);
-                transformable.setRotation(rotation);
-                transformable.getTransform(getModelingWorld().transform);
+                RotationUtil.snap(rotation, snappedRotation);
+                snapAnimator.setDuration(0.5f);
+                snapAnimator.start();
                 transformAction = ACTION_NONE;
                 currentState = STATE_NONE;
                 break;

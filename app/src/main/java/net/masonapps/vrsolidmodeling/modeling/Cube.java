@@ -47,7 +47,7 @@ public class Cube extends Primitive {
     @Override
     public Model createModel() {
 //        return new Model(modelData);
-        return new ModelBuilder().createBox(2, 2, 2, new Material(ColorAttribute.createDiffuse(Color.GREEN)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        return new ModelBuilder().createBox(2, 2, 2, new Material(ColorAttribute.createDiffuse(Color.WHITE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
     }
 
     @Override

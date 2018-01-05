@@ -285,4 +285,8 @@ public class Transformable {
     public Matrix4 getInverseTransform(Matrix4 out) {
         return out.set(inverseTransform);
     }
+
+    public boolean isUpdated() {
+        return updated;
+    }
 }

@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
 import org.apache.commons.math3.geometry.euclidean.threed.PolyhedronsSet;
@@ -39,7 +40,7 @@ public abstract class Primitive implements Disposable {
         if (model == null)
             model = createModel();
         final ModelInstance modelInstance = new ModelInstance(model, transform);
-        modelInstance.materials.set(0, material);
+        modelInstance.materials.get(0).set(material.get(new Array<>(), material.getMask()));
         return modelInstance;
     }
 

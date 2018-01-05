@@ -11,6 +11,7 @@ import com.badlogic.gdx.utils.Pools;
 
 import org.apache.commons.math3.geometry.euclidean.threed.PolyhedronsSet;
 import org.masonapps.libgdxgooglevr.gfx.Entity;
+import org.masonapps.libgdxgooglevr.utils.Logger;
 
 /**
  * Created by Bob Mason on 1/2/2018.
@@ -43,14 +44,13 @@ public class ModelingEntity extends Entity {
     @Override
     public void recalculateTransform() {
         super.recalculateTransform();
-        if (modelInstance != null)
             modelInstance.transform.mulLeft(parentTransform);
     }
 
     @Override
     public Entity setTransform(Matrix4 transform) {
         super.setTransform(transform);
-        if (modelInstance != null && parentTransform != null)
+        if (parentTransform != null)
             modelInstance.transform.mulLeft(parentTransform);
         return this;
     }
@@ -86,5 +86,7 @@ public class ModelingEntity extends Entity {
 
     public void setParentTransform(Matrix4 parentTransform) {
         this.parentTransform.set(parentTransform);
+        modelInstance.transform.set(transform).mulLeft(parentTransform);
+        Logger.d(modelInstance.transform.toString());
     }
 }
