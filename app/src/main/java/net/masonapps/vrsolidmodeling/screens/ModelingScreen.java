@@ -9,10 +9,8 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
@@ -42,7 +40,6 @@ import net.masonapps.vrsolidmodeling.ui.ViewControls;
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.VrGame;
 import org.masonapps.libgdxgooglevr.gfx.VrWorldScreen;
-import org.masonapps.libgdxgooglevr.gfx.World;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_NONE;
@@ -73,18 +70,21 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private State currentState = STATE_NONE;
     @Nullable
     private ModelingEntity focusedEntity = null;
+    private ModelingWorld modelingWorld;
+    private Vector3 hitPoint = new Vector3();
 
     public ModelingScreen(VrGame game, String projectName) {
         super(game);
         this.projectName = projectName;
 
         setBackgroundColor(Color.SKY);
+        modelingWorld = new ModelingWorld();
 
         snapAnimator = new Animator(new Animator.AnimationListener() {
             @Override
             public void apply(float value) {
-                getModelingWorld().transformable.getRotation().set(rotation).slerp(snappedRotation, value);
-                getModelingWorld().transformable.recalculateTransform();
+                modelingWorld.transformable.getRotation().set(rotation).slerp(snappedRotation, value);
+                modelingWorld.transformable.recalculateTransform();
             }
 
             @Override
@@ -99,7 +99,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         final SpriteBatch spriteBatch = new SpriteBatch();
         manageDisposable(shapeRenderer, spriteBatch);
 
-        getModelingWorld().transformable.setPosition(0, 0, -4);
+        modelingWorld.transformable.setPosition(0, 0, -4);
 
         final MainInterface.UiEventListener uiEventListener = new MainInterface.UiEventListener() {
 
@@ -107,7 +107,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             public void onAddClicked() {
                 final Color color = new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1f);
                 final Vector3 pos = new Vector3(MathUtils.random(-2f, 2f), MathUtils.random(-2f, 2f), MathUtils.random(-2f, 2f));
-                getModelingWorld().add(new ModelingEntity(getSolidModelingGame().getPrimitive("cube"), new Material(ColorAttribute.createDiffuse(color)))).setPosition(pos).scale(0.25f);
+                modelingWorld.add(new ModelingEntity(getSolidModelingGame().getPrimitive("cube"), new Material(ColorAttribute.createDiffuse(color)))).setPosition(pos).scale(0.25f);
             }
 
             @Override
@@ -166,23 +166,6 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     }
 
     @Override
-    protected World createWorld() {
-        return new ModelingWorld() {
-            @Override
-            public void render(ModelBatch batch, Environment lights) {
-//                final ModelInstance roomInstance = getSolidModelingGame().getRoomInstance();
-//                if (roomInstance != null)
-//                    batch.render(roomInstance, getEnvironment());
-                super.render(batch, lights);
-            }
-        };
-    }
-
-    private ModelingWorld getModelingWorld() {
-        return (ModelingWorld) getWorld();
-    }
-
-    @Override
     public void resume() {
 
     }
@@ -214,6 +197,9 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     @Override
     public void update() {
         super.update();
+        if (currentInputMode == InputMode.SELECT)
+            getSolidModelingGame().getCursor().position.set(hitPoint);
+        modelingWorld.update();
         mainInterface.act();
         snapAnimator.update(GdxVr.graphics.getDeltaTime());
     }
@@ -221,9 +207,19 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     @Override
     public void render(Camera camera, int whichEye) {
         super.render(camera, whichEye);
-        shapeRenderer.begin();
-        shapeRenderer.setProjectionMatrix(camera.combined);
-        shapeRenderer.end();
+        getModelBatch().begin(camera);
+        modelingWorld.render(getModelBatch(), getEnvironment());
+        getModelBatch().end();
+        if (focusedEntity != null) {
+            shapeRenderer.begin();
+            shapeRenderer.setColor(Color.BLACK);
+            shapeRenderer.setProjectionMatrix(camera.combined);
+            shapeRenderer.setTransformMatrix(focusedEntity.modelInstance.transform);
+            final BoundingBox bounds = focusedEntity.getBounds();
+            shapeRenderer.box(bounds.getCenterX(), bounds.getCenterY(), bounds.getCenterZ(),
+                    bounds.getWidth(), bounds.getHeight(), bounds.getDepth());
+            shapeRenderer.end();
+        }
         mainInterface.draw(camera);
     }
 
@@ -232,7 +228,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         final Vector3 axis = Pools.obtain(Vector3.class);
         rotDiff.set(lastRotation).conjugate().mulLeft(GdxVr.input.getControllerOrientation());
         rotation.mulLeft(rotDiff);
-        getModelingWorld().transformable.setRotation(rotation);
+        modelingWorld.transformable.setRotation(rotation);
         lastRotation.set(GdxVr.input.getControllerOrientation());
         Pools.free(rotDiff);
         Pools.free(axis);
@@ -325,7 +321,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             case STATE_NONE:
                 if (mainInterface.isCursorOver())
                     currentInputMode = InputMode.UI;
-                else if ((focusedEntity = getModelingWorld().rayTest(GdxVr.input.getInputRay(), getSolidModelingGame().getCursor().position)) != null)
+                else if ((focusedEntity = modelingWorld.rayTest(GdxVr.input.getInputRay(), hitPoint)) != null)
                     currentInputMode = InputMode.SELECT;
                 else
                     currentInputMode = InputMode.VIEW;

@@ -59,6 +59,14 @@ public class Style {
         return imageButtonStyle;
     }
 
+    public static ImageButton.ImageButtonStyle createImageButtonStyleNoBg(Skin skin, String name) {
+        final ImageButton.ImageButtonStyle imageButtonStyle = new ImageButton.ImageButtonStyle();
+        imageButtonStyle.imageUp = skin.newDrawable(name);
+        imageButtonStyle.imageDown = skin.newDrawable(name, Color.LIGHT_GRAY);
+        imageButtonStyle.imageDisabled = skin.newDrawable(name, Color.GRAY);
+        return imageButtonStyle;
+    }
+
     public static ImageTextButton.ImageTextButtonStyle createImageTextButtonStyle(Skin skin, String name) {
         final ImageTextButton.ImageTextButtonStyle imageTextButtonStyle = new ImageTextButton.ImageTextButtonStyle(skin.get(DEFAULT, ImageTextButton.ImageTextButtonStyle.class));
         imageTextButtonStyle.imageUp = skin.newDrawable(name);
@@ -115,16 +123,13 @@ public class Style {
         public static final String ic_undo = "ic_undo";
         public static final String ic_rotate = "ic_rotate";
         public static final String ic_zoom = "ic_zoom";
+        public static final String ic_add = "ic_add";
         public static final String ic_more_vert = "ic_more_vert";
-        public static final String ic_button_brush = "ic_button_brush";
         public static final String ic_close = "ic_close";
         public static final String ic_color_selector = "ic_color_selector";
-        public static final String ic_button_draw = "ic_button_draw";
-        public static final String ic_button_pinch = "ic_button_pinch";
-        public static final String ic_button_flatten = "ic_button_flatten";
-        public static final String ic_button_grab = "ic_button_grab";
-        public static final String ic_button_smooth = "ic_button_smooth";
-        public static final String ic_button_paint = "ic_button_paint";
+        public static final String ic_drag_left = "ic_drag_left";
+        public static final String ic_drag_up = "ic_drag_up";
+        public static final String drag_box = "drag_box";
         public static final String window = "window";
         public static final String button = "button";
         public static final String white = "white";

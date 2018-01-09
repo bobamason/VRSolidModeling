@@ -75,7 +75,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
         });
         buttonBarTable.add(redoBtn).padTop(PADDING).padBottom(PADDING).padRight(PADDING);
 
-        final VerticalImageTextButton addBtn = new VerticalImageTextButton("add", Style.createImageTextButtonStyle(skin, Style.Drawables.ic_copy));
+        final VerticalImageTextButton addBtn = new VerticalImageTextButton("add", Style.createImageTextButtonStyle(skin, Style.Drawables.ic_add));
         addBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
@@ -83,6 +83,15 @@ public class MainInterface extends CylindricalWindowUiContainer {
             }
         });
         buttonBarTable.add(addBtn).padTop(PADDING).padBottom(PADDING).padRight(PADDING);
+
+        final VerticalImageTextButton colorBtn = new VerticalImageTextButton(Style.getStringResource(R.string.view, "view"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_rotate));
+        colorBtn.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                colorPicker.setVisible(!colorPicker.isVisible());
+            }
+        });
+        buttonBarTable.add(colorBtn).padTop(PADDING).padBottom(PADDING).padRight(PADDING);
 
         final VerticalImageTextButton viewBtn = new VerticalImageTextButton(Style.getStringResource(R.string.view, "view"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_rotate));
         viewBtn.addListener(new ClickListener() {
@@ -125,6 +134,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
         final CylindricalCoordinate coordinate = new CylindricalCoordinate(getRadius(), 50f, 0.35f, CylindricalCoordinate.AngleMode.degrees);
         colorPicker.setPosition(coordinate.toCartesian());
         colorPicker.lookAt(new Vector3(0, coordinate.vertical, 0), Vector3.Y);
+        colorPicker.setVisible(false);
         addProcessor(colorPicker);
     }
 
@@ -137,6 +147,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
         final CylindricalCoordinate coordinate = new CylindricalCoordinate(getRadius(), 40f, -0.35f, CylindricalCoordinate.AngleMode.degrees);
         viewControls.setPosition(coordinate.toCartesian());
         viewControls.lookAt(Vector3.Zero, Vector3.Y);
+        viewControls.setVisible(false);
         addProcessor(viewControls);
     }
 
