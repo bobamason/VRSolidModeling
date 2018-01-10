@@ -10,7 +10,6 @@ import com.badlogic.gdx.utils.Pools;
 import org.masonapps.libgdxgooglevr.gfx.Entity;
 import org.masonapps.libgdxgooglevr.gfx.Transformable;
 import org.masonapps.libgdxgooglevr.gfx.World;
-import org.masonapps.libgdxgooglevr.utils.Logger;
 
 /**
  * Created by Bob Mason on 12/28/2017.
@@ -26,7 +25,7 @@ public class ModelingWorld extends World {
             @Override
             public void recalculateTransform() {
                 super.recalculateTransform();
-                Logger.d(transform.toString());
+//                Logger.d(transform.toString());
                 for (Entity entity : entities) {
                     if (entity instanceof ModelingEntity)
                         ((ModelingEntity) entity).setParentTransform(this.transform);
@@ -72,7 +71,7 @@ public class ModelingWorld extends World {
                 if (modelingEntity.rayTest(tmpRay, hitPoint)) {
                     if (hitPoint != null) hitPoint.mul(transformable.getTransform(tmpMat));
                     hitEntity = modelingEntity;
-                    Logger.d("ray hit! " + hitPoint);
+//                    Logger.d("ray hit! " + hitPoint);
                     break;
                 }
             }

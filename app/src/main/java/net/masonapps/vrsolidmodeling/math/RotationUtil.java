@@ -4,6 +4,8 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 
+import org.masonapps.libgdxgooglevr.utils.Logger;
+
 /**
  * Created by Bob on 7/26/2017.
  */
@@ -40,13 +42,19 @@ public class RotationUtil {
     }
     
     public static void snap(Quaternion in, Quaternion out) {
+        dir.set(0, 0, 1).mul(in);
+        setToClosestUnitVector(dir);
         up.set(0, 1, 0).mul(in);
         setToClosestUnitVector(up);
-        dir.set(0, 0, -1).mul(in);
-        setToClosestUnitVector(dir);
+        if (dir.isCollinear(up, 1e-5f)) {
+            Logger.d("collinear: dir[" + dir + "] up[" + up + "]");
+            up.set(0, 1, 0);
+        }
         tmp.set(up).crs(dir).nor();
         tmp2.set(dir).crs(tmp).nor();
+        Logger.d("x[" + tmp + "] y[" + tmp2 + "] z[" + dir + "]");
         out.setFromAxes(tmp.x, tmp2.x, dir.x, tmp.y, tmp2.y, dir.y, tmp.z, tmp2.z, dir.z);
+//        out.setFromAxes(tmp.x, tmp.y, tmp.z, tmp2.x, tmp2.y, tmp2.z, dir.x, dir.y, dir.z);
     }
 
 //    public static void snap(Quaternion in, Quaternion out) {
@@ -74,7 +82,7 @@ public class RotationUtil {
 //        out.setFromMatrix(tmpMat);
 //    }
 
-    private static void setToClosestUnitVector(Vector3 v) {
+    public static Vector3 setToClosestUnitVector(Vector3 v) {
         if (Math.abs(v.x) > Math.abs(v.y)) {
             if (Math.abs(v.x) > Math.abs(v.z)) {
                 v.x = Math.signum(v.x);
@@ -96,5 +104,6 @@ public class RotationUtil {
                 v.y = 0f;
             }
         }
+        return v;
     }
 }

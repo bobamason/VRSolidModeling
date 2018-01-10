@@ -1,4 +1,4 @@
-package net.masonapps.vrsolidmodeling.ui;
+package net.masonapps.vrsolidmodeling.modeling.ui;
 
 import android.content.SharedPreferences;
 
@@ -12,6 +12,9 @@ import com.badlogic.gdx.utils.Pools;
 
 import net.masonapps.vrsolidmodeling.R;
 import net.masonapps.vrsolidmodeling.Style;
+import net.masonapps.vrsolidmodeling.ui.ColorPickerSimple;
+import net.masonapps.vrsolidmodeling.ui.ConfirmDialog;
+import net.masonapps.vrsolidmodeling.ui.VerticalImageTextButton;
 
 import org.masonapps.libgdxgooglevr.math.CylindricalCoordinate;
 import org.masonapps.libgdxgooglevr.ui.CylindricalWindowUiContainer;
@@ -84,7 +87,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
         });
         buttonBarTable.add(addBtn).padTop(PADDING).padBottom(PADDING).padRight(PADDING);
 
-        final VerticalImageTextButton colorBtn = new VerticalImageTextButton(Style.getStringResource(R.string.view, "view"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_rotate));
+        final VerticalImageTextButton colorBtn = new VerticalImageTextButton(Style.getStringResource(R.string.title_color_picker, "color"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_color));
         colorBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {

@@ -98,8 +98,8 @@ public class CylindricalWindowUiContainer extends VrUiContainer implements Daydr
 
             cylCoord.vertical = Math.max(-height / 2f, Math.min(height / 2f, cylCoord.vertical));
             focusedWindow.setPosition(cylCoord.toCartesian(tmp));
-            focusedWindow.lookAt(tmp.set(0, 0, 0), Vector3.Y);
-//            focusedWindow.lookAt(tmp.set(0, focusedWindow.getPosition().y, 0), Vector3.Y);
+//            focusedWindow.lookAt(tmp.set(0, 0, 0), Vector3.Y);
+            focusedWindow.lookAt(tmp.set(0, focusedWindow.getPosition().y, 0), Vector3.Y);
 
             Pools.free(cylCoord);
             Pools.free(tmp);

@@ -1,4 +1,4 @@
-package net.masonapps.vrsolidmodeling.ui;
+package net.masonapps.vrsolidmodeling.modeling;
 
 import android.support.annotation.Nullable;
 

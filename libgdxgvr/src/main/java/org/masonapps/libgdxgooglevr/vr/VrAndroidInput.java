@@ -20,6 +20,7 @@ import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.input.DaydreamControllerHandler;
 import org.masonapps.libgdxgooglevr.input.DaydreamControllerInputListener;
 import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
+import org.masonapps.libgdxgooglevr.utils.Logger;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -583,7 +584,11 @@ public class VrAndroidInput implements Input, View.OnKeyListener {
             isControllerConnected = false;
         }
         processEvents();
-        daydreamControllerHandler.process(controller, connectionState);
+        try {
+            daydreamControllerHandler.process(controller, connectionState);
+        } catch (Exception e) {
+            Logger.e("", e);
+        }
     }
 
     private void postTouchEvent(int type, int x, int y) {

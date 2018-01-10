@@ -1,4 +1,4 @@
-package net.masonapps.vrsolidmodeling.ui;
+package net.masonapps.vrsolidmodeling.modeling.ui;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;

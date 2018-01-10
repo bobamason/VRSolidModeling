@@ -19,6 +19,7 @@ import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
@@ -33,14 +34,15 @@ import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
 import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
 import net.masonapps.vrsolidmodeling.modeling.ModelingWorld;
-import net.masonapps.vrsolidmodeling.ui.MainInterface;
-import net.masonapps.vrsolidmodeling.ui.UndoRedoCache;
-import net.masonapps.vrsolidmodeling.ui.ViewControls;
+import net.masonapps.vrsolidmodeling.modeling.UndoRedoCache;
+import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
+import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.VrGame;
 import org.masonapps.libgdxgooglevr.gfx.VrWorldScreen;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
+import org.masonapps.libgdxgooglevr.utils.Logger;
 
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_NONE;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_VIEW_TRANSFORM;
@@ -70,6 +72,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private State currentState = STATE_NONE;
     @Nullable
     private ModelingEntity focusedEntity = null;
+    @Nullable
+    private ModelingEntity selectedEntity = null;
     private ModelingWorld modelingWorld;
     private Vector3 hitPoint = new Vector3();
 
@@ -84,7 +88,12 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             @Override
             public void apply(float value) {
                 modelingWorld.transformable.getRotation().set(rotation).slerp(snappedRotation, value);
+                lastRotation.set(modelingWorld.transformable.getRotation());
                 modelingWorld.transformable.recalculateTransform();
+
+//                getVrCamera().position.set(0, 0, 4).mul(snappedRotation);
+//                getVrCamera().up.set(0, 1, 0).mul(snappedRotation);
+//                getVrCamera().lookAt(Vector3.Zero);
             }
 
             @Override
@@ -93,6 +102,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 lastRotation.set(rotation);
             }
         });
+        snapAnimator.setInterpolation(Interpolation.linear);
 
         shapeRenderer = new ShapeRenderer();
         shapeRenderer.setAutoShapeType(true);
@@ -153,6 +163,13 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         return builder.end();
     }
 
+    protected static void drawEntityBounds(ShapeRenderer shapeRenderer, ModelingEntity entity) {
+        shapeRenderer.setTransformMatrix(entity.modelInstance.transform);
+        final BoundingBox bounds = entity.getBounds();
+        shapeRenderer.box(bounds.min.x, bounds.min.y, bounds.max.z,
+                bounds.getWidth(), bounds.getHeight(), bounds.getDepth());
+    }
+
     private SolidModelingGame getSolidModelingGame() {
         return (SolidModelingGame) game;
     }
@@ -210,35 +227,41 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         getModelBatch().begin(camera);
         modelingWorld.render(getModelBatch(), getEnvironment());
         getModelBatch().end();
+        shapeRenderer.begin();
+        shapeRenderer.setColor(Color.BLACK);
+        shapeRenderer.setProjectionMatrix(camera.combined);
         if (focusedEntity != null) {
-            shapeRenderer.begin();
-            shapeRenderer.setColor(Color.BLACK);
-            shapeRenderer.setProjectionMatrix(camera.combined);
-            shapeRenderer.setTransformMatrix(focusedEntity.modelInstance.transform);
-            final BoundingBox bounds = focusedEntity.getBounds();
-            shapeRenderer.box(bounds.getCenterX(), bounds.getCenterY(), bounds.getCenterZ(),
-                    bounds.getWidth(), bounds.getHeight(), bounds.getDepth());
-            shapeRenderer.end();
+            drawEntityBounds(shapeRenderer, focusedEntity);
         }
+        if (selectedEntity != null) {
+            drawEntityBounds(shapeRenderer, selectedEntity);
+        }
+        shapeRenderer.end();
         mainInterface.draw(camera);
     }
 
     private void rotate() {
         final Quaternion rotDiff = Pools.obtain(Quaternion.class);
-        final Vector3 axis = Pools.obtain(Vector3.class);
         rotDiff.set(lastRotation).conjugate().mulLeft(GdxVr.input.getControllerOrientation());
+//        rotDiff.conjugate();
         rotation.mulLeft(rotDiff);
+//        getVrCamera().position.set(0, 0, 4).mul(rotation);
+//        getVrCamera().up.set(0, 1, 0).mul(rotation);
+//        getVrCamera().lookAt(Vector3.Zero);
         modelingWorld.transformable.setRotation(rotation);
         lastRotation.set(GdxVr.input.getControllerOrientation());
         Pools.free(rotDiff);
-        Pools.free(axis);
     }
 
     @Override
     public void onControllerBackButtonClicked() {
         if (!mainInterface.onControllerBackButtonClicked()) {
-            getSolidModelingGame().closeModelingScreen();
-            getSolidModelingGame().switchToStartupScreen();
+            if (selectedEntity != null) {
+                selectedEntity = null;
+            } else {
+                getSolidModelingGame().closeModelingScreen();
+                getSolidModelingGame().switchToStartupScreen();
+            }
         }
     }
 
@@ -290,28 +313,44 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             case UI:
                 currentState = STATE_NONE;
                 break;
+            case SELECT:
+                if (focusedEntity != null)
+                    selectedEntity = focusedEntity;
+                break;
             case VIEW:
                 startRotation.set(GdxVr.input.getControllerOrientation());
                 lastRotation.set(GdxVr.input.getControllerOrientation());
                 transformAction = ROTATE;
                 currentState = STATE_VIEW_TRANSFORM;
                 break;
+            default:
+                break;
         }
     }
 
     private void onTouchPadButtonUp() {
         switch (currentState) {
-            case STATE_NONE:
-                break;
             case STATE_VIEW_TRANSFORM:
                 RotationUtil.snap(rotation, snappedRotation);
-                snapAnimator.setDuration(0.5f);
+
+                final Quaternion rotDiff = Pools.obtain(Quaternion.class);
+                rotDiff.set(rotation).conjugate().mulLeft(snappedRotation);
+                final float angleRad = rotDiff.getAngleRad();
+                final float duration = Math.abs(angleRad < MathUtils.PI ? angleRad : MathUtils.PI2 - angleRad) / MathUtils.PI;
+                Logger.d("animation duration: " + duration + " angle: " + rotDiff.getAngle());
+                Pools.free(rotDiff);
+                snapAnimator.setDuration(duration);
                 snapAnimator.start();
+//                final float len = getVrCamera().position.len();
+//                RotationUtil.setToClosestUnitVector(getVrCamera().position).scl(len);
+//                RotationUtil.setToClosestUnitVector(getVrCamera().up);
+//                getVrCamera().lookAt(Vector3.Zero);
                 transformAction = ACTION_NONE;
                 currentState = STATE_NONE;
                 break;
+            default:
+                break;
         }
-        currentState = State.STATE_NONE;
         mainInterface.setAlpha(1f);
         mainInterface.setVisible(true);
     }

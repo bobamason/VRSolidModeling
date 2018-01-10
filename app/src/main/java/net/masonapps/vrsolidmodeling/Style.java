@@ -127,9 +127,9 @@ public class Style {
         public static final String ic_more_vert = "ic_more_vert";
         public static final String ic_close = "ic_close";
         public static final String ic_color_selector = "ic_color_selector";
+        public static final String ic_color = "ic_color";
         public static final String ic_drag_left = "ic_drag_left";
         public static final String ic_drag_up = "ic_drag_up";
-        public static final String drag_box = "drag_box";
         public static final String window = "window";
         public static final String button = "button";
         public static final String white = "white";

@@ -3,8 +3,6 @@ package org.masonapps.libgdxgooglevr.input;
 import com.badlogic.gdx.utils.Pools;
 import com.google.vr.sdk.controller.Controller;
 
-import org.masonapps.libgdxgooglevr.utils.Logger;
-
 import java.util.ArrayList;
 
 /**
@@ -98,14 +96,14 @@ public class DaydreamControllerHandler {
     }
 
     private void postButtonEvent(Controller controller, int action, int button) {
-        Logger.d("postButtonEvent()");
+//        Logger.d("postButtonEvent()");
         DaydreamButtonEvent event = Pools.obtain(DaydreamButtonEvent.class);
         event.action = action;
         event.button = button;
-        int i = 0;
+//        int i = 0;
         for (DaydreamControllerInputListener listener : listeners) {
             listener.onControllerButtonEvent(controller, event);
-            Logger.d("calling ButtonEvent listener " + (i++));
+//            Logger.d("calling ButtonEvent listener " + (i++));
         }
         Pools.free(event);
 
