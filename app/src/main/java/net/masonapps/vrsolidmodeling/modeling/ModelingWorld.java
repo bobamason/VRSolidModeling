@@ -2,6 +2,9 @@ package net.masonapps.vrsolidmodeling.modeling;
 
 import android.support.annotation.Nullable;
 
+import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.ModelCache;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
@@ -18,9 +21,11 @@ import org.masonapps.libgdxgooglevr.gfx.World;
 public class ModelingWorld extends World {
 
     public Transformable transformable;
+    private ModelCache modelCache;
 
     public ModelingWorld() {
         super();
+        modelCache = new ModelCache();
         transformable = new Transformable() {
             @Override
             public void recalculateTransform() {
@@ -56,6 +61,16 @@ public class ModelingWorld extends World {
         if (!transformable.isUpdated())
             transformable.recalculateTransform();
         super.update();
+        modelCache.begin();
+        for (Entity entity : entities) {
+            modelCache.add(entity.modelInstance);
+        }
+        modelCache.end();
+    }
+
+    @Override
+    public void render(ModelBatch batch, Environment environment) {
+        batch.render(modelCache, environment);
     }
 
     @Nullable
@@ -79,5 +94,14 @@ public class ModelingWorld extends World {
         Pools.free(tmpRay);
         Pools.free(tmpMat);
         return hitEntity;
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        if (modelCache != null) {
+            modelCache.dispose();
+            modelCache = null;
+        }
     }
 }

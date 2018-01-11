@@ -47,8 +47,10 @@ public class RotationUtil {
         up.set(0, 1, 0).mul(in);
         setToClosestUnitVector(up);
         if (dir.isCollinear(up, 1e-5f)) {
-            Logger.d("collinear: dir[" + dir + "] up[" + up + "]");
+            Logger.d("collinear: start dir[" + dir.set(0, 0, 1).mul(in) + "] up[" + up.set(0, 1, 0).mul(in) + "]");
+            setToClosestUnitVector(dir);
             up.set(0, 1, 0);
+            Logger.d("collinear: end dir[" + dir + "] up[" + up + "]");
         }
         tmp.set(up).crs(dir).nor();
         tmp2.set(dir).crs(tmp).nor();

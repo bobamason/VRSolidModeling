@@ -219,6 +219,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         modelingWorld.update();
         mainInterface.act();
         snapAnimator.update(GdxVr.graphics.getDeltaTime());
+//        Logger.d(GdxVr.graphics.getFramesPerSecond() + "fps");
     }
 
     @Override
