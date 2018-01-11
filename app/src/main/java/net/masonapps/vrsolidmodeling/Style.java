@@ -133,6 +133,7 @@ public class Style {
         public static final String window = "window";
         public static final String button = "button";
         public static final String white = "white";
+        public static final String grid = "grid";
         public static final String round_button = "round_button";
         public static final String slider = "slider";
         public static final String slider_knob = "slider_knob";

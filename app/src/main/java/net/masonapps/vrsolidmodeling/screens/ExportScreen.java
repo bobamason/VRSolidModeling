@@ -59,9 +59,9 @@ import org.masonapps.libgdxgooglevr.ui.WindowVR;
 
 import java.text.DecimalFormat;
 
-import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.TransformAction.ACTION_NONE;
-import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.TransformAction.ROTATE;
-import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.TransformAction.ZOOM;
+import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.ViewAction.ACTION_NONE;
+import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.ViewAction.ROTATE;
+import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.ViewAction.ZOOM;
 
 /**
  * Created by Bob on 9/25/2017.
@@ -90,7 +90,7 @@ public class ExportScreen extends RoomScreen {
     private float targetSizeMeters = 1f;
     private Vector3 hitPoint = new Vector3();
     private Plane hitPlane = new Plane();
-    private ModelingScreen.TransformAction transformAction = ACTION_NONE;
+    private ModelingScreen.ViewAction viewAction = ACTION_NONE;
     private CylindricalWindowUiContainer ui;
     private UnitConversion.Unit units = UnitConversion.Unit.meter;
     private DecimalFormat df = new DecimalFormat("#.##");
@@ -382,11 +382,11 @@ public class ExportScreen extends RoomScreen {
     public void update() {
         super.update();
         ui.act();
-        if (transformAction == ROTATE)
+        if (viewAction == ROTATE)
             rotate();
 //        else if (transformAction == PAN)
 //            pan();
-        else if (transformAction == ZOOM)
+        else if (viewAction == ZOOM)
             zoom();
     }
 
@@ -431,11 +431,11 @@ public class ExportScreen extends RoomScreen {
     @Override
     public void onControllerButtonEvent(Controller controller, DaydreamButtonEvent event) {
         if (!ui.isCursorOver() && controller.clickButtonState) {
-            if (transformAction == ACTION_NONE)
+            if (viewAction == ACTION_NONE)
                 lastRotation.set(GdxVr.input.getControllerOrientation());
-            transformAction = ROTATE;
+            viewAction = ROTATE;
         } else
-            transformAction = ACTION_NONE;
+            viewAction = ACTION_NONE;
     }
 
     private void rotate() {

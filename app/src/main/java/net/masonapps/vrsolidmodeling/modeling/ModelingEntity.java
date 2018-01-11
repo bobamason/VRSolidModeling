@@ -83,6 +83,10 @@ public class ModelingEntity extends Entity {
         return intersectRayBounds;
     }
 
+    public Matrix4 getParentTransform() {
+        return parentTransform;
+    }
+
     public void setParentTransform(Matrix4 parentTransform) {
         this.parentTransform.set(parentTransform);
         modelInstance.transform.set(transform).mulLeft(parentTransform);

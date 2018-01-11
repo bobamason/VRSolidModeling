@@ -24,7 +24,7 @@ import org.masonapps.libgdxgooglevr.ui.WindowVR;
 import java.util.function.Consumer;
 
 /**
- * Created by Bob on 7/24/2017.
+ * Created by Bob Mason on 12/20/2017.
  */
 
 public class MainInterface extends CylindricalWindowUiContainer {

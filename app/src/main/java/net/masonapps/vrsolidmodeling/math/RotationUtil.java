@@ -42,21 +42,20 @@ public class RotationUtil {
     }
     
     public static void snap(Quaternion in, Quaternion out) {
+        Logger.d("in x[" + tmp.set(1, 0, 0).mul(in) + "] y[" + tmp2.set(0, 1, 0).mul(in) + "] z[" + dir.set(0, 0, 1).mul(in) + "]");
+        
         dir.set(0, 0, 1).mul(in);
-        setToClosestUnitVector(dir);
         up.set(0, 1, 0).mul(in);
-        setToClosestUnitVector(up);
-        if (dir.isCollinear(up, 1e-5f)) {
-            Logger.d("collinear: start dir[" + dir.set(0, 0, 1).mul(in) + "] up[" + up.set(0, 1, 0).mul(in) + "]");
-            setToClosestUnitVector(dir);
-            up.set(0, 1, 0);
-            Logger.d("collinear: end dir[" + dir + "] up[" + up + "]");
-        }
+        setToClosestUnitVectors(dir, up);
+//        if (dir.isCollinear(up, 1e-5f)) {
+//            Logger.d("collinear: start dir[" + dir.set(0, 0, 1).mul(in) + "] up[" + up.set(0, 1, 0).mul(in) + "]");
+//            setToClosestUnitVectors(dir, up);
+//            Logger.d("collinear: end dir[" + dir + "] up[" + up + "]");
+//        }
         tmp.set(up).crs(dir).nor();
         tmp2.set(dir).crs(tmp).nor();
-        Logger.d("x[" + tmp + "] y[" + tmp2 + "] z[" + dir + "]");
+        Logger.d("out x[" + tmp + "] y[" + tmp2 + "] z[" + dir + "]");
         out.setFromAxes(tmp.x, tmp2.x, dir.x, tmp.y, tmp2.y, dir.y, tmp.z, tmp2.z, dir.z);
-//        out.setFromAxes(tmp.x, tmp.y, tmp.z, tmp2.x, tmp2.y, tmp2.z, dir.x, dir.y, dir.z);
     }
 
 //    public static void snap(Quaternion in, Quaternion out) {
@@ -107,5 +106,38 @@ public class RotationUtil {
             }
         }
         return v;
+    }
+
+    public static void setToClosestUnitVectors(Vector3 dir, Vector3 up) {
+        final Vector3[] axes = new Vector3[]{
+                Vector3.X,
+                Vector3.Y,
+                Vector3.Z
+        };
+        float d = 0f;
+        int skip = -1;
+        Vector3 axis = new Vector3();
+        for (int i = 0; i < axes.length; i++) {
+            final Vector3 v = axes[i];
+            float dot = v.dot(dir);
+            if (Math.abs(dot) > Math.abs(d)) {
+                d = dot;
+                axis.set(v);
+                skip = i;
+            }
+        }
+        dir.set(axis).scl(Math.signum(d));
+
+        d = 0f;
+        for (int i = 0; i < axes.length; i++) {
+            if (i == skip) continue;
+            final Vector3 v = axes[i];
+            float dot = v.dot(up);
+            if (Math.abs(dot) > Math.abs(d)) {
+                d = dot;
+                axis.set(v);
+            }
+        }
+        up.set(axis).scl(Math.signum(d));
     }
 }

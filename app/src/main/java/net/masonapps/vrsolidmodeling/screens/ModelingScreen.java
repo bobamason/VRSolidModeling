@@ -36,6 +36,7 @@ import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
 import net.masonapps.vrsolidmodeling.modeling.ModelingWorld;
 import net.masonapps.vrsolidmodeling.modeling.UndoRedoCache;
 import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
+import net.masonapps.vrsolidmodeling.modeling.ui.TransformUI;
 import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
@@ -46,8 +47,8 @@ import org.masonapps.libgdxgooglevr.utils.Logger;
 
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_NONE;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_VIEW_TRANSFORM;
-import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.TransformAction.ACTION_NONE;
-import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.TransformAction.ROTATE;
+import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.ViewAction.ACTION_NONE;
+import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.ViewAction.ROTATE;
 
 /**
  * Created by Bob Mason on 12/20/2017.
@@ -61,13 +62,14 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private final UndoRedoCache undoRedoCache;
     private final ShapeRenderer shapeRenderer;
     private final Animator snapAnimator;
+    private final TransformUI transformUI;
     private boolean isTouchPadClicked = false;
     private Quaternion rotation = new Quaternion();
     private Quaternion lastRotation = new Quaternion();
     private Quaternion startRotation = new Quaternion();
     private Quaternion snappedRotation = new Quaternion();
     private String projectName;
-    private TransformAction transformAction = ACTION_NONE;
+    private ViewAction viewAction = ACTION_NONE;
     private InputMode currentInputMode = InputMode.VIEW;
     private State currentState = STATE_NONE;
     @Nullable
@@ -98,6 +100,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void finished() {
+                transformUI.setEntity(selectedEntity);
                 rotation.set(snappedRotation);
                 lastRotation.set(rotation);
             }
@@ -154,6 +157,9 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
 //        brush.setUseSymmetry(false);
         undoRedoCache.save(null);
+        transformUI = new TransformUI(spriteBatch, getSolidModelingGame().getSkin());
+        transformUI.setVisible(false);
+        mainInterface.addProcessor(transformUI);
     }
 
     private static Model createBoxModel(ModelBuilder builder, Color color, BoundingBox bounds) {
@@ -163,7 +169,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         return builder.end();
     }
 
-    protected static void drawEntityBounds(ShapeRenderer shapeRenderer, ModelingEntity entity) {
+    protected static void drawEntityBounds(ShapeRenderer shapeRenderer, ModelingEntity entity, Color color) {
+        shapeRenderer.setColor(color);
         shapeRenderer.setTransformMatrix(entity.modelInstance.transform);
         final BoundingBox bounds = entity.getBounds();
         shapeRenderer.box(bounds.min.x, bounds.min.y, bounds.max.z,
@@ -229,13 +236,12 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         modelingWorld.render(getModelBatch(), getEnvironment());
         getModelBatch().end();
         shapeRenderer.begin();
-        shapeRenderer.setColor(Color.BLACK);
         shapeRenderer.setProjectionMatrix(camera.combined);
         if (focusedEntity != null) {
-            drawEntityBounds(shapeRenderer, focusedEntity);
+            drawEntityBounds(shapeRenderer, focusedEntity, Color.BLACK);
         }
         if (selectedEntity != null) {
-            drawEntityBounds(shapeRenderer, selectedEntity);
+            drawEntityBounds(shapeRenderer, selectedEntity, Color.WHITE);
         }
         shapeRenderer.end();
         mainInterface.draw(camera);
@@ -259,6 +265,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         if (!mainInterface.onControllerBackButtonClicked()) {
             if (selectedEntity != null) {
                 selectedEntity = null;
+                transformUI.setEntity(selectedEntity);
             } else {
                 getSolidModelingGame().closeModelingScreen();
                 getSolidModelingGame().switchToStartupScreen();
@@ -282,7 +289,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         if (currentState == STATE_VIEW_TRANSFORM) {
             getSolidModelingGame().setCursorVisible(false);
             mainInterface.setVisible(false);
-            if (transformAction == ROTATE)
+            if (viewAction == ROTATE)
                 rotate();
 //            else if (transformAction == PAN)
 //                pan();
@@ -315,13 +322,15 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 currentState = STATE_NONE;
                 break;
             case SELECT:
-                if (focusedEntity != null)
+                if (focusedEntity != null) {
                     selectedEntity = focusedEntity;
+                    transformUI.setEntity(selectedEntity);
+                }
                 break;
             case VIEW:
                 startRotation.set(GdxVr.input.getControllerOrientation());
                 lastRotation.set(GdxVr.input.getControllerOrientation());
-                transformAction = ROTATE;
+                viewAction = ROTATE;
                 currentState = STATE_VIEW_TRANSFORM;
                 break;
             default:
@@ -342,11 +351,12 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 Pools.free(rotDiff);
                 snapAnimator.setDuration(duration);
                 snapAnimator.start();
+                transformUI.setVisible(false);
 //                final float len = getVrCamera().position.len();
 //                RotationUtil.setToClosestUnitVector(getVrCamera().position).scl(len);
 //                RotationUtil.setToClosestUnitVector(getVrCamera().up);
 //                getVrCamera().lookAt(Vector3.Zero);
-                transformAction = ACTION_NONE;
+                viewAction = ACTION_NONE;
                 currentState = STATE_NONE;
                 break;
             default:
@@ -372,7 +382,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         }
     }
 
-    enum TransformAction {
+    enum ViewAction {
         ACTION_NONE, ROTATE, PAN, ZOOM
     }
 

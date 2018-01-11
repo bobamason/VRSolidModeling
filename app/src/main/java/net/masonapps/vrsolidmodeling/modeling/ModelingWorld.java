@@ -63,6 +63,8 @@ public class ModelingWorld extends World {
         super.update();
         modelCache.begin();
         for (Entity entity : entities) {
+            if (!entity.isUpdated())
+                entity.recalculateTransform();
             modelCache.add(entity.modelInstance);
         }
         modelCache.end();
