@@ -4,8 +4,6 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 
-import org.masonapps.libgdxgooglevr.utils.Logger;
-
 /**
  * Created by Bob on 7/26/2017.
  */
@@ -42,46 +40,13 @@ public class RotationUtil {
     }
     
     public static void snap(Quaternion in, Quaternion out) {
-        Logger.d("in x[" + tmp.set(1, 0, 0).mul(in) + "] y[" + tmp2.set(0, 1, 0).mul(in) + "] z[" + dir.set(0, 0, 1).mul(in) + "]");
-        
         dir.set(0, 0, 1).mul(in);
         up.set(0, 1, 0).mul(in);
         setToClosestUnitVectors(dir, up);
-//        if (dir.isCollinear(up, 1e-5f)) {
-//            Logger.d("collinear: start dir[" + dir.set(0, 0, 1).mul(in) + "] up[" + up.set(0, 1, 0).mul(in) + "]");
-//            setToClosestUnitVectors(dir, up);
-//            Logger.d("collinear: end dir[" + dir + "] up[" + up + "]");
-//        }
         tmp.set(up).crs(dir).nor();
         tmp2.set(dir).crs(tmp).nor();
-        Logger.d("out x[" + tmp + "] y[" + tmp2 + "] z[" + dir + "]");
         out.setFromAxes(tmp.x, tmp2.x, dir.x, tmp.y, tmp2.y, dir.y, tmp.z, tmp2.z, dir.z);
     }
-
-//    public static void snap(Quaternion in, Quaternion out) {
-//        tmpMat.set(in);
-//        final float[] m = tmpMat.getValues();
-//
-//        tmp.set(m[Matrix4.M00], m[Matrix4.M10], m[Matrix4.M20]);
-//        setToClosestUnitVector(tmp);
-//        m[Matrix4.M00] = tmp.x;
-//        m[Matrix4.M10] = tmp.y;
-//        m[Matrix4.M20] = tmp.z;
-//
-//        tmp.set(m[Matrix4.M01], m[Matrix4.M11], m[Matrix4.M21]);
-//        setToClosestUnitVector(tmp);
-//        m[Matrix4.M01] = tmp.x;
-//        m[Matrix4.M11] = tmp.y;
-//        m[Matrix4.M21] = tmp.z;
-//
-//        tmp.set(m[Matrix4.M02], m[Matrix4.M12], m[Matrix4.M22]);
-//        setToClosestUnitVector(tmp);
-//        m[Matrix4.M02] = tmp.x;
-//        m[Matrix4.M12] = tmp.y;
-//        m[Matrix4.M22] = tmp.z;
-//
-//        out.setFromMatrix(tmpMat);
-//    }
 
     public static Vector3 setToClosestUnitVector(Vector3 v) {
         if (Math.abs(v.x) > Math.abs(v.y)) {

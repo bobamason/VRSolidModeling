@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
@@ -31,6 +32,7 @@ public class ColorPickerSimple extends WindowTableVR {
     private Texture colorGridTexture;
     private Image highlightImage;
     private int[][] colors;
+    private Image colorGridImage;
 
     public ColorPickerSimple(Batch batch, Skin skin, int width, int height, String title, WindowVrStyle windowStyle) {
         super(batch, skin, width, height, title, windowStyle);
@@ -56,7 +58,7 @@ public class ColorPickerSimple extends WindowTableVR {
             }
         }
         colorGridTexture = new Texture(pixmap);
-        final Image colorGridImage = new Image(colorGridTexture);
+        colorGridImage = new Image(colorGridTexture);
         highlightImage = new Image(skin.newDrawable(Style.Drawables.ic_color_selector));
         getTable().add(colorGridImage).size(tableWidth, tableHeight).pad(PADDING);
         colorGridImage.setTouchable(Touchable.enabled);
@@ -90,5 +92,24 @@ public class ColorPickerSimple extends WindowTableVR {
     public void dispose() {
         super.dispose();
         colorGridTexture.dispose();
+    }
+
+    public void setColor(Color color) {
+        final float w = colorGridImage.getWidth() / 16f;
+        final float h = colorGridImage.getHeight() / 16f;
+        float minDst = Float.MAX_VALUE;
+        for (int col = 0; col < colors.length; col++) {
+            for (int row = 0; row < colors[col].length; row++) {
+                int c = colors[col][row];
+                final float r = (c >> 16 & 0xff) / 255f;
+                final float g = (c >> 8 & 0xff) / 255f;
+                final float b = (c & 0xff) / 255f;
+                final float d = Vector3.dst2(r, g, b, color.r, color.g, color.b);
+                if (d < minDst) {
+                    minDst = d;
+                    highlightImage.setPosition(col * w + colorGridImage.getX(), row * h + colorGridImage.getY(), Align.bottomLeft);
+                }
+            }
+        }
     }
 }

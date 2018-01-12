@@ -11,8 +11,12 @@ import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
@@ -24,11 +28,13 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pools;
 import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
+import net.masonapps.vrsolidmodeling.Style;
 import net.masonapps.vrsolidmodeling.math.Animator;
 import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
@@ -40,10 +46,10 @@ import net.masonapps.vrsolidmodeling.modeling.ui.TransformUI;
 import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
+import org.masonapps.libgdxgooglevr.gfx.Entity;
 import org.masonapps.libgdxgooglevr.gfx.VrGame;
 import org.masonapps.libgdxgooglevr.gfx.VrWorldScreen;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
-import org.masonapps.libgdxgooglevr.utils.Logger;
 
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_NONE;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_VIEW_TRANSFORM;
@@ -63,6 +69,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private final ShapeRenderer shapeRenderer;
     private final Animator snapAnimator;
     private final TransformUI transformUI;
+    private final Entity gridEntity;
     private boolean isTouchPadClicked = false;
     private Quaternion rotation = new Quaternion();
     private Quaternion lastRotation = new Quaternion();
@@ -92,6 +99,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 modelingWorld.transformable.getRotation().set(rotation).slerp(snappedRotation, value);
                 lastRotation.set(modelingWorld.transformable.getRotation());
                 modelingWorld.transformable.recalculateTransform();
+                gridEntity.setPosition(modelingWorld.transformable.getPosition());
+                gridEntity.setRotation(modelingWorld.transformable.getRotation());
 
 //                getVrCamera().position.set(0, 0, 4).mul(snappedRotation);
 //                getVrCamera().up.set(0, 1, 0).mul(snappedRotation);
@@ -118,9 +127,15 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void onAddClicked() {
-                final Color color = new Color(MathUtils.random(), MathUtils.random(), MathUtils.random(), 1f);
+                final Color color = new Color(Color.LIGHT_GRAY);
                 final Vector3 pos = new Vector3(MathUtils.random(-2f, 2f), MathUtils.random(-2f, 2f), MathUtils.random(-2f, 2f));
                 modelingWorld.add(new ModelingEntity(getSolidModelingGame().getPrimitive("cube"), new Material(ColorAttribute.createDiffuse(color)))).setPosition(pos).scale(0.25f);
+            }
+
+            @Override
+            public void onColorChanged(Color color) {
+                if (selectedEntity != null)
+                    selectedEntity.setDiffuseColor(color);
             }
 
             @Override
@@ -138,7 +153,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 getSolidModelingGame().switchToExportScreen();
             }
         };
-        mainInterface = new MainInterface(spriteBatch, getSolidModelingGame().getSkin(), uiEventListener);
+        final Skin skin = getSolidModelingGame().getSkin();
+        mainInterface = new MainInterface(spriteBatch, skin, uiEventListener);
         mainInterface.loadWindowPositions(PreferenceManager.getDefaultSharedPreferences(GdxVr.app.getContext()));
         undoRedoCache = new UndoRedoCache();
 
@@ -157,9 +173,27 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
 //        brush.setUseSymmetry(false);
         undoRedoCache.save(null);
-        transformUI = new TransformUI(spriteBatch, getSolidModelingGame().getSkin());
+        transformUI = new TransformUI(spriteBatch, skin);
         transformUI.setVisible(false);
         mainInterface.addProcessor(transformUI);
+
+        final ModelBuilder modelBuilder = new ModelBuilder();
+        gridEntity = new Entity(new ModelInstance(createGrid(modelBuilder, skin, 1f)));
+        gridEntity.setLightingEnabled(false);
+        getWorld().add(gridEntity);
+    }
+
+    private static Model createGrid(ModelBuilder builder, Skin skin, float radius) {
+        final Material material = new Material(TextureAttribute.createDiffuse(skin.getRegion(Style.Drawables.grid)), FloatAttribute.createAlphaTest(0.5f), IntAttribute.createCullFace(0), new BlendingAttribute(true, 1f));
+        return builder.createRect(
+                -radius, 0f, radius,
+                radius, 0f, radius,
+                radius, 0f, -radius,
+                -radius, 0f, -radius,
+                0f, 1f, 0f,
+                material,
+                VertexAttributes.Usage.Position | VertexAttributes.Usage.TextureCoordinates
+        );
     }
 
     private static Model createBoxModel(ModelBuilder builder, Color color, BoundingBox bounds) {
@@ -243,6 +277,13 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         if (selectedEntity != null) {
             drawEntityBounds(shapeRenderer, selectedEntity, Color.WHITE);
         }
+        shapeRenderer.setTransformMatrix(modelingWorld.transformable.getTransform());
+        shapeRenderer.setColor(Color.RED);
+        shapeRenderer.line(0, 0, 0, 1, 0, 0);
+        shapeRenderer.setColor(Color.GREEN);
+        shapeRenderer.line(0, 0, 0, 0, 0, 1);
+        shapeRenderer.setColor(Color.BLUE);
+        shapeRenderer.line(0, 0, 0, 0, 1, 0);
         shapeRenderer.end();
         mainInterface.draw(camera);
     }
@@ -256,6 +297,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 //        getVrCamera().up.set(0, 1, 0).mul(rotation);
 //        getVrCamera().lookAt(Vector3.Zero);
         modelingWorld.transformable.setRotation(rotation);
+        gridEntity.setPosition(modelingWorld.transformable.getPosition());
+        gridEntity.setRotation(modelingWorld.transformable.getRotation());
         lastRotation.set(GdxVr.input.getControllerOrientation());
         Pools.free(rotDiff);
     }
@@ -325,6 +368,9 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 if (focusedEntity != null) {
                     selectedEntity = focusedEntity;
                     transformUI.setEntity(selectedEntity);
+                    final Color diffuseColor = selectedEntity.getDiffuseColor();
+                    if (diffuseColor != null)
+                        mainInterface.getColorPicker().setColor(diffuseColor);
                 }
                 break;
             case VIEW:
@@ -347,7 +393,6 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 rotDiff.set(rotation).conjugate().mulLeft(snappedRotation);
                 final float angleRad = rotDiff.getAngleRad();
                 final float duration = Math.abs(angleRad < MathUtils.PI ? angleRad : MathUtils.PI2 - angleRad) / MathUtils.PI;
-                Logger.d("animation duration: " + duration + " angle: " + rotDiff.getAngle());
                 Pools.free(rotDiff);
                 snapAnimator.setDuration(duration);
                 snapAnimator.start();

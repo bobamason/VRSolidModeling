@@ -2,7 +2,10 @@ package net.masonapps.vrsolidmodeling.modeling;
 
 import android.support.annotation.Nullable;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -81,6 +84,43 @@ public class ModelingEntity extends Entity {
 
         Pools.free(tmpRay);
         return intersectRayBounds;
+    }
+
+    @Nullable
+    public Color getDiffuseColor() {
+        final Material material = modelInstance.materials.get(0);
+        final ColorAttribute diffuse = (ColorAttribute) material.get(ColorAttribute.Diffuse);
+        if (diffuse != null)
+            return diffuse.color;
+        else
+            return null;
+    }
+
+    public void setDiffuseColor(Color color) {
+        final Material material = modelInstance.materials.get(0);
+        final ColorAttribute diffuse = (ColorAttribute) material.get(ColorAttribute.Diffuse);
+        if (diffuse != null)
+            diffuse.color.set(color);
+        else
+            material.set(ColorAttribute.createDiffuse(color));
+    }
+
+    public void setSpecularColor(Color color) {
+        final Material material = modelInstance.materials.get(0);
+        final ColorAttribute specular = (ColorAttribute) material.get(ColorAttribute.Specular);
+        if (specular != null)
+            specular.color.set(color);
+        else
+            material.set(ColorAttribute.createSpecular(color));
+    }
+
+    public void setShininess(float value) {
+        final Material material = modelInstance.materials.get(0);
+        final FloatAttribute shininess = (FloatAttribute) material.get(FloatAttribute.Shininess);
+        if (shininess != null)
+            shininess.value = value;
+        else
+            material.set(FloatAttribute.createShininess(value));
     }
 
     public Matrix4 getParentTransform() {

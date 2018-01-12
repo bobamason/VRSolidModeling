@@ -4,7 +4,10 @@ import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -12,15 +15,19 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.Pools;
 
 import net.masonapps.vrsolidmodeling.Style;
 import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
 
+import org.masonapps.libgdxgooglevr.math.PlaneUtils;
 import org.masonapps.libgdxgooglevr.ui.VirtualStage;
+import org.masonapps.libgdxgooglevr.utils.Logger;
 
 import static net.masonapps.vrsolidmodeling.modeling.ui.TransformUI.TransformAction.DRAG_X;
 import static net.masonapps.vrsolidmodeling.modeling.ui.TransformUI.TransformAction.DRAG_Y;
 import static net.masonapps.vrsolidmodeling.modeling.ui.TransformUI.TransformAction.NONE;
+import static net.masonapps.vrsolidmodeling.modeling.ui.TransformUI.TransformAction.ROTATE;
 
 /**
  * Created by Bob on 1/9/2018.
@@ -35,9 +42,12 @@ public class TransformUI extends VirtualStage {
     private final Vector3 currentHitPoint = new Vector3();
     private final ImageButton dragLeft;
     private final ImageButton dragUp;
+    private final ImageButton rotateBtn;
+    private final float rotateRadius = 200;
     @Nullable
     private ModelingEntity entity = null;
     private TransformAction transformAction = NONE;
+    private float lastRotation = 0f;
 
     public TransformUI(Batch batch, Skin skin) {
         super(batch, 1200, 1200);
@@ -47,6 +57,8 @@ public class TransformUI extends VirtualStage {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 transformAction = DRAG_X;
+                lastHitPoint.set(currentHitPoint);
+                currentHitPoint.set(getHitPoint3D());
                 return true;
             }
         });
@@ -58,10 +70,33 @@ public class TransformUI extends VirtualStage {
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
                 transformAction = DRAG_Y;
+                lastHitPoint.set(currentHitPoint);
+                currentHitPoint.set(getHitPoint3D());
                 return true;
             }
         });
         addActor(dragUp);
+
+        rotateBtn = new ImageButton(Style.createImageButtonStyleNoBg(skin, Style.Drawables.ic_rotate));
+        rotateBtn.setPosition(getCenterX() + rotateRadius, getCenterY(), Align.center);
+        rotateBtn.addListener(new InputListener() {
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+                transformAction = ROTATE;
+                lastRotation = MathUtils.atan2(getHitPoint2D().y - getCenterY(), getHitPoint2D().x - getCenterX());
+                Logger.d("rotate start " + (lastRotation * MathUtils.radiansToDegrees));
+                return true;
+            }
+        });
+        addActor(rotateBtn);
+    }
+
+    protected float getCenterY() {
+        return getHeight() / 2f;
+    }
+
+    protected float getCenterX() {
+        return getWidth() / 2f;
     }
 
     @Override
@@ -86,25 +121,42 @@ public class TransformUI extends VirtualStage {
                     recalculateTransform();
                 }
                 break;
+            case ROTATE:
+                if (entity != null) {
+                    final float currentRotation = MathUtils.atan2(getHitPoint2D().y - getCenterY(), getHitPoint2D().x - getCenterX());
+                    Logger.d("rotating" + (currentRotation * MathUtils.radiansToDegrees));
+                    tmpV.set(0, 0, 1).rot(tmpM.set(entity.getParentTransform()).inv());
+                    entity.getRotation().mul(new Quaternion(tmpV, (currentRotation - lastRotation) * MathUtils.radiansToDegrees));
+                    entity.recalculateTransform();
+                    rotateBtn.setPosition(rotateRadius * MathUtils.cos(currentRotation) + getCenterX(), rotateRadius * MathUtils.sin(currentRotation) + getCenterY(), Align.center);
+                    lastRotation = currentRotation;
+                }
+                break;
             default:
                 break;
         }
     }
 
-    private void absVector(Vector3 v) {
-        v.x = Math.abs(v.x);
-        v.y = Math.abs(v.y);
-        v.z = Math.abs(v.z);
-    }
-
     @Override
     public boolean performRayTest(Ray ray) {
         if (transformAction != NONE) {
+            if (!updated) recalculateTransform();
+            final Vector3 tmp = Pools.obtain(Vector3.class);
+            final Vector3 tmp2 = Pools.obtain(Vector3.class);
+            final Vector2 tmpV2 = Pools.obtain(Vector2.class);
+            transform.getTranslation(tmp);
             if (Intersector.intersectRayPlane(ray, getPlane(), getHitPoint3D())) {
+                tmp2.set(getHitPoint3D()).sub(tmp);
+                PlaneUtils.toSubSpace(getPlane(), tmp2, tmpV2);
+                getHitPoint2D().set(tmpV2).scl(1f / (pixelSizeWorld * scale.x), 1f / (pixelSizeWorld * scale.y));
+                isCursorOver = true;
                 lastHitPoint.set(currentHitPoint);
                 currentHitPoint.set(getHitPoint3D());
             }
-            return true;
+            Pools.free(tmp);
+            Pools.free(tmp2);
+            Pools.free(tmpV2);
+            return isCursorOver;
         }
         return super.performRayTest(ray);
     }
@@ -141,6 +193,6 @@ public class TransformUI extends VirtualStage {
     }
 
     enum TransformAction {
-        NONE, DRAG_X, DRAG_Y
+        NONE, DRAG_X, DRAG_Y, ROTATE, SCALE_X, SCALE_Y
     }
 }

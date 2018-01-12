@@ -2,6 +2,7 @@ package net.masonapps.vrsolidmodeling.modeling.ui;
 
 import android.content.SharedPreferences;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -138,6 +139,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
         colorPicker.setPosition(coordinate.toCartesian());
         colorPicker.lookAt(new Vector3(0, coordinate.vertical, 0), Vector3.Y);
         colorPicker.setVisible(false);
+        colorPicker.setColorListener(eventListener::onColorChanged);
         addProcessor(colorPicker);
     }
 
@@ -149,7 +151,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
     private void initViewControls() {
         final CylindricalCoordinate coordinate = new CylindricalCoordinate(getRadius(), 40f, -0.35f, CylindricalCoordinate.AngleMode.degrees);
         viewControls.setPosition(coordinate.toCartesian());
-        viewControls.lookAt(Vector3.Zero, Vector3.Y);
+        viewControls.lookAt(new Vector3(0, coordinate.vertical, 0), Vector3.Y);
         viewControls.setVisible(false);
         addProcessor(viewControls);
     }
@@ -170,6 +172,14 @@ public class MainInterface extends CylindricalWindowUiContainer {
         snapDragTableToCylinder(viewControls);
 
         Pools.free(tmp);
+    }
+
+    public WindowTableVR getButtonBar() {
+        return buttonBar;
+    }
+
+    public ColorPickerSimple getColorPicker() {
+        return colorPicker;
     }
 
     public void saveWindowPositions(SharedPreferences.Editor editor) {
@@ -193,6 +203,8 @@ public class MainInterface extends CylindricalWindowUiContainer {
     public interface UiEventListener {
         // TODO: 1/4/2018 remove test add method
         void onAddClicked();
+
+        void onColorChanged(Color color);
         
         void onUndoClicked();
 

@@ -24,6 +24,24 @@ public class Transformable {
         return out.set(transform);
     }
 
+    public Matrix4 getTransform() {
+        return transform;
+    }
+
+    public Transformable setTransform(Matrix4 transform) {
+        this.transform.set(transform);
+        this.transform.getTranslation(position);
+        this.transform.getRotation(rotation);
+        this.transform.getScale(scale);
+        try {
+            inverseTransform.set(this.transform).inv();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        updated = true;
+        return this;
+    }
+
     public Transformable setScale(float x, float y, float z) {
         scale.set(x, y, z);
         invalidate();
@@ -266,20 +284,6 @@ public class Transformable {
             Log.e(Entity.class.getName(), e.getLocalizedMessage());
         }
         updated = true;
-    }
-
-    public Transformable setTransform(Matrix4 transform) {
-        this.transform.set(transform);
-        this.transform.getTranslation(position);
-        this.transform.getRotation(rotation);
-        this.transform.getScale(scale);
-        try {
-            inverseTransform.set(this.transform).inv();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        updated = true;
-        return this;
     }
 
     public Matrix4 getInverseTransform(Matrix4 out) {
