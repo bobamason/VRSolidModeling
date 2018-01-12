@@ -2,6 +2,7 @@ package net.masonapps.vrsolidmodeling.modeling.ui;
 
 import android.support.annotation.Nullable;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.MathUtils;
@@ -12,6 +13,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Align;
@@ -43,7 +45,8 @@ public class TransformUI extends VirtualStage {
     private final ImageButton dragLeft;
     private final ImageButton dragUp;
     private final ImageButton rotateBtn;
-    private final float rotateRadius = 200;
+    private final float rotateRadius = 254;
+    private final Image circleImage;
     @Nullable
     private ModelingEntity entity = null;
     private TransformAction transformAction = NONE;
@@ -51,6 +54,11 @@ public class TransformUI extends VirtualStage {
 
     public TransformUI(Batch batch, Skin skin) {
         super(batch, 1200, 1200);
+
+        circleImage = new Image(skin.newDrawable(Style.Drawables.dash_circle, Color.LIGHT_GRAY));
+        circleImage.setOrigin(Align.center);
+        circleImage.setPosition(getCenterX(), getCenterY(), Align.center);
+        
         dragLeft = new ImageButton(Style.createImageButtonStyleNoBg(skin, Style.Drawables.ic_drag_left));
         dragLeft.setPosition(1000, 600, Align.left);
         dragLeft.addListener(new InputListener() {
@@ -77,7 +85,11 @@ public class TransformUI extends VirtualStage {
         });
         addActor(dragUp);
 
-        rotateBtn = new ImageButton(Style.createImageButtonStyleNoBg(skin, Style.Drawables.ic_rotate));
+        final ImageButton.ImageButtonStyle rotateButtonStyle = new ImageButton.ImageButtonStyle();
+        rotateButtonStyle.imageUp = skin.newDrawable(Style.Drawables.circle, Color.BLUE);
+        rotateButtonStyle.imageDown = skin.newDrawable(Style.Drawables.circle, Color.NAVY);
+        rotateButtonStyle.imageDisabled = skin.newDrawable(Style.Drawables.circle, Color.GRAY);
+        rotateBtn = new ImageButton(rotateButtonStyle);
         rotateBtn.setPosition(getCenterX() + rotateRadius, getCenterY(), Align.center);
         rotateBtn.addListener(new InputListener() {
             @Override
@@ -129,6 +141,7 @@ public class TransformUI extends VirtualStage {
                     entity.getRotation().mul(new Quaternion(tmpV, (currentRotation - lastRotation) * MathUtils.radiansToDegrees));
                     entity.recalculateTransform();
                     rotateBtn.setPosition(rotateRadius * MathUtils.cos(currentRotation) + getCenterX(), rotateRadius * MathUtils.sin(currentRotation) + getCenterY(), Align.center);
+                    circleImage.setRotation(currentRotation * MathUtils.radiansToDegrees);
                     lastRotation = currentRotation;
                 }
                 break;

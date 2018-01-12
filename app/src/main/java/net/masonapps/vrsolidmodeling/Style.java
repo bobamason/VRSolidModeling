@@ -112,6 +112,7 @@ public class Style {
     public static class Drawables {
         public static final String loading_spinner = "loading_spinner";
         public static final String circle = "circle";
+        public static final String dash_circle = "dash_circle";
         public static final String touch_pad_background = "touch_pad_background";
         public static final String touch_pad_button_down = "touch_pad_button_down";
         public static final String left_arrow = "left_arrow";

@@ -2,18 +2,18 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-    height="512"
+    height="256"
     id="svg2"
     version="1.1"
-    viewBox="0 0 512 512"
-    width="512"
+    viewBox="0 0 256 256"
+    width="256"
     xmlns="http://www.w3.org/2000/svg"
     xmlns:cc="http://creativecommons.org/ns#"
     xmlns:dc="http://purl.org/dc/elements/1.1/"
     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-    inkscape:export-filename="C:\Users\ims_3\AndroidStudioProjects\VRSolidModeling\app\src\main\assets\raw\pack\grid.png"
+    inkscape:export-filename="C:\Users\ims_3\AndroidStudioProjects\VRSolidModeling\app\src\main\assets\raw\pack\dash_circle.png"
     inkscape:export-xdpi="90"
     inkscape:export-ydpi="90"
     inkscape:version="0.91 r13725"
@@ -206,8 +206,8 @@
       units="px"
       inkscape:bbox-nodes="true"
       inkscape:current-layer="g4729-9"
-      inkscape:cx="361.23977"
-      inkscape:cy="652.80664"
+      inkscape:cx="127.23444"
+      inkscape:cy="43.745645"
       inkscape:document-units="px"
       inkscape:object-nodes="false"
       inkscape:object-paths="false"
@@ -224,7 +224,7 @@
       inkscape:window-width="1016"
       inkscape:window-x="230"
       inkscape:window-y="54"
-      inkscape:zoom="0.29912785">
+      inkscape:zoom="0.83789062">
     <inkscape:grid
         id="grid4136"
         type="xygrid"/>
@@ -243,7 +243,7 @@
   </metadata>
   <g
       id="layer1"
-      transform="translate(0,-540.3622)"
+      transform="translate(0,-796.3622)"
       inkscape:groupmode="layer"
       inkscape:label="Layer 1">
     <g
@@ -1344,7 +1344,7 @@
       <g
           style="stroke:#808080"
           id="g4481"
-          transform="translate(122,-634)">
+          transform="translate(-1018,-934)">
         <path
             style="fill:none;fill-rule:evenodd;stroke:#808080;stroke-width:6;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
             d="m 72,412.3622 512,0"
