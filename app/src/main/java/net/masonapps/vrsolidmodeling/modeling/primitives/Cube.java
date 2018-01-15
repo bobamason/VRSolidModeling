@@ -1,4 +1,4 @@
-package net.masonapps.vrsolidmodeling.modeling;
+package net.masonapps.vrsolidmodeling.modeling.primitives;
 
 import android.support.annotation.Nullable;
 
@@ -48,6 +48,11 @@ public class Cube extends Primitive {
     public Model createModel() {
 //        return new Model(modelData);
         return new ModelBuilder().createBox(2, 2, 2, new Material(ColorAttribute.createDiffuse(Color.WHITE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+    }
+
+    @Override
+    public String getName() {
+        return "cube";
     }
 
     @Override

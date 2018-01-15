@@ -194,37 +194,44 @@ ic_rotate
   orig: 96, 96
   offset: 0, 0
   index: -1
-ic_undo
+ic_rotate_handle
   rotate: false
   xy: 685, 193
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
-ic_zoom
+ic_undo
   rotate: false
   xy: 685, 95
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
+ic_zoom
+  rotate: false
+  xy: 745, 389
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
 round_button
   rotate: false
-  xy: 587, 13
+  xy: 779, 315
   size: 72, 72
   orig: 72, 72
   offset: 0, 0
   index: -1
 loading_spinner
   rotate: false
-  xy: 745, 421
+  xy: 783, 249
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 button
   rotate: false
-  xy: 811, 437
+  xy: 783, 185
   size: 62, 62
   split: 8, 8, 8, 8
   orig: 62, 62
@@ -246,21 +253,21 @@ checkbox_on
   index: -1
 ic_color_selector
   rotate: false
-  xy: 35, 1
+  xy: 783, 151
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 slider_knob
   rotate: false
-  xy: 967, 933
+  xy: 35, 1
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
   index: -1
 slider
   rotate: false
-  xy: 875, 467
+  xy: 967, 933
   size: 24, 32
   split: 4, 4, 0, 32
   orig: 24, 32

@@ -12,8 +12,15 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Pools;
 
+import net.masonapps.vrsolidmodeling.io.JsonUtils;
+import net.masonapps.vrsolidmodeling.modeling.primitives.Primitive;
+
 import org.apache.commons.math3.geometry.euclidean.threed.PolyhedronsSet;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.masonapps.libgdxgooglevr.gfx.Entity;
+
+import java.util.HashMap;
 
 /**
  * Created by Bob Mason on 1/2/2018.
@@ -41,6 +48,17 @@ public class ModelingEntity extends Entity {
     public ModelingEntity(Primitive primitive, Material material, Matrix4 transform) {
         super(primitive.createModelInstance(transform, material), primitive.createBounds());
         this.primitive = primitive;
+    }
+
+    public static ModelingEntity fromJSONObject(HashMap<String, Primitive> primitiveMap, JSONObject jsonObject) throws JSONException {
+        Material material = new Material();
+        Matrix4 transform = new Matrix4();
+        Primitive primitive = primitiveMap.get(jsonObject.getString("primitive"));
+        final String diffuseStr = jsonObject.getString("diffuse");
+        if (!diffuseStr.equals("null"))
+            material.set(ColorAttribute.createDiffuse(Color.valueOf(diffuseStr)));
+        transform.set(JsonUtils.jsonArrayToFloatArray(jsonObject.getJSONArray("transform")));
+        return new ModelingEntity(primitive, material, transform);
     }
 
     @Override
@@ -131,5 +149,15 @@ public class ModelingEntity extends Entity {
         this.parentTransform.set(parentTransform);
         modelInstance.transform.set(transform).mulLeft(parentTransform);
 //        Logger.d(modelInstance.transform.toString());
+    }
+
+    public JSONObject toJSONObject() throws JSONException {
+        if (!updated) recalculateTransform();
+        final JSONObject jsonObject = new JSONObject();
+        jsonObject.put("primitive", primitive.getName());
+        final Color diffuseColor = getDiffuseColor();
+        jsonObject.put("diffuse", diffuseColor == null ? null : diffuseColor.toString());
+        jsonObject.put("transform", JsonUtils.floatArrayToJsonArray(transform.getValues()));
+        return jsonObject;
     }
 }

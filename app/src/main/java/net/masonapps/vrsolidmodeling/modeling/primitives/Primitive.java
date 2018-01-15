@@ -1,4 +1,4 @@
-package net.masonapps.vrsolidmodeling.modeling;
+package net.masonapps.vrsolidmodeling.modeling.primitives;
 
 import android.support.annotation.Nullable;
 
@@ -29,6 +29,8 @@ public abstract class Primitive implements Disposable {
     public abstract void initialize();
 
     public abstract Model createModel();
+
+    public abstract String getName();
 
     public abstract BoundingBox createBounds();
 

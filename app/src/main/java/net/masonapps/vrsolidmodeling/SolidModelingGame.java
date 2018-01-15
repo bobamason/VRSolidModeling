@@ -41,9 +41,10 @@ import com.google.vr.sdk.audio.GvrAudioEngine;
 import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.environment.SkyDomeBuilder;
+import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
 import net.masonapps.vrsolidmodeling.mesh.MeshData;
-import net.masonapps.vrsolidmodeling.modeling.Cube;
-import net.masonapps.vrsolidmodeling.modeling.Primitive;
+import net.masonapps.vrsolidmodeling.modeling.primitives.Cube;
+import net.masonapps.vrsolidmodeling.modeling.primitives.Primitive;
 import net.masonapps.vrsolidmodeling.screens.ExportScreen;
 import net.masonapps.vrsolidmodeling.screens.LoadingScreen;
 import net.masonapps.vrsolidmodeling.screens.ModelingScreen;
@@ -52,6 +53,7 @@ import net.masonapps.vrsolidmodeling.screens.ProgressLoadingScreen;
 import net.masonapps.vrsolidmodeling.screens.StartupScreen;
 import net.masonapps.vrsolidmodeling.service.ExportService;
 
+import org.json.JSONException;
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.VrGame;
 import org.masonapps.libgdxgooglevr.gfx.VrScreen;
@@ -60,6 +62,7 @@ import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
 import org.masonapps.libgdxgooglevr.utils.Logger;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -145,7 +148,7 @@ public class SolidModelingGame extends VrGame {
 
         final Cube cube = new Cube();
         cube.initialize();
-        primitiveMap.put("cube", cube);
+        primitiveMap.put(cube.getName(), cube);
     }
 
     @Override
@@ -214,8 +217,7 @@ public class SolidModelingGame extends VrGame {
             startupScreen = new StartupScreen(this, new StartupScreen.StartupScreenListener() {
                 @Override
                 public void onCreateNewProjectClicked() {
-//                switchToNewProjectScreen();
-                    createNewProject(Assets.ICOSPHERE_MESH_MED);
+                    createNewProject();
                 }
 
                 @Override
@@ -233,7 +235,7 @@ public class SolidModelingGame extends VrGame {
         resetProgressLoadingScreen();
     }
 
-    private void createNewProject(final String asset) {
+    private void createNewProject() {
         setScreen(progressLoadingScreen);
         loadingFailed = false;
         final String projectName = generateNewProjectName();
@@ -248,7 +250,7 @@ public class SolidModelingGame extends VrGame {
         CompletableFuture.supplyAsync(() -> {
             try {
                 setLoadingScreenMessage("loading project...");
-                return null;
+                return ProjectFileIO.loadFile(file, primitiveMap);
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new CompletionException(e);
@@ -259,7 +261,9 @@ public class SolidModelingGame extends VrGame {
             return null;
         }).thenAccept(project -> {
             if (project != null) {
-
+                final int endIndex = fileName.lastIndexOf('.');
+                final String projectName = endIndex == -1 ? fileName : fileName.substring(0, endIndex);
+                GdxVr.app.postRunnable(() -> setScreen(new ModelingScreen(SolidModelingGame.this, projectName, project)));
             } else {
                 loadingFailed = true;
                 showError("unable to open project");
@@ -275,7 +279,13 @@ public class SolidModelingGame extends VrGame {
 
     public void saveCurrentProject() {
         if (modelingScreen != null) {
-//            saveCurrentProject(modelingScreen.getCSG(), modelingScreen.getProjectName());
+            final Activity activity = GdxVr.app.getActivityWeakReference().get();
+            if (activity != null)
+                try {
+                    ProjectFileIO.saveFile(new File(activity.getFilesDir(), modelingScreen.getProjectName() + "." + ProjectFileIO.EXTENSION), modelingScreen.getModelingProject().getModelingEntityList());
+                } catch (IOException | JSONException e) {
+                    e.printStackTrace();
+                }
         }
     }
 
@@ -512,6 +522,10 @@ public class SolidModelingGame extends VrGame {
 
     public Primitive getPrimitive(String name) {
         return primitiveMap.get(name);
+    }
+
+    public HashMap<String, Primitive> getPrimitiveMap() {
+        return primitiveMap;
     }
 
     public interface OnControllerBackPressedListener {

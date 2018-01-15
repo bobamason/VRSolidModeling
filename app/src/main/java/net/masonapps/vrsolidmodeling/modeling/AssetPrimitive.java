@@ -9,6 +9,7 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 
 import net.masonapps.vrsolidmodeling.bvh.BVH;
+import net.masonapps.vrsolidmodeling.modeling.primitives.Primitive;
 
 import org.apache.commons.math3.geometry.euclidean.threed.PolyhedronsSet;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;

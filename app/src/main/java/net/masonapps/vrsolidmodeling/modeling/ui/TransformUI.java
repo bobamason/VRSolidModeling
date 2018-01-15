@@ -86,9 +86,9 @@ public class TransformUI extends VirtualStage {
         addActor(dragUp);
 
         final ImageButton.ImageButtonStyle rotateButtonStyle = new ImageButton.ImageButtonStyle();
-        rotateButtonStyle.imageUp = skin.newDrawable(Style.Drawables.circle, Color.BLUE);
-        rotateButtonStyle.imageDown = skin.newDrawable(Style.Drawables.circle, Color.NAVY);
-        rotateButtonStyle.imageDisabled = skin.newDrawable(Style.Drawables.circle, Color.GRAY);
+        rotateButtonStyle.imageUp = skin.newDrawable(Style.Drawables.ic_rotate_handle, Color.BLUE);
+        rotateButtonStyle.imageDown = skin.newDrawable(Style.Drawables.ic_rotate_handle, Color.NAVY);
+        rotateButtonStyle.imageDisabled = skin.newDrawable(Style.Drawables.ic_rotate_handle, Color.GRAY);
         rotateBtn = new ImageButton(rotateButtonStyle);
         rotateBtn.setPosition(getCenterX() + rotateRadius, getCenterY(), Align.center);
         rotateBtn.addListener(new InputListener() {

@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.g3d.model.data.ModelData;
 
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.io.FileUtils;
+import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,8 +29,7 @@ public class OpenProjectScreen extends ModelSelectionScreen<File> {
 
     @Override
     public ModelData loadModelData(File file) throws IOException {
-        //todo create project file
-        return null;
+        return ProjectFileIO.toModelData(file, getSolidModelingGame().getPrimitiveMap());
     }
 
     @Override

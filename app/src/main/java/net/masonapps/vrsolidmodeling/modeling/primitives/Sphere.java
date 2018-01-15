@@ -1,4 +1,4 @@
-package net.masonapps.vrsolidmodeling.modeling;
+package net.masonapps.vrsolidmodeling.modeling.primitives;
 
 import android.support.annotation.Nullable;
 
@@ -23,6 +23,11 @@ public class Sphere extends Primitive {
     @Override
     public Model createModel() {
         return null;
+    }
+
+    @Override
+    public String getName() {
+        return "sphere";
     }
 
     @Override

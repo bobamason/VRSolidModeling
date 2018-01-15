@@ -2,18 +2,18 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-    height="256"
+    height="96"
     id="svg2"
     version="1.1"
-    viewBox="0 0 256 256"
-    width="256"
+    viewBox="0 0 96 96"
+    width="96"
     xmlns="http://www.w3.org/2000/svg"
     xmlns:cc="http://creativecommons.org/ns#"
     xmlns:dc="http://purl.org/dc/elements/1.1/"
     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-    inkscape:export-filename="C:\Users\ims_3\AndroidStudioProjects\VRSolidModeling\app\src\main\assets\raw\pack\dash_circle.png"
+    inkscape:export-filename="C:\Users\ims_3\AndroidStudioProjects\VRSolidModeling\app\src\main\assets\raw\pack\ic_rotate_handle.png"
     inkscape:export-xdpi="90"
     inkscape:export-ydpi="90"
     inkscape:version="0.91 r13725"
@@ -206,8 +206,8 @@
       units="px"
       inkscape:bbox-nodes="true"
       inkscape:current-layer="g4729-9"
-      inkscape:cx="127.23444"
-      inkscape:cy="43.745645"
+      inkscape:cx="-2.9146487"
+      inkscape:cy="35.612317"
       inkscape:document-units="px"
       inkscape:object-nodes="false"
       inkscape:object-paths="false"
@@ -224,7 +224,7 @@
       inkscape:window-width="1016"
       inkscape:window-x="230"
       inkscape:window-y="54"
-      inkscape:zoom="0.83789062">
+      inkscape:zoom="1.6757812">
     <inkscape:grid
         id="grid4136"
         type="xygrid"/>
@@ -243,7 +243,7 @@
   </metadata>
   <g
       id="layer1"
-      transform="translate(0,-796.3622)"
+      transform="translate(0,-956.3622)"
       inkscape:groupmode="layer"
       inkscape:label="Layer 1">
     <g
