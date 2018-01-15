@@ -58,6 +58,7 @@ public class TransformUI extends VirtualStage {
         circleImage = new Image(skin.newDrawable(Style.Drawables.dash_circle, Color.LIGHT_GRAY));
         circleImage.setOrigin(Align.center);
         circleImage.setPosition(getCenterX(), getCenterY(), Align.center);
+        addActor(circleImage);
         
         dragLeft = new ImageButton(Style.createImageButtonStyleNoBg(skin, Style.Drawables.ic_drag_left));
         dragLeft.setPosition(1000, 600, Align.left);
