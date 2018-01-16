@@ -278,11 +278,8 @@ public class SolidModelingGame extends VrGame {
     }
 
     public void saveCurrentProject() {
-        if (modelingScreen != null) {
-            final Activity activity = GdxVr.app.getActivityWeakReference().get();
-            if (activity != null)
-                saveCurrentProject(modelingScreen.getModelingProject(), modelingScreen.getProjectName());
-        }
+        if (modelingScreen != null)
+            saveCurrentProject(modelingScreen.getModelingProject(), modelingScreen.getProjectName());
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -384,7 +381,7 @@ public class SolidModelingGame extends VrGame {
     public void closeModelingScreen() {
         if (modelingScreen == null) return;
         modelingScreen.hide();
-//        saveCurrentProject(modelingScreen.getCSG(), modelingScreen.getProjectName());
+        saveCurrentProject(modelingScreen.getModelingProject(), modelingScreen.getProjectName());
         modelingScreen.dispose();
         modelingScreen = null;
     }
