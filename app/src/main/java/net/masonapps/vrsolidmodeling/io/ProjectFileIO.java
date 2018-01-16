@@ -1,8 +1,6 @@
 package net.masonapps.vrsolidmodeling.io;
 
-import com.badlogic.gdx.graphics.g3d.model.data.ModelData;
-
-import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
+import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitive;
 
 import org.json.JSONArray;
@@ -24,28 +22,26 @@ import java.util.List;
 
 public class ProjectFileIO {
 
-    public static final String EXTENSION = "proj";
-
-    public static JSONArray toJSONArray(List<ModelingEntity> entities) throws JSONException {
+    public static JSONArray toJSONArray(List<ModelingObject> objects) throws JSONException {
         final JSONArray jsonArray = new JSONArray();
-        for (ModelingEntity entity : entities) {
-            jsonArray.put(entity.toJSONObject());
+        for (ModelingObject object : objects) {
+            jsonArray.put(object.toJSONObject());
         }
         return jsonArray;
     }
 
-    public static List<ModelingEntity> fromJSONArray(JSONArray jsonArray, HashMap<String, Primitive> primitiveMap) throws JSONException {
-        final ArrayList<ModelingEntity> entities = new ArrayList<>(jsonArray.length());
+    public static List<ModelingObject> fromJSONArray(JSONArray jsonArray, HashMap<String, Primitive> primitiveMap) throws JSONException {
+        final ArrayList<ModelingObject> objects = new ArrayList<>(jsonArray.length());
         for (int i = 0; i < jsonArray.length(); i++) {
-            entities.add(ModelingEntity.fromJSONObject(primitiveMap, jsonArray.getJSONObject(i)));
+            objects.add(ModelingObject.fromJSONObject(primitiveMap, jsonArray.getJSONObject(i)));
         }
-        return entities;
+        return objects;
     }
 
-    public static void saveFile(File file, List<ModelingEntity> entities) throws IOException, JSONException {
+    public static void saveFile(File file, List<ModelingObject> objects) throws IOException, JSONException {
         BufferedWriter writer = null;
         try {
-            final JSONArray jsonArray = toJSONArray(entities);
+            final JSONArray jsonArray = toJSONArray(objects);
             writer = new BufferedWriter(new FileWriter(file));
             writer.write(jsonArray.toString());
         } finally {
@@ -54,9 +50,9 @@ public class ProjectFileIO {
         }
     }
 
-    public static List<ModelingEntity> loadFile(File file, HashMap<String, Primitive> primitiveMap) throws IOException, JSONException {
+    public static List<ModelingObject> loadFile(File file, HashMap<String, Primitive> primitiveMap) throws IOException, JSONException {
         BufferedReader reader = null;
-        final ArrayList<ModelingEntity> entities = new ArrayList<>();
+        final ArrayList<ModelingObject> objects = new ArrayList<>();
         try {
             reader = new BufferedReader(new FileReader(file));
             final StringBuilder sb = new StringBuilder();
@@ -65,15 +61,11 @@ public class ProjectFileIO {
             while ((count = reader.read(buffer)) != -1) {
                 sb.append(buffer, 0, count);
             }
-            entities.addAll(fromJSONArray(new JSONArray(sb.toString()), primitiveMap));
+            objects.addAll(fromJSONArray(new JSONArray(sb.toString()), primitiveMap));
         } finally {
             if (reader != null)
                 reader.close();
         }
-        return entities;
-    }
-
-    public static ModelData toModelData(File file, HashMap<String, Primitive> primitiveMap) {
-        return null;
+        return objects;
     }
 }

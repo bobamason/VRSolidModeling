@@ -7,8 +7,10 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
@@ -29,11 +31,16 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Pools;
 import com.google.vr.sdk.controller.Controller;
 
+import net.masonapps.vrsolidmodeling.PreviewModelingProject;
 import net.masonapps.vrsolidmodeling.R;
+import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.Style;
+import net.masonapps.vrsolidmodeling.modeling.BaseModelingProject;
+import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.Entity;
+import org.masonapps.libgdxgooglevr.gfx.Transformable;
 import org.masonapps.libgdxgooglevr.gfx.World;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 import org.masonapps.libgdxgooglevr.input.DaydreamTouchEvent;
@@ -43,8 +50,8 @@ import org.masonapps.libgdxgooglevr.ui.VirtualStage;
 import org.masonapps.libgdxgooglevr.ui.VrUiContainer;
 import org.masonapps.libgdxgooglevr.utils.Logger;
 
-import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -91,6 +98,7 @@ public class ModelSelectionUI<T> extends VrUiContainer {
     @Nullable
     private Runnable animCompleteListener = null;
     private float targetValue = 0f;
+    private List<PreviewModelingProject> projects = new ArrayList<>();
     private final GestureDetector.GestureAdapter gestureAdapter = new GestureDetector.GestureAdapter() {
 
         public float startX = 0f;
@@ -136,10 +144,11 @@ public class ModelSelectionUI<T> extends VrUiContainer {
         }
     };
     private Interpolation interpolation = Interpolation.linear;
+    private SolidModelingGame solidModelingGame;
 
-    public ModelSelectionUI(SpriteBatch spriteBatch, Skin skin, List<T> list, World world, ModelAdapter<T> adapter, FileButtonBar.OnFileButtonClicked<T> listener) {
+    public ModelSelectionUI(SolidModelingGame game, SpriteBatch spriteBatch, Skin skin, List<T> list, ModelAdapter<T> adapter, FileButtonBar.OnFileButtonClicked<T> listener) {
         super();
-        this.world = world;
+        solidModelingGame = game;
         this.adapter = adapter;
         gestureDetector = new GestureDetector(gestureAdapter);
         this.list = Collections.synchronizedList(list);
@@ -231,9 +240,9 @@ public class ModelSelectionUI<T> extends VrUiContainer {
 
     private boolean rayTest(ModelItem modelItem, Ray ray) {
         if (modelItem == null) return false;
-        final Entity entity = modelItem.entity;
+        final PreviewModelingProject entity = modelItem.project;
         modelItem.targetRotation.idt();
-        if (entity != null && entity.intersectsRaySphere(ray, hitPoint3D)) {
+        if (entity != null && entity.rayTest(ray, hitPoint3D) != null) {
 
             final Vector3 dir = Pools.obtain(Vector3.class);
             final Vector3 tmp = Pools.obtain(Vector3.class);
@@ -261,6 +270,7 @@ public class ModelSelectionUI<T> extends VrUiContainer {
     @Override
     public void act() {
         super.act();
+        projects.forEach(BaseModelingProject::update);
         final float deltaTime = GdxVr.graphics.getDeltaTime();
         if (animating) {
             if (animValue < targetValue) {
@@ -325,15 +335,19 @@ public class ModelSelectionUI<T> extends VrUiContainer {
         Pools.free(nPos);
     }
 
+    public void renderProjects(ModelBatch batch, Environment environment) {
+        projects.forEach(project -> project.render(batch, environment));
+    }
+
     protected void updateTransform(@Nullable ModelItem<T> modelItem, VirtualStage stage, Vector3 position, float scale) {
         if (modelItem == null) return;
-        final Entity currentModel = modelItem.entity;
+        final Transformable currentModel = modelItem.project;
         if (currentModel != null) {
             stage.setVisible(false);
-            float r = modelItem.entity.getRadius();
+            float r = modelItem.project.getRadius();
             if (r != 0)
-                modelItem.entity.setScale(MODEL_RADIUS / r * scale);
-            modelItem.entity.setPosition(position);
+                modelItem.project.setScale(MODEL_RADIUS / r * scale);
+            modelItem.project.setPosition(position);
             currentModel.getRotation().slerp(modelItem.targetRotation, 0.25f);
             currentModel.invalidate();
 
@@ -446,10 +460,10 @@ public class ModelSelectionUI<T> extends VrUiContainer {
         if (modelItem.loadModelFuture != null) {
             modelItem.loadModelFuture.cancel(true);
         }
-        if (modelItem.entity != null) {
-            world.remove(modelItem.entity);
-            modelItem.entity.dispose();
-            modelItem.entity = null;
+        if (modelItem.project != null) {
+            projects.remove(modelItem.project);
+            modelItem.project.dispose();
+            modelItem.project = null;
         }
     }
 
@@ -467,14 +481,10 @@ public class ModelSelectionUI<T> extends VrUiContainer {
         modelItem.loadModelFuture.exceptionally(e -> {
             runOnGLThread(() -> adapter.onLoadModelFailed(modelItem.t, e));
             return null;
-        }).thenAccept(modelData -> {
-            if (modelData != null) {
-                final BoundingBox bb = createBoundingBox(modelData);
+        }).thenAccept(modelingObjects -> {
+            if (modelingObjects != null) {
                 runOnGLThread(() -> {
-                    final Model model = new Model(modelData);
-                    final ModelInstance modelInstance = new ModelInstance(model, 0, 4, -5);
-                    modelInstance.materials.set(0, Style.createSculptMaterial());
-                    modelItem.entity = world.add(new Entity(modelInstance, bb));
+                    modelItem.project = new PreviewModelingProject(modelingObjects, getSolidModelingGame().getPrimitiveModelMap());
                     modelItem.loadModelFuture = null;
                 });
             }
@@ -567,18 +577,22 @@ public class ModelSelectionUI<T> extends VrUiContainer {
         GdxVr.app.postRunnable(runnable);
     }
 
+    public SolidModelingGame getSolidModelingGame() {
+        return solidModelingGame;
+    }
+
     public interface ModelAdapter<T> {
 
-        ModelData loadModelData(T t) throws IOException;
+        List<ModelingObject> loadModelData(T t) throws Exception;
 
         void onLoadModelFailed(T t, Throwable e);
     }
 
     public static class ModelItem<T> {
         @Nullable
-        public CompletableFuture<ModelData> loadModelFuture = null;
+        public CompletableFuture<List<ModelingObject>> loadModelFuture = null;
         @Nullable
-        public Entity entity = null;
+        public PreviewModelingProject project = null;
         public Quaternion targetRotation = new Quaternion();
         public T t;
         public int index = -1;

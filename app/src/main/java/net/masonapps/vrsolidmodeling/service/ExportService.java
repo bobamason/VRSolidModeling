@@ -16,18 +16,15 @@ import com.badlogic.gdx.math.Matrix4;
 import net.masonapps.vrsolidmodeling.Constants;
 import net.masonapps.vrsolidmodeling.R;
 import net.masonapps.vrsolidmodeling.SolidModelingApplication;
-import net.masonapps.vrsolidmodeling.io.FileUtils;
-import net.masonapps.vrsolidmodeling.io.OBJWriter;
-import net.masonapps.vrsolidmodeling.io.PLYWriter;
-import net.masonapps.vrsolidmodeling.io.STLWriter;
-import net.masonapps.vrsolidmodeling.mesh.MeshData;
-import net.masonapps.vrsolidmodeling.mesh.Triangle;
-import net.masonapps.vrsolidmodeling.mesh.Vertex;
+import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
+import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
 
+import org.json.JSONException;
 import org.masonapps.libgdxgooglevr.utils.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Created by Bob on 8/17/2017.
@@ -51,10 +48,10 @@ public class ExportService extends IntentService {
 
         Logger.d("service started");
 
-        final MeshData meshData = ((SolidModelingApplication) getApplication()).getMeshData();
+        final List<ModelingObject> modelingObjects = ((SolidModelingApplication) getApplication()).getModelingObjects();
         final Matrix4 transform = new Matrix4(((SolidModelingApplication) getApplication()).getTransform());
         Logger.d("export transform:\n" + transform);
-        if (meshData == null)
+        if (modelingObjects == null)
             return;
 
         if (intent == null) return;
@@ -93,54 +90,53 @@ public class ExportService extends IntentService {
 
         Logger.d("export started " + file.getAbsolutePath());
         try {
-            final int vertexCount = meshData.getVertexCount();
-            final float[] vertices = new float[vertexCount * 9];
-
-            for (int i = 0; i < vertexCount; i++) {
-                final Vertex vertex = meshData.vertices[i];
-                vertices[i] = vertex.position.x;
-                vertices[i + 1] = vertex.position.y;
-                vertices[i + 2] = vertex.position.z;
-
-                vertices[i + 3] = vertex.normal.x;
-                vertices[i + 4] = vertex.normal.y;
-                vertices[i + 5] = vertex.normal.z;
-
-                vertices[i + 6] = vertex.uv.x;
-                vertices[i + 7] = vertex.uv.y;
-
-                vertices[i + 8] = vertex.color.toFloatBits();
-            }
-
-            final int triangleCount = meshData.getTriangleCount();
-            final short[] indices = new short[triangleCount * 3];
-
-            for (int i = 0; i < triangleCount; i++) {
-                final Triangle triangle = meshData.triangles[i];
-                indices[i] = (short) triangle.v1.index;
-                indices[i + 1] = (short) triangle.v2.index;
-                indices[i + 2] = (short) triangle.v3.index;
-            }
+//            final int vertexCount = meshData.getVertexCount();
+//            final float[] vertices = new float[vertexCount * 9];
+//
+//            for (int i = 0; i < vertexCount; i++) {
+//                final Vertex vertex = meshData.vertices[i];
+//                vertices[i] = vertex.position.x;
+//                vertices[i + 1] = vertex.position.y;
+//                vertices[i + 2] = vertex.position.z;
+//
+//                vertices[i + 3] = vertex.normal.x;
+//                vertices[i + 4] = vertex.normal.y;
+//                vertices[i + 5] = vertex.normal.z;
+//
+//                vertices[i + 6] = vertex.uv.x;
+//                vertices[i + 7] = vertex.uv.y;
+//
+//                vertices[i + 8] = vertex.color.toFloatBits();
+//            }
+//
+//            final int triangleCount = meshData.getTriangleCount();
+//            final short[] indices = new short[triangleCount * 3];
+//
+//            for (int i = 0; i < triangleCount; i++) {
+//                final Triangle triangle = meshData.triangles[i];
+//                indices[i] = (short) triangle.v1.index;
+//                indices[i + 1] = (short) triangle.v2.index;
+//                indices[i + 2] = (short) triangle.v3.index;
+//            }
             
             switch (fileType) {
                 case Constants.FILE_TYPE_OBJ:
-                    final String name = FileUtils.nameWithoutExtension(file);
-                    final File folder = new File(file.getParentFile(), name);
-                    folder.mkdirs();
-                    final File objFile = new File(folder, name + ".obj");
-                    final File mtlFile = new File(folder, name + ".mtl");
-                    final File textureFile = new File(folder, name + ".png");
-                    OBJWriter.writeToFiles(objFile, mtlFile, textureFile, vertices, indices, 9, false, transform);
+//                    final String name = FileUtils.nameWithoutExtension(file);
+//                    final File folder = new File(file.getParentFile(), name);
+//                    folder.mkdirs();
+//                    final File objFile = new File(folder, name + ".obj");
+//                    final File mtlFile = new File(folder, name + ".mtl");
+//                    final File textureFile = new File(folder, name + ".png");
+//                    OBJWriter.writeToFiles(objFile, mtlFile, textureFile, vertices, indices, 9, false, transform);
                     break;
                 case Constants.FILE_TYPE_PLY:
-                    PLYWriter.writeToFile(file, vertices, indices, 9, transform);
+//                    PLYWriter.writeToFile(file, vertices, indices, 9, transform);
                     break;
                 case Constants.FILE_TYPE_STL:
-                    STLWriter.writeToFile(file, meshData, transform);
+//                    STLWriter.writeToFile(file, meshData, transform);
                     break;
                 case Constants.FILE_TYPE_PROJECT:
-                    //todo create project file writer
-//                    CSGWriter.writeToFile(file, meshData, transform);
+                    ProjectFileIO.saveFile(file, modelingObjects);
                     break;
             }
 
@@ -156,7 +152,7 @@ public class ExportService extends IntentService {
             nb.setProgress(0, 0, false);
             notificationManager.notify(NOTIFICATION_ID, nb.build());
 
-        } catch (IOException e) {
+        } catch (IOException | JSONException e) {
             Log.e(TAG, "export to " + filePath + " failed: " + e.getLocalizedMessage());
             e.printStackTrace();
             nb.setContentText((isSavingProject ? "saving" : "exporting") + " to " + file.getName() + " failed");

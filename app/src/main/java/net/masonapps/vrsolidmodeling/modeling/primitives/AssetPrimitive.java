@@ -1,4 +1,4 @@
-package net.masonapps.vrsolidmodeling.modeling;
+package net.masonapps.vrsolidmodeling.modeling.primitives;
 
 import android.support.annotation.Nullable;
 
@@ -9,7 +9,6 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 
 import net.masonapps.vrsolidmodeling.bvh.BVH;
-import net.masonapps.vrsolidmodeling.modeling.primitives.Primitive;
 
 import org.apache.commons.math3.geometry.euclidean.threed.PolyhedronsSet;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
@@ -21,7 +20,7 @@ import java.util.List;
  * Created by Bob on 1/3/2018.
  */
 
-public class AssetPrimitive extends Primitive {
+public abstract class AssetPrimitive extends Primitive {
     private BoundingBox boundingBox;
     private com.badlogic.gdx.graphics.g3d.model.data.ModelData modelData;
     private BVH bvh;

@@ -3,11 +3,11 @@ package net.masonapps.vrsolidmodeling.screens;
 import android.util.Log;
 
 import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.graphics.g3d.model.data.ModelData;
 
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.io.FileUtils;
 import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
+import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,8 +28,8 @@ public class OpenProjectScreen extends ModelSelectionScreen<File> {
     }
 
     @Override
-    public ModelData loadModelData(File file) throws IOException {
-        return ProjectFileIO.toModelData(file, getSolidModelingGame().getPrimitiveMap());
+    public List<ModelingObject> loadModelData(File file) throws Exception {
+        return ProjectFileIO.loadFile(file, getSolidModelingGame().getPrimitiveMap());
     }
 
     @Override

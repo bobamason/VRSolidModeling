@@ -13,7 +13,7 @@ public class Constants {
     public static final String FILE_TYPE_OBJ = "obj";
     public static final String FILE_TYPE_PLY = "ply";
     public static final String FILE_TYPE_STL = "stl";
-    public static final String FILE_TYPE_PROJECT = "ss";
+    public static final String FILE_TYPE_PROJECT = "proj";
     public static final String KEY_EXTERNAL = "external";
     public static final String EXTERNAL_DIRECTORY = "SolidStudio";
 }

@@ -3,6 +3,8 @@ package net.masonapps.vrsolidmodeling.screens;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.math.Vector3;
@@ -10,11 +12,12 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Array;
 import com.google.vr.sdk.controller.Controller;
 
+import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.ui.FileButtonBar;
 import net.masonapps.vrsolidmodeling.ui.ModelSelectionUI;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
-import org.masonapps.libgdxgooglevr.gfx.VrGame;
+import org.masonapps.libgdxgooglevr.gfx.World;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 import org.masonapps.libgdxgooglevr.input.DaydreamTouchEvent;
 import org.masonapps.libgdxgooglevr.vr.VrGraphics;
@@ -28,16 +31,16 @@ import java.util.List;
 public abstract class ModelSelectionScreen<T> extends RoomScreen implements FileButtonBar.OnFileButtonClicked<T>, ModelSelectionUI.ModelAdapter<T> {
 
     protected final ModelSelectionUI<T> ui;
-    
 
-    public ModelSelectionScreen(VrGame game, Skin skin, List<T> list) {
+
+    public ModelSelectionScreen(SolidModelingGame game, Skin skin, List<T> list) {
         super(game);
 //        getWorld().add(Style.newGradientBackground(getVrCamera().far - 1f));
 //        getWorld().add(Grid.newInstance(20f, 0.5f, 0.02f, Color.WHITE, Color.DARK_GRAY)).setPosition(0, -1.3f, 0);
 
         final SpriteBatch spriteBatch = new SpriteBatch();
         manageDisposable(spriteBatch);
-        ui = new ModelSelectionUI<>(spriteBatch, skin, list, world, this, this);
+        ui = new ModelSelectionUI<>(game, spriteBatch, skin, list, this, this);
     }
 
     @Override
@@ -46,6 +49,17 @@ public abstract class ModelSelectionScreen<T> extends RoomScreen implements File
         light.setColor(Color.WHITE);
         light.setDirection(new Vector3(1, -1, -1).nor());
         lights.add(light);
+    }
+
+    @Override
+    protected World createWorld() {
+        return new World() {
+            @Override
+            public void render(ModelBatch batch, Environment environment) {
+                super.render(batch, environment);
+                ui.renderProjects(batch, environment);
+            }
+        };
     }
 
     @Override

@@ -5,7 +5,9 @@ import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.math.Matrix4;
 
-import net.masonapps.vrsolidmodeling.mesh.MeshData;
+import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
+
+import java.util.List;
 
 /**
  * Created by Bob Mason on 12/20/2017.
@@ -15,7 +17,7 @@ public class SolidModelingApplication extends Application {
 
     private final Matrix4 transform = new Matrix4();
     @Nullable
-    private MeshData meshData = null;
+    private List<ModelingObject> modelingObjects = null;
 
     @Override
     public void onCreate() {
@@ -24,17 +26,17 @@ public class SolidModelingApplication extends Application {
 
     @Override
     public void onTerminate() {
-        meshData = null;
+        modelingObjects = null;
         super.onTerminate();
     }
 
     @Nullable
-    public MeshData getMeshData() {
-        return meshData;
+    public List<ModelingObject> getModelingObjects() {
+        return modelingObjects;
     }
 
-    public void setMeshData(@Nullable MeshData meshData, Matrix4 transform) {
-        this.meshData = meshData;
+    public void setModelingProject(@Nullable List<ModelingObject> objectList, Matrix4 transform) {
+        this.modelingObjects = objectList;
         this.transform.set(transform);
     }
 

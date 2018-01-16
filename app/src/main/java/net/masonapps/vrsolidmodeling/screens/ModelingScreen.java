@@ -9,8 +9,10 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
@@ -38,7 +40,9 @@ import net.masonapps.vrsolidmodeling.Style;
 import net.masonapps.vrsolidmodeling.math.Animator;
 import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
+import net.masonapps.vrsolidmodeling.modeling.BaseModelingProject;
 import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
+import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProject;
 import net.masonapps.vrsolidmodeling.modeling.UndoRedoCache;
 import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
@@ -49,6 +53,7 @@ import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.Entity;
 import org.masonapps.libgdxgooglevr.gfx.VrGame;
 import org.masonapps.libgdxgooglevr.gfx.VrWorldScreen;
+import org.masonapps.libgdxgooglevr.gfx.World;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 
 import java.util.ArrayList;
@@ -93,7 +98,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         this(game, projectName, new ArrayList<>());
     }
 
-    public ModelingScreen(VrGame game, String projectName, List<ModelingEntity> entities) {
+    public ModelingScreen(VrGame game, String projectName, List<ModelingObject> objects) {
         super(game);
         this.projectName = projectName;
 
@@ -134,11 +139,11 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void onAddClicked() {
-                final Color color = new Color(Color.LIGHT_GRAY);
                 final Vector3 pos = new Vector3(MathUtils.random(-2f, 2f), MathUtils.random(-2f, 2f), MathUtils.random(-2f, 2f));
-                final ModelingEntity cube = new ModelingEntity(getSolidModelingGame().getPrimitive("cube"), new Material(ColorAttribute.createDiffuse(color)));
+                final ModelingObject modelingObject = new ModelingObject(getSolidModelingGame().getPrimitive("cube"));
+                modelingObject.setPosition(pos).scale(0.25f);
+                final ModelingEntity cube = new ModelingEntity(modelingObject, modelingObject.createModelInstance(getSolidModelingGame().getPrimitiveModelMap()));
                 modelingProject.add(cube);
-                cube.setPosition(pos).scale(0.25f);
             }
 
             @Override
@@ -191,8 +196,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         gridEntity.setLightingEnabled(false);
         getWorld().add(gridEntity);
 
-        for (ModelingEntity entity : entities) {
-            modelingProject.add(entity);
+        for (ModelingObject object : objects) {
+            modelingProject.add(new ModelingEntity(object, object.createModelInstance(getSolidModelingGame().getPrimitiveModelMap())));
         }
     }
 
@@ -226,6 +231,24 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
     private SolidModelingGame getSolidModelingGame() {
         return (SolidModelingGame) game;
+    }
+
+    @Override
+    protected World createWorld() {
+        return new World() {
+
+            @Override
+            public void update() {
+                super.update();
+                modelingProject.update();
+            }
+
+            @Override
+            public void render(ModelBatch batch, Environment environment) {
+                super.render(batch, environment);
+                modelingProject.render(batch, environment);
+            }
+        };
     }
 
     @Override
@@ -270,7 +293,6 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         super.update();
         if (currentInputMode == InputMode.SELECT)
             getSolidModelingGame().getCursor().position.set(hitPoint);
-        modelingProject.update();
         mainInterface.act();
         snapAnimator.update(GdxVr.graphics.getDeltaTime());
 //        Logger.d(GdxVr.graphics.getFramesPerSecond() + "fps");
@@ -279,9 +301,6 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     @Override
     public void render(Camera camera, int whichEye) {
         super.render(camera, whichEye);
-        getModelBatch().begin(camera);
-        modelingProject.render(getModelBatch(), getEnvironment());
-        getModelBatch().end();
         shapeRenderer.begin();
         shapeRenderer.setProjectionMatrix(camera.combined);
         if (focusedEntity != null) {
@@ -440,7 +459,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         }
     }
 
-    public ModelingProject getModelingProject() {
+    public BaseModelingProject getModelingProject() {
         return modelingProject;
     }
 

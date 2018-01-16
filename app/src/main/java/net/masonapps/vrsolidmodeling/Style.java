@@ -3,9 +3,6 @@ package net.masonapps.vrsolidmodeling;
 import android.content.Context;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g3d.Material;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
@@ -71,10 +68,6 @@ public class Style {
         final ImageTextButton.ImageTextButtonStyle imageTextButtonStyle = new ImageTextButton.ImageTextButtonStyle(skin.get(DEFAULT, ImageTextButton.ImageTextButtonStyle.class));
         imageTextButtonStyle.imageUp = skin.newDrawable(name);
         return imageTextButtonStyle;
-    }
-
-    public static Material createSculptMaterial() {
-        return new Material(ColorAttribute.createDiffuse(Color.WHITE), ColorAttribute.createAmbient(Color.GRAY), ColorAttribute.createSpecular(Color.DARK_GRAY), FloatAttribute.createShininess(2f));
     }
 
     public static String getStringResource(int res, String defaultValue) {

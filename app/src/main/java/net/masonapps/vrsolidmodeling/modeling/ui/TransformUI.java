@@ -119,8 +119,8 @@ public class TransformUI extends VirtualStage {
             case DRAG_X:
                 if (entity != null) {
                     tmpV.set(1, 0, 0).rot(tmpM.set(entity.getParentTransform()).inv());
-                    entity.translate(tmpV.scl(currentHitPoint.x - lastHitPoint.x));
-                    entity.recalculateTransform();
+                    entity.modelingObject.translate(tmpV.scl(currentHitPoint.x - lastHitPoint.x));
+                    entity.update();
                     entity.modelInstance.transform.getTranslation(position);
                     recalculateTransform();
                 }
@@ -128,8 +128,8 @@ public class TransformUI extends VirtualStage {
             case DRAG_Y:
                 if (entity != null) {
                     tmpV.set(0, 1, 0).rot(tmpM.set(entity.getParentTransform()).inv());
-                    entity.translate(tmpV.scl(currentHitPoint.y - lastHitPoint.y));
-                    entity.recalculateTransform();
+                    entity.modelingObject.translate(tmpV.scl(currentHitPoint.y - lastHitPoint.y));
+                    entity.update();
                     entity.modelInstance.transform.getTranslation(position);
                     recalculateTransform();
                 }
@@ -139,8 +139,9 @@ public class TransformUI extends VirtualStage {
                     final float currentRotation = MathUtils.atan2(getHitPoint2D().y - getCenterY(), getHitPoint2D().x - getCenterX());
                     Logger.d("rotating" + (currentRotation * MathUtils.radiansToDegrees));
                     tmpV.set(0, 0, 1).rot(tmpM.set(entity.getParentTransform()).inv());
-                    entity.getRotation().mul(new Quaternion(tmpV, (currentRotation - lastRotation) * MathUtils.radiansToDegrees));
-                    entity.recalculateTransform();
+                    entity.modelingObject.getRotation().mul(new Quaternion(tmpV, (currentRotation - lastRotation) * MathUtils.radiansToDegrees));
+                    entity.modelingObject.recalculateTransform();
+                    entity.modelingObject.getTransform(entity.modelInstance.transform);
                     rotateBtn.setPosition(rotateRadius * MathUtils.cos(currentRotation) + getCenterX(), rotateRadius * MathUtils.sin(currentRotation) + getCenterY(), Align.center);
                     circleImage.setRotation(currentRotation * MathUtils.radiansToDegrees);
                     lastRotation = currentRotation;
