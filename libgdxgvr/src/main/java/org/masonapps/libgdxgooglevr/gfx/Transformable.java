@@ -48,12 +48,6 @@ public class Transformable {
         return this;
     }
 
-    public Transformable setScale(float scale) {
-        this.scale.set(scale, scale, scale);
-        invalidate();
-        return this;
-    }
-
     public Transformable scaleX(float x) {
         scale.x *= x;
         invalidate();
@@ -296,5 +290,15 @@ public class Transformable {
 
     public boolean isUpdated() {
         return updated;
+    }
+
+    public Vector3 getScale() {
+        return scale;
+    }
+
+    public Transformable setScale(float scale) {
+        this.scale.set(scale, scale, scale);
+        invalidate();
+        return this;
     }
 }
