@@ -173,20 +173,25 @@ public class VrAndroidInput implements Input, View.OnKeyListener {
                 if (((VrInputProcessor) processor).performRayTest(inputRay)) {
 //                    Log.d(VrAndroidInput.class.getSimpleName(), event.toString());
                     final Vector2 hitPoint2D = ((VrInputProcessor) processor).getHitPoint2D();
+                    int x;
+                    int y;
                     if (hitPoint2D != null) {
-                        final int x = (int) hitPoint2D.x;
-                        final int y = (int) hitPoint2D.y;
-                        lastTouch.set(touch);
-                        touch.set(x, y);
-                        if (controller.clickButtonState && !isInputProcessorTouched) {
-                            postTouchEvent(TouchEvent.TOUCH_DOWN, x, y);
-                            isInputProcessorTouched = true;
-                        } else if (!controller.clickButtonState && isInputProcessorTouched) {
-                            postTouchEvent(TouchEvent.TOUCH_UP, x, y);
-                            isInputProcessorTouched = false;
-                        } else {
-                            postTouchEvent(isInputProcessorTouched ? TouchEvent.TOUCH_DRAGGED : TouchEvent.TOUCH_MOVED, x, y);
-                        }
+                        x = (int) hitPoint2D.x;
+                        y = (int) hitPoint2D.y;
+                    } else {
+                        x = 0;
+                        y = 0;
+                    }
+                    lastTouch.set(touch);
+                    touch.set(x, y);
+                    if (controller.clickButtonState && !isInputProcessorTouched) {
+                        postTouchEvent(TouchEvent.TOUCH_DOWN, x, y);
+                        isInputProcessorTouched = true;
+                    } else if (!controller.clickButtonState && isInputProcessorTouched) {
+                        postTouchEvent(TouchEvent.TOUCH_UP, x, y);
+                        isInputProcessorTouched = false;
+                    } else {
+                        postTouchEvent(isInputProcessorTouched ? TouchEvent.TOUCH_DRAGGED : TouchEvent.TOUCH_MOVED, x, y);
                     }
                 } else {
                     if (isInputProcessorTouched) {

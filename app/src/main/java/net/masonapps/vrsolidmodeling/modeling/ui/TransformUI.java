@@ -20,6 +20,7 @@ import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.Pools;
 
 import net.masonapps.vrsolidmodeling.Style;
+import net.masonapps.vrsolidmodeling.math.SnapUtil;
 import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
 
 import org.masonapps.libgdxgooglevr.math.PlaneUtils;
@@ -38,6 +39,14 @@ import static net.masonapps.vrsolidmodeling.modeling.ui.TransformUI.TransformAct
 @SuppressWarnings("ConstantConditions")
 public class TransformUI extends VirtualStage {
 
+    private static final Vector3[] axes = new Vector3[]{
+            new Vector3(1, 0, 0),
+            new Vector3(-1, 0, 0),
+            new Vector3(0, 1, 0),
+            new Vector3(0, -1, 0),
+            new Vector3(0, 0, 1),
+            new Vector3(0, 0, -1)
+    };
     private final Vector3 tmpV = new Vector3();
     private final Matrix4 tmpM = new Matrix4();
     private final Vector3 lastHitPoint = new Vector3();
@@ -51,6 +60,7 @@ public class TransformUI extends VirtualStage {
     private ModelingEntity entity = null;
     private TransformAction transformAction = NONE;
     private float lastRotation = 0f;
+
 
     public TransformUI(Batch batch, Skin skin) {
         super(batch, 1200, 1200);
@@ -120,6 +130,7 @@ public class TransformUI extends VirtualStage {
                 if (entity != null) {
                     tmpV.set(1, 0, 0).rot(tmpM.set(entity.getParentTransform()).inv());
                     entity.modelingObject.translate(tmpV.scl(currentHitPoint.x - lastHitPoint.x));
+                    SnapUtil.snap(entity.modelingObject.getPosition(), 0.01f);
                     entity.update();
                     entity.modelInstance.transform.getTranslation(position);
                     recalculateTransform();
@@ -129,6 +140,7 @@ public class TransformUI extends VirtualStage {
                 if (entity != null) {
                     tmpV.set(0, 1, 0).rot(tmpM.set(entity.getParentTransform()).inv());
                     entity.modelingObject.translate(tmpV.scl(currentHitPoint.y - lastHitPoint.y));
+                    SnapUtil.snap(entity.modelingObject.getPosition(), 0.01f);
                     entity.update();
                     entity.modelInstance.transform.getTranslation(position);
                     recalculateTransform();
