@@ -17,12 +17,13 @@ import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
 
 public abstract class Input3D extends Entity implements VrInputProcessor {
 
+    protected final Axis axis;
+    private final Vector3 hitPoint = new Vector3();
     private boolean isCursorOver = false;
-    private Vector3 hitPoint = new Vector3();
-    private boolean dragging = false;
 
-    public Input3D(@Nullable ModelInstance modelInstance, BoundingBox bounds) {
+    public Input3D(@Nullable ModelInstance modelInstance, BoundingBox bounds, Axis axis) {
         super(modelInstance, bounds);
+        this.axis = axis;
     }
 
     @Override
@@ -39,10 +40,6 @@ public abstract class Input3D extends Entity implements VrInputProcessor {
     @Override
     public boolean isCursorOver() {
         return isCursorOver;
-    }
-
-    public boolean isDragging() {
-        return dragging;
     }
 
     @Nullable
@@ -72,18 +69,6 @@ public abstract class Input3D extends Entity implements VrInputProcessor {
     }
 
     @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        dragging = true;
-        return true;
-    }
-
-    @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        dragging = false;
-        return true;
-    }
-
-    @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
         return false;
     }
@@ -96,5 +81,9 @@ public abstract class Input3D extends Entity implements VrInputProcessor {
     @Override
     public boolean scrolled(int amount) {
         return false;
+    }
+
+    public enum Axis {
+        AXIS_X, AXIS_Y, AXIS_Z
     }
 }

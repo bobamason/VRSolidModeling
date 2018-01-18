@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 
+import org.masonapps.libgdxgooglevr.gfx.Transformable;
 import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
 
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ import java.util.List;
  * Created by Bob Mason on 1/17/2018.
  */
 
-public abstract class UiContainer3D implements VrInputProcessor {
+public abstract class UiContainer3D extends Transformable implements VrInputProcessor {
 
     private boolean isCursorOver = false;
     private Vector3 hitPoint = new Vector3();

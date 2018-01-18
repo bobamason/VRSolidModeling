@@ -10,7 +10,18 @@ import com.badlogic.gdx.math.collision.BoundingBox;
  */
 
 public class DragHandle3D extends Input3D {
-    public DragHandle3D(@Nullable ModelInstance modelInstance, BoundingBox bounds) {
-        super(modelInstance, bounds);
+
+    public DragHandle3D(@Nullable ModelInstance modelInstance, BoundingBox bounds, Axis axis) {
+        super(modelInstance, bounds, axis);
+    }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        return true;
+    }
+
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        return true;
     }
 }
