@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.math.Vector3;
@@ -40,7 +41,7 @@ public abstract class ModelSelectionScreen<T> extends RoomScreen implements File
 
         final SpriteBatch spriteBatch = new SpriteBatch();
         manageDisposable(spriteBatch);
-        ui = new ModelSelectionUI<>(game, spriteBatch, skin, list, this, this);
+        ui = new ModelSelectionUI<>(game, spriteBatch, skin, list, this, this, world);
     }
 
     @Override
@@ -56,6 +57,9 @@ public abstract class ModelSelectionScreen<T> extends RoomScreen implements File
         return new World() {
             @Override
             public void render(ModelBatch batch, Environment environment) {
+                final ModelInstance roomInstance = getSolidModelingGame().getRoomInstance();
+                if (roomInstance != null)
+                    batch.render(roomInstance, getEnvironment());
                 super.render(batch, environment);
                 ui.renderProjects(batch, environment);
             }

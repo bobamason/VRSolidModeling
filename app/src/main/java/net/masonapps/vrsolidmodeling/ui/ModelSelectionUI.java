@@ -31,12 +31,12 @@ import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.Pools;
 import com.google.vr.sdk.controller.Controller;
 
-import net.masonapps.vrsolidmodeling.PreviewModelingProject;
 import net.masonapps.vrsolidmodeling.R;
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.Style;
 import net.masonapps.vrsolidmodeling.modeling.BaseModelingProject;
 import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
+import net.masonapps.vrsolidmodeling.modeling.PreviewModelingProject;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.Entity;
@@ -77,6 +77,7 @@ public class ModelSelectionUI<T> extends VrUiContainer {
     private final LoadingSpinnerVR previousSpinner;
     private final LoadingSpinnerVR currentSpinner;
     private final LoadingSpinnerVR nextSpinner;
+    private final World world;
     private NumberFormat nf = NumberFormat.getIntegerInstance();
     private boolean modelTest = false;
     private List<T> list;
@@ -86,7 +87,6 @@ public class ModelSelectionUI<T> extends VrUiContainer {
     private LabelVR emptyLabel;
     private float scrollX = 0f;
     private boolean scrolling = false;
-    private World world;
     @Nullable
     private ModelItem<T> previousItem = null;
     @Nullable
@@ -146,10 +146,11 @@ public class ModelSelectionUI<T> extends VrUiContainer {
     private Interpolation interpolation = Interpolation.linear;
     private SolidModelingGame solidModelingGame;
 
-    public ModelSelectionUI(SolidModelingGame game, SpriteBatch spriteBatch, Skin skin, List<T> list, ModelAdapter<T> adapter, FileButtonBar.OnFileButtonClicked<T> listener) {
+    public ModelSelectionUI(SolidModelingGame game, SpriteBatch spriteBatch, Skin skin, List<T> list, ModelAdapter<T> adapter, FileButtonBar.OnFileButtonClicked<T> listener, World world) {
         super();
         solidModelingGame = game;
         this.adapter = adapter;
+        this.world = world;
         gestureDetector = new GestureDetector(gestureAdapter);
         this.list = Collections.synchronizedList(list);
 

@@ -14,6 +14,7 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Pools;
 
 import org.apache.commons.math3.geometry.euclidean.threed.PolyhedronsSet;
+import org.masonapps.libgdxgooglevr.utils.Logger;
 
 /**
  * Created by Bob Mason on 1/2/2018.
@@ -107,14 +108,19 @@ public class ModelingEntity {
 
     public void setParentTransform(Matrix4 parentTransform) {
         this.parentTransform.set(parentTransform);
-        modelingObject.getTransform(modelInstance.transform).mulLeft(parentTransform);
-//        Logger.d(modelInstance.transform.toString());
+        modelInstance.transform.set(modelingObject.getTransform());
+        modelInstance.transform.mulLeft(parentTransform);
+
+        Logger.d("parent" + parentTransform.toString());
+        Logger.d("object" + modelingObject.getTransform().toString());
+        Logger.d("modelinstance" + modelInstance.transform.toString());
     }
 
     public void update() {
         if (!modelingObject.isUpdated()) {
             modelingObject.recalculateTransform();
-            modelingObject.getTransform(modelInstance.transform).mulLeft(parentTransform);
+            modelInstance.transform.set(modelingObject.getTransform());
+            modelInstance.transform.mulLeft(parentTransform);
         }
     }
 

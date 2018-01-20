@@ -1,4 +1,4 @@
-package net.masonapps.vrsolidmodeling;
+package net.masonapps.vrsolidmodeling.modeling;
 
 import android.support.annotation.Nullable;
 
@@ -8,10 +8,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Pools;
-
-import net.masonapps.vrsolidmodeling.modeling.BaseModelingProject;
-import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
-import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
 
 import java.util.HashMap;
 import java.util.List;
@@ -48,7 +44,7 @@ public class PreviewModelingProject extends BaseModelingProject {
     public ModelingEntity rayTest(Ray ray, @Nullable Vector3 hitPoint) {
         final Vector3 tmpV = Pools.obtain(Vector3.class);
         ModelingEntity result = null;
-        if (Intersector.intersectRaySphere(ray, bounds.getCenter(tmpV), radius, hitPoint)) {
+        if (Intersector.intersectRaySphere(ray, bounds.getCenter(tmpV).add(position), radius, hitPoint)) {
             result = entities.get(0);
         }
         Pools.free(tmpV);
