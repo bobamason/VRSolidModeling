@@ -108,7 +108,6 @@ public class ModelingEntity {
     public void setParentTransform(Matrix4 parentTransform) {
         this.parentTransform.set(parentTransform);
         modelingObject.getTransform(modelInstance.transform).mulLeft(parentTransform);
-//        Logger.d(modelInstance.transform.toString());
     }
 
     public void update() {

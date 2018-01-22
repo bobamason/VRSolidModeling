@@ -86,7 +86,7 @@ public class ModelingObject extends Transformable {
     public ModelInstance createModelInstance(HashMap<String, Model> modelMap) {
         if (!updated)
             recalculateTransform();
-        final ModelInstance modelInstance = new ModelInstance(modelMap.get(primitive.getName()), transform);
+        final ModelInstance modelInstance = new ModelInstance(modelMap.get(primitive.getName()), transform.cpy());
         final Material material = createMaterial();
         modelInstance.materials.get(0).set(material.get(new Array<>(), material.getMask()));
         return modelInstance;

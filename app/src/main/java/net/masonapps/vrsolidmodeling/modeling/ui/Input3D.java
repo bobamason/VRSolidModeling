@@ -3,6 +3,7 @@ package net.masonapps.vrsolidmodeling.modeling.ui;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -20,9 +21,15 @@ public abstract class Input3D extends Entity implements VrInputProcessor {
     protected final Axis axis;
     private final Vector3 hitPoint = new Vector3();
     private boolean isCursorOver = false;
+    private Matrix4 parentTransform = new Matrix4();
 
     public Input3D(@Nullable ModelInstance modelInstance, BoundingBox bounds, Axis axis) {
         super(modelInstance, bounds);
+        this.axis = axis;
+    }
+
+    public Input3D(@Nullable ModelInstance modelInstance, Axis axis) {
+        super(modelInstance);
         this.axis = axis;
     }
 
@@ -35,6 +42,30 @@ public abstract class Input3D extends Entity implements VrInputProcessor {
     @Override
     public boolean performRayTest(Ray ray) {
         return intersectsRayBoundsFast(ray);
+    }
+
+    @Override
+    public void recalculateTransform() {
+        super.recalculateTransform();
+        if (modelInstance != null)
+            getTransform(modelInstance.transform).mulLeft(parentTransform);
+    }
+
+    @Override
+    public Entity setTransform(Matrix4 transform) {
+        super.setTransform(transform);
+        if (modelInstance != null)
+            getTransform(modelInstance.transform).mulLeft(parentTransform);
+        return this;
+    }
+
+    public Matrix4 getParentTransform() {
+        return parentTransform;
+    }
+
+    public void setParentTransform(Matrix4 parentTransform) {
+        this.parentTransform.set(parentTransform);
+        getTransform(modelInstance.transform).mulLeft(parentTransform);
     }
 
     @Override

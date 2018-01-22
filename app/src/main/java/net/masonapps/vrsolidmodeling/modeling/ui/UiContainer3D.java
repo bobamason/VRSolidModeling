@@ -3,6 +3,7 @@ package net.masonapps.vrsolidmodeling.modeling.ui;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -24,6 +25,9 @@ public abstract class UiContainer3D extends Transformable implements VrInputProc
     private Vector3 hitPoint = new Vector3();
     private List<Input3D> processors;
     private BoundingBox bounds = new BoundingBox();
+    @Nullable
+    private Input3D focusedProcessor = null;
+    private Ray transformedRay = new Ray();
 
     public UiContainer3D() {
         processors = new ArrayList<>();
@@ -31,25 +35,46 @@ public abstract class UiContainer3D extends Transformable implements VrInputProc
 
     public void add(Input3D processor) {
         processors.add(processor);
+        processor.setParentTransform(transform);
         bounds.ext(processor.getBounds());
     }
 
     public void addAll(Input3D... processors) {
         for (Input3D processor : processors) {
             this.processors.add(processor);
+            processor.setParentTransform(transform);
             bounds.ext(processor.getBounds());
         }
     }
 
     @Override
-    public boolean performRayTest(Ray ray) {
+    public void recalculateTransform() {
+        super.recalculateTransform();
+        for (Input3D processor : processors) {
+            processor.setParentTransform(transform);
+        }
+    }
 
-        if (Intersector.intersectRayBoundsFast(ray, bounds)) {
+    @Override
+    public Transformable setTransform(Matrix4 transform) {
+        super.setTransform(transform);
+        for (Input3D processor : processors) {
+            processor.setParentTransform(transform);
+        }
+        return this;
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    @Override
+    public boolean performRayTest(Ray ray) {
+        transformedRay.set(ray).mul(inverseTransform);
+        if (Intersector.intersectRayBoundsFast(transformedRay, bounds)) {
             float d = Float.MAX_VALUE;
             for (Input3D processor : processors) {
-                if (processor.getHitPoint3D().dst2(ray.origin) < d) {
-
-                }
+                if (processor.performRayTest(transformedRay))
+                    if (processor.getHitPoint3D().dst2(ray.origin) < d) {
+                        focusedProcessor = processor;
+                    }
             }
         }
         return isCursorOver;

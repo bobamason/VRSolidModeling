@@ -5,15 +5,19 @@ import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Plane;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
+
+import org.masonapps.libgdxgooglevr.math.PlaneUtils;
 
 /**
  * Created by Bob Mason on 1/18/2018.
@@ -24,19 +28,19 @@ public class RotateHandle3D extends Input3D {
 
     private static final float HANDLE_RADIUS = 0.05f;
     private final float circleRadius = 1f;
-    private final Vector3 center = new Vector3();
-    private final float angleDeg = 0f;
+    private float angleDeg = 0f;
     private int numCircleSegments = 64;
     private boolean dragging = false;
     private Plane plane = new Plane();
+    private Vector2 vec2 = new Vector2();
+    private Vector3 tmpV = new Vector3();
 
-    public RotateHandle3D(Axis axis) {
-        super(createModelInstance(axis), createBounds(), axis);
+    public RotateHandle3D(ModelBuilder builder, Axis axis) {
+        super(createModelInstance(builder, axis), createBounds(), axis);
         setLightingEnabled(false);
     }
 
-    private static ModelInstance createModelInstance(Axis axis) {
-        final ModelBuilder builder = new ModelBuilder();
+    private static ModelInstance createModelInstance(ModelBuilder builder, Axis axis) {
         final Color color = new Color();
         switch (axis) {
             case AXIS_X:
@@ -49,7 +53,7 @@ public class RotateHandle3D extends Input3D {
                 color.set(Color.GREEN);
                 break;
         }
-        final Model model = builder.createSphere(HANDLE_RADIUS * 2f, HANDLE_RADIUS * 2f, HANDLE_RADIUS * 2f, 12, 6, new Material(ColorAttribute.createDiffuse(color)), VertexAttributes.Usage.Position);
+        final Model model = builder.createSphere(HANDLE_RADIUS * 2f, HANDLE_RADIUS * 2f, HANDLE_RADIUS * 2f, 12, 6, new Material(new BlendingAttribute(true, 0.5f), ColorAttribute.createDiffuse(color)), VertexAttributes.Usage.Position);
         return new ModelInstance(model);
     }
 
@@ -85,7 +89,23 @@ public class RotateHandle3D extends Input3D {
     }
 
     private void angleChanged() {
-        
+        switch (axis) {
+            case AXIS_X:
+                PlaneUtils.toSubSpace(plane, getHitPoint3D(), vec2);
+                angleDeg = MathUtils.atan2(vec2.y, vec2.x) * MathUtils.radiansToDegrees;
+                setPosition(tmpV.set(0, 0, circleRadius).rotate(Vector3.X, angleDeg));
+                break;
+            case AXIS_Y:
+                PlaneUtils.toSubSpace(plane, getHitPoint3D(), vec2);
+                angleDeg = MathUtils.atan2(-vec2.y, vec2.x) * MathUtils.radiansToDegrees;
+                setPosition(tmpV.set(circleRadius, 0, 0).rotate(Vector3.Y, angleDeg));
+                break;
+            case AXIS_Z:
+                PlaneUtils.toSubSpace(plane, getHitPoint3D(), vec2);
+                angleDeg = MathUtils.atan2(vec2.y, vec2.x) * MathUtils.radiansToDegrees;
+                setPosition(tmpV.set(circleRadius, 0, 0).rotate(Vector3.Z, angleDeg));
+                break;
+        }
     }
 
     @Override
@@ -107,13 +127,13 @@ public class RotateHandle3D extends Input3D {
             final float r = circleRadius;
             switch (axis) {
                 case AXIS_X:
-                    renderer.line(center.x * r, center.y + MathUtils.sin(a), center.z - MathUtils.cos(a) * r, center.x, center.y + MathUtils.sin(a2) * r, center.z - MathUtils.cos(a2) * r);
+                    renderer.line(0, MathUtils.sin(a) * r, -MathUtils.cos(a) * r, 0, MathUtils.sin(a2) * r, -MathUtils.cos(a2) * r);
                     break;
                 case AXIS_Y:
-                    renderer.line(center.x + MathUtils.cos(a) * r, center.y, center.z - MathUtils.sin(a) * r, center.x + MathUtils.cos(a2) * r, center.y, center.z - MathUtils.sin(a2) * r);
+                    renderer.line(MathUtils.cos(a) * r, 0, -MathUtils.sin(a) * r, MathUtils.cos(a2) * r, 0, -MathUtils.sin(a2) * r);
                     break;
                 case AXIS_Z:
-                    renderer.line(center.x + MathUtils.cos(a) * r, center.y + MathUtils.sin(a) * r, center.z, center.x + MathUtils.cos(a2) * r, center.y + MathUtils.sin(a2) * r, center.z);
+                    renderer.line(MathUtils.cos(a) * r, MathUtils.sin(a) * r, 0, MathUtils.cos(a2) * r, MathUtils.sin(a2) * r, 0);
                     break;
             }
         }
