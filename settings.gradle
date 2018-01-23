@@ -1,1 +1,1 @@
-include ':app', ':libgdxgvr', ':jcsg'
+include ':app', ':libgdxgvr'

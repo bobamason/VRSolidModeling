@@ -2,6 +2,8 @@ package net.masonapps.vrsolidmodeling.modeling.ui;
 
 import android.support.annotation.Nullable;
 
+import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
@@ -28,6 +30,7 @@ public abstract class UiContainer3D extends Transformable implements VrInputProc
     @Nullable
     private Input3D focusedProcessor = null;
     private Ray transformedRay = new Ray();
+    private boolean visible = false;
 
     public UiContainer3D() {
         processors = new ArrayList<>();
@@ -37,14 +40,6 @@ public abstract class UiContainer3D extends Transformable implements VrInputProc
         processors.add(processor);
         processor.setParentTransform(transform);
         bounds.ext(processor.getBounds());
-    }
-
-    public void addAll(Input3D... processors) {
-        for (Input3D processor : processors) {
-            this.processors.add(processor);
-            processor.setParentTransform(transform);
-            bounds.ext(processor.getBounds());
-        }
     }
 
     @Override
@@ -67,6 +62,7 @@ public abstract class UiContainer3D extends Transformable implements VrInputProc
     @SuppressWarnings("ConstantConditions")
     @Override
     public boolean performRayTest(Ray ray) {
+        if (!updated) recalculateTransform();
         transformedRay.set(ray).mul(inverseTransform);
         if (Intersector.intersectRayBoundsFast(transformedRay, bounds)) {
             float d = Float.MAX_VALUE;
@@ -113,19 +109,17 @@ public abstract class UiContainer3D extends Transformable implements VrInputProc
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-
-        return true;
+        return focusedProcessor != null && focusedProcessor.touchDown(screenX, screenY, pointer, button);
     }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-
-        return true;
+        return focusedProcessor != null && focusedProcessor.touchUp(screenX, screenY, pointer, button);
     }
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-        return false;
+        return focusedProcessor != null && focusedProcessor.touchDragged(screenX, screenY, pointer);
     }
 
     @Override
@@ -136,5 +130,27 @@ public abstract class UiContainer3D extends Transformable implements VrInputProc
     @Override
     public boolean scrolled(int amount) {
         return false;
+    }
+
+    public void update() {
+        if (!updated) recalculateTransform();
+    }
+
+    public void render(ModelBatch batch, Environment environment) {
+        if (!isVisible()) return;
+        for (Input3D processor : processors) {
+            if (processor.isLightingEnabled())
+                batch.render(processor.modelInstance, environment);
+            else
+                batch.render(processor.modelInstance);
+        }
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
     }
 }

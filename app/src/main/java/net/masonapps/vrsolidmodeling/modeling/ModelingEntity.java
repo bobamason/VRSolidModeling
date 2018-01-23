@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Pools;
@@ -19,14 +18,15 @@ import org.apache.commons.math3.geometry.euclidean.threed.PolyhedronsSet;
  * Created by Bob Mason on 1/2/2018.
  */
 
-public class ModelingEntity {
+public class ModelingEntity implements AABBTree.AABBObject {
 
     public final ModelingObject modelingObject;
     public final ModelInstance modelInstance;
     private final BoundingBox boundingBox;
     @Nullable
-    private AABBTree.Node node = null;
+    private AABBTree.LeafNode node = null;
     private Matrix4 parentTransform = new Matrix4();
+    private BoundingBox aabb = new BoundingBox();
 
 
     public ModelingEntity(ModelingObject modelingObject, ModelInstance modelInstance) {
@@ -36,12 +36,34 @@ public class ModelingEntity {
     }
 
     @Nullable
-    public AABBTree.Node getNode() {
+    public AABBTree.LeafNode getNode() {
         return node;
     }
 
-    public void setNode(@Nullable AABBTree.Node node) {
+    public void setNode(@Nullable AABBTree.LeafNode node) {
         this.node = node;
+    }
+
+    @Override
+    public BoundingBox getAABB() {
+        return getTransformedBounds(aabb);
+    }
+
+    @Override
+    public boolean rayTest(Ray ray, AABBTree.IntersectionInfo intersection) {
+        if (!modelingObject.isUpdated()) modelingObject.recalculateTransform();
+        final Ray tmpRay = Pools.obtain(Ray.class);
+
+        tmpRay.set(ray).mul(modelingObject.getInverseTransform());
+        final boolean rayTest = modelingObject.getPrimitive().rayTest(tmpRay, intersection.hitPoint);
+        if (rayTest) {
+            intersection.object = this;
+            intersection.hitPoint.mul(modelingObject.getTransform());
+            intersection.t = ray.origin.dst(intersection.hitPoint);
+        }
+
+        Pools.free(tmpRay);
+        return rayTest;
     }
 
     public BoundingBox getTransformedBounds(BoundingBox out) {
@@ -50,18 +72,6 @@ public class ModelingEntity {
 
     public PolyhedronsSet toPolyhedronsSet() {
         return modelingObject.getPrimitive().toPolyhedronsSet(modelingObject.getTransform(new Matrix4()));
-    }
-
-    public boolean rayTest(Ray ray, @Nullable Vector3 hitPoint) {
-        if (!modelingObject.isUpdated()) modelingObject.recalculateTransform();
-        final Ray tmpRay = Pools.obtain(Ray.class);
-
-        tmpRay.set(ray).mul(modelingObject.getInverseTransform());
-        final boolean intersectRayBounds = modelingObject.getPrimitive().rayTest(tmpRay, hitPoint);
-        if (intersectRayBounds && hitPoint != null) hitPoint.mul(modelingObject.getTransform());
-
-        Pools.free(tmpRay);
-        return intersectRayBounds;
     }
 
     @Nullable

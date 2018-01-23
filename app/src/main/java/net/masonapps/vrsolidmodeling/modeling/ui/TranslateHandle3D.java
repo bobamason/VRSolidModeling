@@ -15,8 +15,6 @@ import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 
-import java.util.function.BiConsumer;
-
 /**
  * Created by Bob Mason on 1/18/2018.
  */
@@ -28,7 +26,7 @@ public class TranslateHandle3D extends Input3D {
     private Vector3 normal = new Vector3();
     private Vector3 startHitPoint = new Vector3();
     @Nullable
-    private BiConsumer<Axis, Float> listener = null;
+    private TranslationListener listener = null;
 
     public TranslateHandle3D(ModelBuilder builder, Axis axis) {
         super(createModelInstance(builder, axis), axis);
@@ -92,15 +90,15 @@ public class TranslateHandle3D extends Input3D {
         switch (axis) {
             case AXIS_X:
                 if (listener != null)
-                    listener.accept(axis, hitPoint.x - startHitPoint.x);
+                    listener.dragged(axis, hitPoint.x - startHitPoint.x);
                 break;
             case AXIS_Y:
                 if (listener != null)
-                    listener.accept(axis, hitPoint.y - startHitPoint.y);
+                    listener.dragged(axis, hitPoint.y - startHitPoint.y);
                 break;
             case AXIS_Z:
                 if (listener != null)
-                    listener.accept(axis, hitPoint.z - startHitPoint.z);
+                    listener.dragged(axis, hitPoint.z - startHitPoint.z);
                 break;
         }
         startHitPoint.set(hitPoint);
@@ -149,16 +147,28 @@ public class TranslateHandle3D extends Input3D {
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         dragging = true;
         startHitPoint.set(getHitPoint3D());
+        if (listener != null)
+            listener.touchDown(axis);
         return true;
     }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         dragging = false;
+        if (listener != null)
+            listener.touchUp(axis);
         return true;
     }
 
-    public void setListener(@Nullable BiConsumer<Axis, Float> listener) {
+    public void setListener(@Nullable TranslationListener listener) {
         this.listener = listener;
+    }
+
+    public interface TranslationListener {
+        void touchDown(Axis axis);
+
+        void dragged(Axis axis, float value);
+
+        void touchUp(Axis axis);
     }
 }

@@ -46,7 +46,7 @@ import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProject;
 import net.masonapps.vrsolidmodeling.modeling.UndoRedoCache;
 import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
-import net.masonapps.vrsolidmodeling.modeling.ui.TransformUI;
+import net.masonapps.vrsolidmodeling.modeling.ui.TranslateRotateWidget;
 import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
@@ -76,7 +76,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private final UndoRedoCache undoRedoCache;
     private final ShapeRenderer shapeRenderer;
     private final Animator snapAnimator;
-    private final TransformUI transformUI;
+    private final TranslateRotateWidget transformUI;
     private final Entity gridEntity;
     private boolean isTouchPadClicked = false;
     private Quaternion rotation = new Quaternion();
@@ -187,7 +187,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
 //        brush.setUseSymmetry(false);
         undoRedoCache.save(null);
-        transformUI = new TransformUI(spriteBatch, skin);
+        transformUI = new TranslateRotateWidget();
         transformUI.setVisible(false);
         mainInterface.addProcessor(transformUI);
 
@@ -240,12 +240,14 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             @Override
             public void update() {
                 super.update();
+                transformUI.update();
                 modelingProject.update();
             }
 
             @Override
             public void render(ModelBatch batch, Environment environment) {
                 super.render(batch, environment);
+                transformUI.render(batch, environment);
                 modelingProject.render(batch, environment);
             }
         };
