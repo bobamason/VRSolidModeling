@@ -38,7 +38,7 @@ public class RotationUtil {
                 break;
         }
     }
-    
+
     public static void snap(Quaternion in, Quaternion out) {
         dir.set(0, 0, 1).mul(in);
         up.set(0, 1, 0).mul(in);
@@ -46,6 +46,19 @@ public class RotationUtil {
         tmp.set(up).crs(dir).nor();
         tmp2.set(dir).crs(tmp).nor();
         out.setFromAxes(tmp.x, tmp2.x, dir.x, tmp.y, tmp2.y, dir.y, tmp.z, tmp2.z, dir.z);
+    }
+
+    public static boolean snap(Quaternion in, Quaternion out, float tolerance) {
+        dir.set(0, 0, 1).mul(in);
+        up.set(0, 1, 0).mul(in);
+        if (setToClosestUnitVectors(dir, up) < tolerance) {
+            tmp.set(up).crs(dir).nor();
+            tmp2.set(dir).crs(tmp).nor();
+            out.setFromAxes(tmp.x, tmp2.x, dir.x, tmp.y, tmp2.y, dir.y, tmp.z, tmp2.z, dir.z);
+            return true;
+        }
+        out.set(in);
+        return false;
     }
 
     public static Vector3 setToClosestUnitVector(Vector3 v) {
@@ -73,12 +86,13 @@ public class RotationUtil {
         return v;
     }
 
-    public static void setToClosestUnitVectors(Vector3 dir, Vector3 up) {
+    public static float setToClosestUnitVectors(Vector3 dir, Vector3 up) {
         final Vector3[] axes = new Vector3[]{
                 Vector3.X,
                 Vector3.Y,
                 Vector3.Z
         };
+        float closest = 0f;
         float d = 0f;
         int skip = -1;
         Vector3 axis = new Vector3();
@@ -87,6 +101,7 @@ public class RotationUtil {
             float dot = v.dot(dir);
             if (Math.abs(dot) > Math.abs(d)) {
                 d = dot;
+                closest = Math.abs(d);
                 axis.set(v);
                 skip = i;
             }
@@ -104,5 +119,6 @@ public class RotationUtil {
             }
         }
         up.set(axis).scl(Math.signum(d));
+        return 1f - Math.abs(closest);
     }
 }

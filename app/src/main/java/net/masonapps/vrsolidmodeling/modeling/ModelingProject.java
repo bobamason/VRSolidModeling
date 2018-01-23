@@ -12,6 +12,19 @@ import com.badlogic.gdx.utils.Pools;
  */
 
 public class ModelingProject extends BaseModelingProject {
+    private AABBTree.IntersectionInfo intersection = new AABBTree.IntersectionInfo();
+    private AABBTree aabbTree;
+
+    public ModelingProject() {
+        aabbTree = new AABBTree();
+    }
+
+    @Override
+    public void add(ModelingEntity entity) {
+        super.add(entity);
+        aabbTree.insert(entity);
+    }
+
     @Nullable
     @Override
     public ModelingEntity rayTest(Ray ray, @Nullable Vector3 hitPoint) {
@@ -21,8 +34,8 @@ public class ModelingProject extends BaseModelingProject {
         tmpRay.set(ray).mul(inverseTransform);
         ModelingEntity hitEntity = null;
         for (ModelingEntity modelingEntity : entities) {
-            if (modelingEntity.rayTest(tmpRay, hitPoint)) {
-                if (hitPoint != null) hitPoint.mul(transform);
+            if (modelingEntity.rayTest(tmpRay, intersection)) {
+                if (hitPoint != null) hitPoint.set(intersection.hitPoint).mul(transform);
                 hitEntity = modelingEntity;
                 break;
             }
@@ -30,5 +43,9 @@ public class ModelingProject extends BaseModelingProject {
         Pools.free(tmpRay);
         Pools.free(tmpMat);
         return hitEntity;
+    }
+
+    public AABBTree getAABBTree() {
+        return aabbTree;
     }
 }

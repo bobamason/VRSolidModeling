@@ -40,6 +40,7 @@ import net.masonapps.vrsolidmodeling.Style;
 import net.masonapps.vrsolidmodeling.math.Animator;
 import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
+import net.masonapps.vrsolidmodeling.modeling.AABBTree;
 import net.masonapps.vrsolidmodeling.modeling.BaseModelingProject;
 import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
 import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
@@ -57,7 +58,9 @@ import org.masonapps.libgdxgooglevr.gfx.World;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_NONE;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_VIEW_TRANSFORM;
@@ -225,6 +228,29 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         shapeRenderer.setColor(color);
         shapeRenderer.setTransformMatrix(entity.modelInstance.transform);
         final BoundingBox bounds = entity.getBounds();
+        drawBounds(shapeRenderer, bounds);
+    }
+
+    protected static void debugAABBTree(ShapeRenderer shapeRenderer, ModelingProject modelingProject, Color color) {
+        shapeRenderer.setColor(color);
+        shapeRenderer.setTransformMatrix(modelingProject.getTransform());
+        Queue<AABBTree.Node> queue = new LinkedList<>();
+        queue.offer(modelingProject.getAABBTree().root);
+        while (!queue.isEmpty()) {
+            AABBTree.Node node = queue.poll();
+            if (node.bb.isValid())
+                drawBounds(shapeRenderer, node.bb);
+            if (node instanceof AABBTree.InnerNode) {
+                final AABBTree.InnerNode innerNode = (AABBTree.InnerNode) node;
+                if (innerNode.child1 != null)
+                    queue.offer(innerNode.child1);
+                if (innerNode.child2 != null)
+                    queue.offer(innerNode.child2);
+            }
+        }
+    }
+
+    private static void drawBounds(ShapeRenderer shapeRenderer, BoundingBox bounds) {
         shapeRenderer.box(bounds.min.x, bounds.min.y, bounds.max.z,
                 bounds.getWidth(), bounds.getHeight(), bounds.getDepth());
     }
@@ -305,6 +331,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         super.render(camera, whichEye);
         shapeRenderer.begin();
         shapeRenderer.setProjectionMatrix(camera.combined);
+        debugAABBTree(shapeRenderer, modelingProject, Color.YELLOW);
         if (focusedEntity != null) {
             drawEntityBounds(shapeRenderer, focusedEntity, Color.BLACK);
         }
@@ -421,16 +448,16 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private void onTouchPadButtonUp() {
         switch (currentState) {
             case STATE_VIEW_TRANSFORM:
-                RotationUtil.snap(rotation, snappedRotation);
-
-                final Quaternion rotDiff = Pools.obtain(Quaternion.class);
-                rotDiff.set(rotation).conjugate().mulLeft(snappedRotation);
-                final float angleRad = rotDiff.getAngleRad();
-                final float duration = Math.abs(angleRad < MathUtils.PI ? angleRad : MathUtils.PI2 - angleRad) / MathUtils.PI;
-                Pools.free(rotDiff);
-                snapAnimator.setDuration(duration);
-                snapAnimator.start();
-                transformUI.setVisible(false);
+                if (RotationUtil.snap(rotation, snappedRotation, 0.1f)) {
+                    final Quaternion rotDiff = Pools.obtain(Quaternion.class);
+                    rotDiff.set(rotation).conjugate().mulLeft(snappedRotation);
+                    final float angleRad = rotDiff.getAngleRad();
+                    final float duration = Math.abs(angleRad < MathUtils.PI ? angleRad : MathUtils.PI2 - angleRad) / MathUtils.PI;
+                    Pools.free(rotDiff);
+                    snapAnimator.setDuration(duration);
+                    snapAnimator.start();
+                    transformUI.setVisible(false);
+                }
 //                final float len = getVrCamera().position.len();
 //                RotationUtil.setToClosestUnitVector(getVrCamera().position).scl(len);
 //                RotationUtil.setToClosestUnitVector(getVrCamera().up);
