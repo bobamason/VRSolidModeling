@@ -23,9 +23,9 @@ import java.util.List;
 
 public abstract class UiContainer3D extends Transformable implements VrInputProcessor {
 
+    protected List<Input3D> processors;
     private boolean isCursorOver = false;
     private Vector3 hitPoint = new Vector3();
-    private List<Input3D> processors;
     private BoundingBox bounds = new BoundingBox();
     @Nullable
     private Input3D focusedProcessor = null;
@@ -62,16 +62,32 @@ public abstract class UiContainer3D extends Transformable implements VrInputProc
     @SuppressWarnings("ConstantConditions")
     @Override
     public boolean performRayTest(Ray ray) {
+        if (!visible) return false;
         if (!updated) recalculateTransform();
         transformedRay.set(ray).mul(inverseTransform);
-        if (Intersector.intersectRayBoundsFast(transformedRay, bounds)) {
-            float d = Float.MAX_VALUE;
-            for (Input3D processor : processors) {
-                if (processor.performRayTest(transformedRay))
-                    if (processor.getHitPoint3D().dst2(ray.origin) < d) {
-                        focusedProcessor = processor;
+        if (focusedProcessor != null && focusedProcessor.isDragging()) {
+            if (focusedProcessor.performRayTest(transformedRay)) {
+                hitPoint.set(focusedProcessor.getHitPoint3D()).mul(transform);
+                isCursorOver = true;
+            } else
+                isCursorOver = false;
+        } else {
+            Input3D tempProcessor = null;
+            if (Intersector.intersectRayBoundsFast(transformedRay, bounds)) {
+                float d = Float.MAX_VALUE;
+                for (Input3D processor : processors) {
+                    if (processor.performRayTest(transformedRay)) {
+                        if (processor.getHitPoint3D().dst2(ray.origin) < d) {
+                            hitPoint.set(processor.getHitPoint3D()).mul(transform);
+                            tempProcessor = processor;
+                        }
                     }
+                }
             }
+            if (tempProcessor != focusedProcessor && focusedProcessor != null)
+                focusedProcessor.touchUp(0, 0, 0, 0);
+            focusedProcessor = tempProcessor;
+            isCursorOver = focusedProcessor != null;
         }
         return isCursorOver;
     }
@@ -138,12 +154,8 @@ public abstract class UiContainer3D extends Transformable implements VrInputProc
 
     public void render(ModelBatch batch, Environment environment) {
         if (!isVisible()) return;
-        for (Input3D processor : processors) {
-            if (processor.isLightingEnabled())
-                batch.render(processor.modelInstance, environment);
-            else
-                batch.render(processor.modelInstance);
-        }
+        for (Input3D processor : processors)
+            processor.render(batch, environment);
     }
 
     public boolean isVisible() {

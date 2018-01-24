@@ -39,12 +39,12 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pools;
 import com.google.vr.sdk.controller.Controller;
 
-import net.masonapps.jcsg.CSG;
 import net.masonapps.vrsolidmodeling.Constants;
 import net.masonapps.vrsolidmodeling.R;
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.Style;
 import net.masonapps.vrsolidmodeling.math.UnitConversion;
+import net.masonapps.vrsolidmodeling.modeling.ModelingProject;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.Entity;
@@ -75,7 +75,7 @@ public class ExportScreen extends RoomScreen {
     private final LabelVR xLabel;
     private final LabelVR yLabel;
     private final LabelVR zLabel;
-    private final CSG csg;
+    private final ModelingProject modelingProject;
     private final String projectName;
     private final ExportListener listener;
     private final Entity solidEntity;
@@ -98,9 +98,9 @@ public class ExportScreen extends RoomScreen {
     private float offsetLabels = 0.1f;
     private Slider sizeSlider;
 
-    public ExportScreen(SolidModelingGame game, CSG csg, String projectName, ExportListener listener) {
+    public ExportScreen(SolidModelingGame game, ModelingProject modelingProject, String projectName, ExportListener listener) {
         super(game);
-        this.csg = csg;
+        this.modelingProject = modelingProject;
         this.projectName = projectName;
         this.listener = listener;
         ui = new CylindricalWindowUiContainer(2f, 4f);

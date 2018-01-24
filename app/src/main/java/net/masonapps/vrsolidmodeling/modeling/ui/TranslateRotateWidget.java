@@ -3,10 +3,14 @@ package net.masonapps.vrsolidmodeling.modeling.ui;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 
-import net.masonapps.vrsolidmodeling.math.SnapUtil;
+import net.masonapps.vrsolidmodeling.modeling.AABBTree;
 import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
+
+import org.masonapps.libgdxgooglevr.utils.Logger;
 
 /**
  * Created by Bob Mason on 1/23/2018.
@@ -15,6 +19,7 @@ import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
 public class TranslateRotateWidget extends UiContainer3D {
 
     private final Vector3 tmp = new Vector3();
+    private final Matrix4 tmpM = new Matrix4();
     @Nullable
     private ModelingEntity entity = null;
     private Vector3 startPosition = new Vector3();
@@ -23,18 +28,21 @@ public class TranslateRotateWidget extends UiContainer3D {
         super();
         final ModelBuilder builder = new ModelBuilder();
         addTranslationHandles(builder);
+        addRotationHandles(builder);
     }
 
     protected void addTranslationHandles(ModelBuilder builder) {
         final TranslateHandle3D.TranslationListener translationListener = new TranslateHandle3D.TranslationListener() {
             @Override
             public void touchDown(Input3D.Axis axis) {
+                Logger.d("drag start " + axis.name());
                 if (entity == null) return;
                 startPosition.set(entity.modelingObject.getPosition());
             }
 
             @Override
             public void dragged(Input3D.Axis axis, float value) {
+                Logger.d("dragging " + axis.name() + " by " + value);
                 if (entity == null) return;
                 entity.modelingObject.setPosition(startPosition);
                 switch (axis) {
@@ -48,12 +56,16 @@ public class TranslateRotateWidget extends UiContainer3D {
                         entity.modelingObject.translateZ(value);
                         break;
                 }
-                SnapUtil.snap(entity.modelingObject.getPosition(), 0.1f);
+//                SnapUtil.snap(entity.modelingObject.getPosition(), 0.1f);
+                setEntity(entity);
+                final AABBTree.LeafNode node = entity.getNode();
+                if (node != null)
+                    node.refit();
             }
 
             @Override
             public void touchUp(Input3D.Axis axis) {
-
+                Logger.d("drag end " + axis.name());
             }
         };
 
@@ -70,11 +82,30 @@ public class TranslateRotateWidget extends UiContainer3D {
         add(transZ);
     }
 
+    protected void addRotationHandles(ModelBuilder builder) {
+        final RotateHandle3D rotX = new RotateHandle3D(builder, Input3D.Axis.AXIS_X);
+        add(rotX);
+        final RotateHandle3D rotY = new RotateHandle3D(builder, Input3D.Axis.AXIS_Y);
+        add(rotY);
+        final RotateHandle3D rotZ = new RotateHandle3D(builder, Input3D.Axis.AXIS_Z);
+        add(rotZ);
+    }
+
+    public void drawShapes(ShapeRenderer renderer) {
+        if (!isVisible()) return;
+        renderer.setTransformMatrix(transform);
+        for (Input3D processor : processors) {
+            if (processor instanceof RotateHandle3D)
+                ((RotateHandle3D) processor).drawCircle(renderer);
+        }
+    }
+
     public void setEntity(@Nullable ModelingEntity entity) {
         this.entity = entity;
         if (this.entity != null) {
-            this.entity.modelInstance.transform.getTranslation(tmp);
-            setPosition(tmp);
+            tmpM.set(this.entity.getParentTransform())
+                    .translate(this.entity.modelingObject.getPosition());
+            setTransform(tmpM);
             setVisible(true);
         } else {
             setVisible(false);

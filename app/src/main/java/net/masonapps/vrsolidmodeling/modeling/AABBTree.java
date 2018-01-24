@@ -43,6 +43,10 @@ public class AABBTree {
         }
     }
 
+    public boolean rayTest(Ray ray, IntersectionInfo intersection) {
+        return root.rayTest(ray, intersection);
+    }
+
     public interface AABBObject {
 
         @Nullable

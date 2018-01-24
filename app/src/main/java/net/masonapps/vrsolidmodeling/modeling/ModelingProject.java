@@ -32,17 +32,13 @@ public class ModelingProject extends BaseModelingProject {
         final Matrix4 tmpMat = Pools.obtain(Matrix4.class);
 
         tmpRay.set(ray).mul(inverseTransform);
-        ModelingEntity hitEntity = null;
-        for (ModelingEntity modelingEntity : entities) {
-            if (modelingEntity.rayTest(tmpRay, intersection)) {
+        intersection.object = null;
+        if (aabbTree.rayTest(tmpRay, intersection)) {
                 if (hitPoint != null) hitPoint.set(intersection.hitPoint).mul(transform);
-                hitEntity = modelingEntity;
-                break;
             }
-        }
         Pools.free(tmpRay);
         Pools.free(tmpMat);
-        return hitEntity;
+        return (ModelingEntity) intersection.object;
     }
 
     public AABBTree getAABBTree() {

@@ -1,7 +1,10 @@
 package net.masonapps.vrsolidmodeling.modeling.ui;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
@@ -20,6 +23,7 @@ public abstract class Input3D extends Entity implements VrInputProcessor {
 
     protected final Axis axis;
     private final Vector3 hitPoint = new Vector3();
+    protected boolean dragging = false;
     private boolean isCursorOver = false;
     private Matrix4 parentTransform = new Matrix4();
 
@@ -39,6 +43,15 @@ public abstract class Input3D extends Entity implements VrInputProcessor {
         return isCursorOver;
     }
 
+    public void render(ModelBatch batch, Environment environment) {
+        if (!isVisible()) return;
+        if (!updated) recalculateTransform();
+        if (isLightingEnabled())
+            batch.render(modelInstance, environment);
+        else
+            batch.render(modelInstance);
+    }
+
     @Override
     public boolean performRayTest(Ray ray) {
         return intersectsRayBoundsFast(ray);
@@ -54,7 +67,7 @@ public abstract class Input3D extends Entity implements VrInputProcessor {
     @Override
     public Entity setTransform(Matrix4 transform) {
         super.setTransform(transform);
-        if (modelInstance != null)
+        if (modelInstance != null && parentTransform != null)
             getTransform(modelInstance.transform).mulLeft(parentTransform);
         return this;
     }
@@ -66,6 +79,10 @@ public abstract class Input3D extends Entity implements VrInputProcessor {
     public void setParentTransform(Matrix4 parentTransform) {
         this.parentTransform.set(parentTransform);
         getTransform(modelInstance.transform).mulLeft(parentTransform);
+    }
+
+    public boolean isDragging() {
+        return dragging;
     }
 
     @Override
@@ -80,8 +97,21 @@ public abstract class Input3D extends Entity implements VrInputProcessor {
     }
 
     @Override
+    @NonNull
     public Vector3 getHitPoint3D() {
         return hitPoint;
+    }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        dragging = true;
+        return true;
+    }
+
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        dragging = false;
+        return true;
     }
 
     @Override

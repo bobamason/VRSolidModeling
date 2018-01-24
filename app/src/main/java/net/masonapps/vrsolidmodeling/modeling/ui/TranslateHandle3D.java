@@ -1,19 +1,24 @@
 package net.masonapps.vrsolidmodeling.modeling.ui;
 
+import android.opengl.GLES20;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute;
+import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.ArrowShapeBuilder;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
+
+import org.masonapps.libgdxgooglevr.utils.Logger;
 
 /**
  * Created by Bob Mason on 1/18/2018.
@@ -22,7 +27,6 @@ import com.badlogic.gdx.math.collision.Ray;
 public class TranslateHandle3D extends Input3D {
 
     private final Plane plane = new Plane();
-    private boolean dragging = false;
     private Vector3 normal = new Vector3();
     private Vector3 startHitPoint = new Vector3();
     @Nullable
@@ -63,15 +67,21 @@ public class TranslateHandle3D extends Input3D {
                 color.set(Color.GREEN);
                 break;
         }
-        final Model model = builder.createArrow(from, to, new Material(new BlendingAttribute(true, 0.5f), ColorAttribute.createDiffuse(color)), VertexAttributes.Usage.Position);
-        return new ModelInstance(model);
+        builder.begin();
+        final MeshPartBuilder part = builder.part("t" + axis.name(), GLES20.GL_TRIANGLES, VertexAttributes.Usage.Position, new Material(new BlendingAttribute(true, 0.5f), new DepthTestAttribute(false), ColorAttribute.createDiffuse(color)));
+        ArrowShapeBuilder.build(part,
+                from.x, from.y, from.z,
+                to.x, to.y, to.z,
+                Vector3.dst(from.x, from.y, from.z, to.x, to.y, to.z) * 0.33f,
+                0.2f, 8);
+        return new ModelInstance(builder.end());
     }
-
 
     @Override
     public boolean performRayTest(Ray ray) {
         if (!updated) recalculateTransform();
-        if (dragging && Intersector.intersectRayPlane(ray, plane, getHitPoint3D())) {
+        if (isDragging() && Intersector.intersectRayPlane(ray, plane, getHitPoint3D())) {
+            Logger.d("dragging " + getHitPoint3D());
             handleDrag();
             return true;
         }
@@ -84,7 +94,6 @@ public class TranslateHandle3D extends Input3D {
         return intersectsRayBounds;
     }
 
-    @SuppressWarnings("ConstantConditions")
     private void handleDrag() {
         final Vector3 hitPoint = getHitPoint3D();
         switch (axis) {
@@ -101,7 +110,6 @@ public class TranslateHandle3D extends Input3D {
                     listener.dragged(axis, hitPoint.z - startHitPoint.z);
                 break;
         }
-        startHitPoint.set(hitPoint);
     }
 
 
@@ -145,19 +153,17 @@ public class TranslateHandle3D extends Input3D {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        dragging = true;
         startHitPoint.set(getHitPoint3D());
         if (listener != null)
             listener.touchDown(axis);
-        return true;
+        return super.touchDown(screenX, screenY, pointer, button);
     }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        dragging = false;
         if (listener != null)
             listener.touchUp(axis);
-        return true;
+        return super.touchUp(screenX, screenY, pointer, button);
     }
 
     public void setListener(@Nullable TranslationListener listener) {
