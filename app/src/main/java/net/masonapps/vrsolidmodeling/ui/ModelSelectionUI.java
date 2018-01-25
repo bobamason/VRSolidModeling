@@ -41,7 +41,6 @@ import net.masonapps.vrsolidmodeling.modeling.PreviewModelingProject;
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.Entity;
 import org.masonapps.libgdxgooglevr.gfx.Transformable;
-import org.masonapps.libgdxgooglevr.gfx.World;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 import org.masonapps.libgdxgooglevr.input.DaydreamTouchEvent;
 import org.masonapps.libgdxgooglevr.ui.LabelVR;
@@ -86,7 +85,6 @@ public class ModelSelectionUI<T> extends VrUiContainer {
     private LabelVR emptyLabel;
     private float scrollX = 0f;
     private boolean scrolling = false;
-    private World world;
     @Nullable
     private ModelItem<T> previousItem = null;
     @Nullable
@@ -159,7 +157,7 @@ public class ModelSelectionUI<T> extends VrUiContainer {
         addProcessor(emptyLabel);
 
         final ModelBuilder builder = new ModelBuilder();
-        sphere = this.world.add(new Entity(new ModelInstance(createSphereModel(builder, Color.WHITE))));
+        sphere = new Entity(new ModelInstance(createSphereModel(builder, Color.WHITE)));
         sphere.setLightingEnabled(true);
         sphere.setVisible(false);
 
@@ -336,10 +334,14 @@ public class ModelSelectionUI<T> extends VrUiContainer {
     }
 
     public void renderProjects(ModelBatch batch, Environment environment) {
+        if (!sphere.isUpdated())
+            recalculateTransform();
+        if (sphere.isVisible())
+            batch.render(sphere.modelInstance, environment);
         projects.forEach(project -> project.render(batch, environment));
     }
 
-    protected void updateTransform(@Nullable ModelItem<T> modelItem, VirtualStage stage, Vector3 position, float scale) {
+    private void updateTransform(@Nullable ModelItem<T> modelItem, VirtualStage stage, Vector3 position, float scale) {
         if (modelItem == null) return;
         final Transformable currentModel = modelItem.project;
         if (currentModel != null) {
@@ -347,9 +349,10 @@ public class ModelSelectionUI<T> extends VrUiContainer {
             float r = modelItem.project.getRadius();
             if (r != 0)
                 modelItem.project.setScale(MODEL_RADIUS / r * scale);
-            modelItem.project.setPosition(position);
+            currentModel.setPosition(position);
             currentModel.getRotation().slerp(modelItem.targetRotation, 0.25f);
-            currentModel.invalidate();
+//            Logger.d(" position: " + currentModel.getPosition() + " rotation: " + currentModel.getRotation() + " scale: " + currentModel.getScale());
+            currentModel.recalculateTransform();
 
             if (modelItem.index == focusedIndex) {
                 sphere.setPosition(currentModel.getPosition());

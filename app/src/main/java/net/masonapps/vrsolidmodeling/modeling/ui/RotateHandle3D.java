@@ -1,5 +1,7 @@
 package net.masonapps.vrsolidmodeling.modeling.ui;
 
+import android.support.annotation.Nullable;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
@@ -19,7 +21,6 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 
 import org.masonapps.libgdxgooglevr.math.PlaneUtils;
-import org.masonapps.libgdxgooglevr.utils.Logger;
 
 /**
  * Created by Bob Mason on 1/18/2018.
@@ -35,6 +36,8 @@ public class RotateHandle3D extends Input3D {
     private Plane plane = new Plane();
     private Vector2 vec2 = new Vector2();
     private Vector3 tmpV = new Vector3();
+    @Nullable
+    private RotationListener listener = null;
 
     public RotateHandle3D(ModelBuilder builder, Axis axis) {
         super(createModelInstance(builder, axis), createBounds(), axis);
@@ -47,7 +50,7 @@ public class RotateHandle3D extends Input3D {
                 setPosition(tmpV.set(circleRadius, 0, 0).rotate(Vector3.Y, angleDeg));
                 break;
             case AXIS_Z:
-                setPosition(tmpV.set(circleRadius, 0, 0).rotate(Vector3.Z, angleDeg));
+                setPosition(tmpV.set(0, circleRadius, 0).rotate(Vector3.Z, angleDeg));
                 break;
         }
     }
@@ -65,12 +68,13 @@ public class RotateHandle3D extends Input3D {
                 color.set(Color.GREEN);
                 break;
         }
-        final Model model = builder.createSphere(HANDLE_RADIUS * 2f, HANDLE_RADIUS * 2f, HANDLE_RADIUS * 2f, 12, 6, new Material(new BlendingAttribute(true, 0.5f), new DepthTestAttribute(false), ColorAttribute.createDiffuse(color)), VertexAttributes.Usage.Position);
+        final Model model = builder.createSphere(HANDLE_RADIUS * 2f, HANDLE_RADIUS * 2f, HANDLE_RADIUS * 2f, 12, 6, new Material(new BlendingAttribute(true, 1f), new DepthTestAttribute(false), ColorAttribute.createDiffuse(color)), VertexAttributes.Usage.Position);
         return new ModelInstance(model);
     }
 
     private static BoundingBox createBounds() {
-        final float r = HANDLE_RADIUS * (float) Math.sqrt(2);
+//        final float r = HANDLE_RADIUS / (float) Math.sqrt(3);
+        final float r = HANDLE_RADIUS;
         return new BoundingBox(new Vector3(-r, -r, -r), new Vector3(r, r, r));
     }
 
@@ -79,13 +83,13 @@ public class RotateHandle3D extends Input3D {
         super.recalculateTransform();
         switch (axis) {
             case AXIS_X:
-                plane.set(position.x, position.y, position.z, 1f, 0f, 0f);
+                plane.set(0f, 0f, 0f, 1f, 0f, 0f);
                 break;
             case AXIS_Y:
-                plane.set(position.x, position.y, position.z, 0f, 1f, 0f);
+                plane.set(0f, 0f, 0f, 0f, 1f, 0f);
                 break;
             case AXIS_Z:
-                plane.set(position.x, position.y, position.z, 0f, 0f, 1f);
+                plane.set(0f, 0f, 0f, 0f, 0f, 1f);
                 break;
         }
     }
@@ -97,14 +101,14 @@ public class RotateHandle3D extends Input3D {
             angleChanged();
             return true;
         }
-        return super.intersectsRaySphere(ray, getHitPoint3D());
+        return super.performRayTest(ray);
     }
 
     private void angleChanged() {
         switch (axis) {
             case AXIS_X:
                 PlaneUtils.toSubSpace(plane, getHitPoint3D(), vec2);
-                angleDeg = MathUtils.atan2(vec2.y, vec2.x) * MathUtils.radiansToDegrees;
+                angleDeg = -MathUtils.atan2(vec2.y, -vec2.x) * MathUtils.radiansToDegrees;
                 setPosition(tmpV.set(0, 0, circleRadius).rotate(Vector3.X, angleDeg));
                 break;
             case AXIS_Y:
@@ -114,23 +118,30 @@ public class RotateHandle3D extends Input3D {
                 break;
             case AXIS_Z:
                 PlaneUtils.toSubSpace(plane, getHitPoint3D(), vec2);
-                angleDeg = MathUtils.atan2(vec2.y, vec2.x) * MathUtils.radiansToDegrees;
-                setPosition(tmpV.set(circleRadius, 0, 0).rotate(Vector3.Z, angleDeg));
+                angleDeg = -MathUtils.atan2(vec2.x, vec2.y) * MathUtils.radiansToDegrees;
+                setPosition(tmpV.set(0, circleRadius, 0).rotate(Vector3.Z, angleDeg));
                 break;
         }
-        Logger.d("angle changed " + angleDeg + " axis " + axis.name());
+        if (listener != null)
+            listener.dragged(axis, angleDeg);
     }
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        Logger.d("rotation drag start " + axis.name());
+        if (listener != null)
+            listener.touchDown(axis);
         return super.touchDown(screenX, screenY, pointer, button);
     }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        Logger.d("rotation drag end " + axis.name());
+        if (listener != null)
+            listener.touchUp(axis);
         return super.touchUp(screenX, screenY, pointer, button);
+    }
+
+    public void setListener(@Nullable RotationListener listener) {
+        this.listener = listener;
     }
 
     public void drawCircle(ShapeRenderer renderer) {
@@ -166,5 +177,17 @@ public class RotateHandle3D extends Input3D {
 
     public void setNumCircleSegments(int numCircleSegments) {
         this.numCircleSegments = numCircleSegments;
+    }
+
+    public float getAngleDeg() {
+        return angleDeg;
+    }
+
+    public interface RotationListener {
+        void touchDown(Axis axis);
+
+        void dragged(Axis axis, float angleDeg);
+
+        void touchUp(Axis axis);
     }
 }

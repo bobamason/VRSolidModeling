@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.ArrowShapeBuilder;
 import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
@@ -50,30 +51,33 @@ public class TranslateHandle3D extends Input3D {
 
     private static ModelInstance createModelInstance(ModelBuilder builder, Axis axis) {
         final Color color = new Color();
-        final Vector3 from = new Vector3(0, 0, 0);
+        final Vector3 from = new Vector3();
         final Vector3 to = new Vector3();
-        final float len = 0.5f;
+        final float len = 0.65f;
         switch (axis) {
             case AXIS_X:
+                from.set(len * 0.5f, 0, 0);
                 to.set(len, 0, 0);
                 color.set(Color.RED);
                 break;
             case AXIS_Y:
+                from.set(0, len * 0.5f, 0);
                 to.set(0, len, 0);
                 color.set(Color.BLUE);
                 break;
             case AXIS_Z:
+                from.set(0, 0, len * 0.5f);
                 to.set(0, 0, len);
                 color.set(Color.GREEN);
                 break;
         }
         builder.begin();
-        final MeshPartBuilder part = builder.part("t" + axis.name(), GLES20.GL_TRIANGLES, VertexAttributes.Usage.Position, new Material(new BlendingAttribute(true, 0.5f), new DepthTestAttribute(false), ColorAttribute.createDiffuse(color)));
+        final MeshPartBuilder part = builder.part("t" + axis.name(), GLES20.GL_TRIANGLES, VertexAttributes.Usage.Position, new Material(new BlendingAttribute(true, 1f), new DepthTestAttribute(false), ColorAttribute.createDiffuse(color)));
         ArrowShapeBuilder.build(part,
                 from.x, from.y, from.z,
                 to.x, to.y, to.z,
-                Vector3.dst(from.x, from.y, from.z, to.x, to.y, to.z) * 0.33f,
-                0.2f, 8);
+                Vector3.dst(from.x, from.y, from.z, to.x, to.y, to.z) * 0.45f,
+                0.35f, 8);
         return new ModelInstance(builder.end());
     }
 
@@ -99,15 +103,15 @@ public class TranslateHandle3D extends Input3D {
         switch (axis) {
             case AXIS_X:
                 if (listener != null)
-                    listener.dragged(axis, hitPoint.x - startHitPoint.x);
+                    listener.dragged(axis, MathUtils.clamp(hitPoint.x - startHitPoint.x, -10f, 10f));
                 break;
             case AXIS_Y:
                 if (listener != null)
-                    listener.dragged(axis, hitPoint.y - startHitPoint.y);
+                    listener.dragged(axis, MathUtils.clamp(hitPoint.y - startHitPoint.y, -10f, 10f));
                 break;
             case AXIS_Z:
                 if (listener != null)
-                    listener.dragged(axis, hitPoint.z - startHitPoint.z);
+                    listener.dragged(axis, MathUtils.clamp(hitPoint.z - startHitPoint.z, -10f, 10f));
                 break;
         }
     }

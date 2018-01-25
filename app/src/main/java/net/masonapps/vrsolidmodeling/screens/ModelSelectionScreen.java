@@ -5,6 +5,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.math.Vector3;
@@ -57,6 +58,9 @@ public abstract class ModelSelectionScreen<T> extends RoomScreen implements File
             @Override
             public void render(ModelBatch batch, Environment environment) {
                 super.render(batch, environment);
+                final ModelInstance roomInstance = getSolidModelingGame().getRoomInstance();
+                if (roomInstance != null)
+                    batch.render(roomInstance);
                 ui.renderProjects(batch, environment);
             }
         };

@@ -27,8 +27,9 @@ public class TranslateRotateWidget extends UiContainer3D {
     public TranslateRotateWidget() {
         super();
         final ModelBuilder builder = new ModelBuilder();
-        addTranslationHandles(builder);
         addRotationHandles(builder);
+        addTranslationHandles(builder);
+        bounds.set(new Vector3(-1.5f, -1.5f, -1.5f), new Vector3(1.5f, 1.5f, 1.5f));
     }
 
     protected void addTranslationHandles(ModelBuilder builder) {
@@ -57,7 +58,6 @@ public class TranslateRotateWidget extends UiContainer3D {
                         break;
                 }
 //                SnapUtil.snap(entity.modelingObject.getPosition(), 0.1f);
-                setEntity(entity);
                 final AABBTree.LeafNode node = entity.getNode();
                 if (node != null)
                     node.refit();
@@ -65,6 +65,7 @@ public class TranslateRotateWidget extends UiContainer3D {
 
             @Override
             public void touchUp(Input3D.Axis axis) {
+                setEntity(entity);
                 Logger.d("drag end " + axis.name());
             }
         };
@@ -84,10 +85,40 @@ public class TranslateRotateWidget extends UiContainer3D {
 
     protected void addRotationHandles(ModelBuilder builder) {
         final RotateHandle3D rotX = new RotateHandle3D(builder, Input3D.Axis.AXIS_X);
-        add(rotX);
         final RotateHandle3D rotY = new RotateHandle3D(builder, Input3D.Axis.AXIS_Y);
-        add(rotY);
         final RotateHandle3D rotZ = new RotateHandle3D(builder, Input3D.Axis.AXIS_Z);
+
+        final RotateHandle3D.RotationListener rotationListener = new RotateHandle3D.RotationListener() {
+            @Override
+            public void touchDown(Input3D.Axis axis) {
+                Logger.d("drag rotation start " + axis.name());
+            }
+
+            @Override
+            public void dragged(Input3D.Axis axis, float angleDeg) {
+                Logger.d("dragging rotation " + axis.name() + " angle " + angleDeg);
+                if (entity == null) return;
+                entity.modelingObject.setRotation(rotY.getAngleDeg(), rotX.getAngleDeg(), rotZ.getAngleDeg());
+//                SnapUtil.snap(entity.modelingObject.getPosition(), 0.1f);
+                setEntity(entity);
+                final AABBTree.LeafNode node = entity.getNode();
+                if (node != null)
+                    node.refit();
+            }
+
+            @Override
+            public void touchUp(Input3D.Axis axis) {
+                Logger.d("drag rotation end " + axis.name());
+            }
+        };
+
+        rotX.setListener(rotationListener);
+        add(rotX);
+
+        rotY.setListener(rotationListener);
+        add(rotY);
+
+        rotZ.setListener(rotationListener);
         add(rotZ);
     }
 

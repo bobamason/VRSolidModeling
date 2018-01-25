@@ -24,9 +24,9 @@ import java.util.List;
 public abstract class UiContainer3D extends Transformable implements VrInputProcessor {
 
     protected List<Input3D> processors;
+    protected BoundingBox bounds = new BoundingBox();
     private boolean isCursorOver = false;
     private Vector3 hitPoint = new Vector3();
-    private BoundingBox bounds = new BoundingBox();
     @Nullable
     private Input3D focusedProcessor = null;
     private Ray transformedRay = new Ray();
@@ -45,17 +45,13 @@ public abstract class UiContainer3D extends Transformable implements VrInputProc
     @Override
     public void recalculateTransform() {
         super.recalculateTransform();
-        for (Input3D processor : processors) {
-            processor.setParentTransform(transform);
-        }
+        processors.forEach(processor -> processor.setParentTransform(transform));
     }
 
     @Override
     public Transformable setTransform(Matrix4 transform) {
         super.setTransform(transform);
-        for (Input3D processor : processors) {
-            processor.setParentTransform(transform);
-        }
+        processors.forEach(processor -> processor.setParentTransform(transform));
         return this;
     }
 
@@ -154,8 +150,7 @@ public abstract class UiContainer3D extends Transformable implements VrInputProc
 
     public void render(ModelBatch batch, Environment environment) {
         if (!isVisible()) return;
-        for (Input3D processor : processors)
-            processor.render(batch, environment);
+        processors.forEach(processor -> processor.render(batch, environment));
     }
 
     public boolean isVisible() {

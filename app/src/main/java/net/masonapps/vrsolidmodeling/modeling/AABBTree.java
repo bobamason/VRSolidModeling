@@ -43,6 +43,11 @@ public class AABBTree {
         }
     }
 
+    public void rebuild(AABBObject object) {
+        remove(object);
+        insert(object);
+    }
+
     public boolean rayTest(Ray ray, IntersectionInfo intersection) {
         return root.rayTest(ray, intersection);
     }
@@ -113,11 +118,13 @@ public class AABBTree {
         public void insert(AABBObject object) {
             if (child1 == null) {
                 child1 = new LeafNode(object);
+                child1.parent = this;
                 refit();
                 return;
             }
             if (child2 == null) {
                 child2 = new LeafNode(object);
+                child2.parent = this;
                 refit();
                 return;
             }
@@ -130,6 +137,7 @@ public class AABBTree {
                 else if (child1 instanceof LeafNode) {
                     final Node tmp = child1;
                     child1 = new InnerNode(tmp, new LeafNode(object));
+                    child1.parent = this;
                 }
             } else {
                 if (child2 instanceof InnerNode)
@@ -137,6 +145,7 @@ public class AABBTree {
                 else if (child2 instanceof LeafNode) {
                     final Node tmp = child2;
                     child2 = new InnerNode(tmp, new LeafNode(object));
+                    child2.parent = this;
                 }
             }
             refit();
@@ -146,7 +155,7 @@ public class AABBTree {
         public boolean rayTest(Ray ray, IntersectionInfo intersection) {
             if (child1 == null && child2 == null) return false;
             intersection.t = Float.POSITIVE_INFINITY;
-            if (!Intersector.intersectRayBoundsFast(ray, bb))
+            if (!Intersector.intersectRayBounds(ray, bb, null))
                 return false;
             final IntersectionInfo intersection1 = new IntersectionInfo();
             final IntersectionInfo intersection2 = new IntersectionInfo();
@@ -223,6 +232,8 @@ public class AABBTree {
         @Override
         public void refit() {
             bb.set(object.getAABB());
+            if (parent != null)
+                parent.refit();
         }
     }
 

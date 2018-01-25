@@ -72,7 +72,7 @@ public class ModelingObject extends Transformable {
         jsonObject.put(KEY_SHININESS, shininess);
         jsonObject.put(KEY_POSITION, position.toString());
         jsonObject.put(KEY_ROTATION, JsonUtils.quaternionToString(rotation));
-        jsonObject.put(KEY_SCALE, position.toString());
+        jsonObject.put(KEY_SCALE, scale.toString());
         return jsonObject;
     }
 

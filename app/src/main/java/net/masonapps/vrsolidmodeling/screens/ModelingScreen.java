@@ -334,7 +334,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         super.render(camera, whichEye);
         shapeRenderer.begin();
         shapeRenderer.setProjectionMatrix(camera.combined);
-//        debugAABBTree(shapeRenderer, modelingProject, Color.YELLOW);
+        debugAABBTree(shapeRenderer, modelingProject, Color.YELLOW);
         transformUI.drawShapes(shapeRenderer);
         if (focusedEntity != null) {
             drawEntityBounds(shapeRenderer, focusedEntity, Color.BLACK);
