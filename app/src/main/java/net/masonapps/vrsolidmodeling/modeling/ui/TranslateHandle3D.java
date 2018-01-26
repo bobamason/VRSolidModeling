@@ -1,21 +1,25 @@
 package net.masonapps.vrsolidmodeling.modeling.ui;
 
+import android.opengl.GLES20;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute;
+import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.ArrowShapeBuilder;
 import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 
-import java.util.function.BiConsumer;
+import org.masonapps.libgdxgooglevr.utils.Logger;
 
 /**
  * Created by Bob Mason on 1/18/2018.
@@ -24,11 +28,10 @@ import java.util.function.BiConsumer;
 public class TranslateHandle3D extends Input3D {
 
     private final Plane plane = new Plane();
-    private boolean dragging = false;
     private Vector3 normal = new Vector3();
     private Vector3 startHitPoint = new Vector3();
     @Nullable
-    private BiConsumer<Axis, Float> listener = null;
+    private TranslationListener listener = null;
 
     public TranslateHandle3D(ModelBuilder builder, Axis axis) {
         super(createModelInstance(builder, axis), axis);
@@ -48,32 +51,41 @@ public class TranslateHandle3D extends Input3D {
 
     private static ModelInstance createModelInstance(ModelBuilder builder, Axis axis) {
         final Color color = new Color();
-        final Vector3 from = new Vector3(0, 0, 0);
+        final Vector3 from = new Vector3();
         final Vector3 to = new Vector3();
-        final float len = 0.5f;
+        final float len = 0.65f;
         switch (axis) {
             case AXIS_X:
+                from.set(len * 0.5f, 0, 0);
                 to.set(len, 0, 0);
                 color.set(Color.RED);
                 break;
             case AXIS_Y:
+                from.set(0, len * 0.5f, 0);
                 to.set(0, len, 0);
                 color.set(Color.BLUE);
                 break;
             case AXIS_Z:
+                from.set(0, 0, len * 0.5f);
                 to.set(0, 0, len);
                 color.set(Color.GREEN);
                 break;
         }
-        final Model model = builder.createArrow(from, to, new Material(new BlendingAttribute(true, 0.5f), ColorAttribute.createDiffuse(color)), VertexAttributes.Usage.Position);
-        return new ModelInstance(model);
+        builder.begin();
+        final MeshPartBuilder part = builder.part("t" + axis.name(), GLES20.GL_TRIANGLES, VertexAttributes.Usage.Position, new Material(new BlendingAttribute(true, 1f), new DepthTestAttribute(false), ColorAttribute.createDiffuse(color)));
+        ArrowShapeBuilder.build(part,
+                from.x, from.y, from.z,
+                to.x, to.y, to.z,
+                Vector3.dst(from.x, from.y, from.z, to.x, to.y, to.z) * 0.45f,
+                0.35f, 8);
+        return new ModelInstance(builder.end());
     }
-
 
     @Override
     public boolean performRayTest(Ray ray) {
         if (!updated) recalculateTransform();
-        if (dragging && Intersector.intersectRayPlane(ray, plane, getHitPoint3D())) {
+        if (isDragging() && Intersector.intersectRayPlane(ray, plane, getHitPoint3D())) {
+            Logger.d("dragging " + getHitPoint3D());
             handleDrag();
             return true;
         }
@@ -86,24 +98,22 @@ public class TranslateHandle3D extends Input3D {
         return intersectsRayBounds;
     }
 
-    @SuppressWarnings("ConstantConditions")
     private void handleDrag() {
         final Vector3 hitPoint = getHitPoint3D();
         switch (axis) {
             case AXIS_X:
                 if (listener != null)
-                    listener.accept(axis, hitPoint.x - startHitPoint.x);
+                    listener.dragged(axis, MathUtils.clamp(hitPoint.x - startHitPoint.x, -10f, 10f));
                 break;
             case AXIS_Y:
                 if (listener != null)
-                    listener.accept(axis, hitPoint.y - startHitPoint.y);
+                    listener.dragged(axis, MathUtils.clamp(hitPoint.y - startHitPoint.y, -10f, 10f));
                 break;
             case AXIS_Z:
                 if (listener != null)
-                    listener.accept(axis, hitPoint.z - startHitPoint.z);
+                    listener.dragged(axis, MathUtils.clamp(hitPoint.z - startHitPoint.z, -10f, 10f));
                 break;
         }
-        startHitPoint.set(hitPoint);
     }
 
 
@@ -147,18 +157,28 @@ public class TranslateHandle3D extends Input3D {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        dragging = true;
         startHitPoint.set(getHitPoint3D());
-        return true;
+        if (listener != null)
+            listener.touchDown(axis);
+        return super.touchDown(screenX, screenY, pointer, button);
     }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        dragging = false;
-        return true;
+        if (listener != null)
+            listener.touchUp(axis);
+        return super.touchUp(screenX, screenY, pointer, button);
     }
 
-    public void setListener(@Nullable BiConsumer<Axis, Float> listener) {
+    public void setListener(@Nullable TranslationListener listener) {
         this.listener = listener;
+    }
+
+    public interface TranslationListener {
+        void touchDown(Axis axis);
+
+        void dragged(Axis axis, float value);
+
+        void touchUp(Axis axis);
     }
 }

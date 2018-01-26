@@ -160,7 +160,7 @@ public class Entity extends Transformable implements Disposable {
         final boolean intersectRaySphere = Intersector.intersectRaySphere(tmpRay, tmp, radius * Math.min(scale.x, Math.min(scale.y, scale.z)), hitPoint);
 //        if (intersectRaySphere && hitPoint != null) hitPoint.mul(modelInstance.transform);
 
-//        Pools.free(tmpRay);
+        Pools.free(tmpRay);
         Pools.free(tmp);
         return intersectRaySphere;
     }

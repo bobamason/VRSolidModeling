@@ -15,6 +15,7 @@ import net.masonapps.vrsolidmodeling.R;
 import net.masonapps.vrsolidmodeling.Style;
 import net.masonapps.vrsolidmodeling.ui.ColorPickerSimple;
 import net.masonapps.vrsolidmodeling.ui.ConfirmDialog;
+import net.masonapps.vrsolidmodeling.ui.ShapeSelector;
 import net.masonapps.vrsolidmodeling.ui.VerticalImageTextButton;
 
 import org.masonapps.libgdxgooglevr.math.CylindricalCoordinate;
@@ -22,6 +23,8 @@ import org.masonapps.libgdxgooglevr.ui.CylindricalWindowUiContainer;
 import org.masonapps.libgdxgooglevr.ui.WindowTableVR;
 import org.masonapps.libgdxgooglevr.ui.WindowVR;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 /**
@@ -40,6 +43,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
     private final WindowTableVR buttonBar;
     private final ColorPickerSimple colorPicker;
     private final ConfirmDialog confirmDialog;
+    private final ShapeSelector shapeSelector;
     private final ViewControls viewControls;
 
     public MainInterface(Batch spriteBatch, Skin skin, UiEventListener listener) {
@@ -51,11 +55,17 @@ public class MainInterface extends CylindricalWindowUiContainer {
         buttonBar = new WindowTableVR(spriteBatch, skin, 560, 112, Style.createWindowVrStyle(skin));
         colorPicker = new ColorPickerSimple(spriteBatch, skin, 448, 448, Style.getStringResource(R.string.title_color_picker, "Color"), windowStyleWithClose);
         confirmDialog = new ConfirmDialog(spriteBatch, skin);
+        shapeSelector = new ShapeSelector(spriteBatch, skin, createShapeItemList());
         viewControls = new ViewControls(spriteBatch, skin, windowStyleWithClose);
         initButtonBar();
         initColorTable();
         initConfirmDialog();
+        initShapeSelector();
         initViewControls();
+    }
+
+    private List<ShapeSelector.ShapeItem> createShapeItemList() {
+        return new ArrayList<>();
     }
 
     private void initButtonBar() {
@@ -143,9 +153,16 @@ public class MainInterface extends CylindricalWindowUiContainer {
         addProcessor(colorPicker);
     }
 
-    @Override
-    public void act() {
-        super.act();
+    private void initShapeSelector() {
+        shapeSelector.setVisible(false);
+        shapeSelector.setBackground(skin.newDrawable(Style.Drawables.window, Style.COLOR_WINDOW));
+        shapeSelector.setPosition(new CylindricalCoordinate(getRadius(), 90f, 0f, CylindricalCoordinate.AngleMode.degrees).toCartesian());
+        addProcessor(shapeSelector);
+    }
+
+    private void showShapeSelector(ShapeSelector.OnShapeItemClickedListener listener) {
+        shapeSelector.setListener(listener);
+        shapeSelector.show();
     }
 
     private void initViewControls() {
@@ -154,6 +171,11 @@ public class MainInterface extends CylindricalWindowUiContainer {
         viewControls.lookAt(new Vector3(0, coordinate.vertical, 0), Vector3.Y);
         viewControls.setVisible(false);
         addProcessor(viewControls);
+    }
+
+    @Override
+    public void act() {
+        super.act();
     }
 
     public void loadWindowPositions(SharedPreferences sharedPreferences) {

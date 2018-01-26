@@ -61,6 +61,9 @@ public abstract class ModelSelectionScreen<T> extends RoomScreen implements File
                 if (roomInstance != null)
                     batch.render(roomInstance, getEnvironment());
                 super.render(batch, environment);
+                final ModelInstance roomInstance = getSolidModelingGame().getRoomInstance();
+                if (roomInstance != null)
+                    batch.render(roomInstance);
                 ui.renderProjects(batch, environment);
             }
         };

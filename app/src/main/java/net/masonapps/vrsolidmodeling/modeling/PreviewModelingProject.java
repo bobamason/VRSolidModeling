@@ -18,11 +18,11 @@ import java.util.List;
 
 public class PreviewModelingProject extends BaseModelingProject {
 
-    private BoundingBox bounds = new BoundingBox();
     private float radius;
 
     public PreviewModelingProject(List<ModelingObject> modelingObjects, HashMap<String, Model> modelMap) {
         super();
+        final BoundingBox bounds = new BoundingBox();
         if (modelingObjects.isEmpty()) {
             bounds.set(new Vector3(-1f, -1f, -1f), new Vector3(1f, 1f, 1f));
         } else {
@@ -44,7 +44,7 @@ public class PreviewModelingProject extends BaseModelingProject {
     public ModelingEntity rayTest(Ray ray, @Nullable Vector3 hitPoint) {
         final Vector3 tmpV = Pools.obtain(Vector3.class);
         ModelingEntity result = null;
-        if (Intersector.intersectRaySphere(ray, bounds.getCenter(tmpV).add(position), radius, hitPoint)) {
+        if (Intersector.intersectRaySphere(ray, position, radius * Math.min(scale.x, Math.min(scale.y, scale.z)), hitPoint)) {
             result = entities.get(0);
         }
         Pools.free(tmpV);

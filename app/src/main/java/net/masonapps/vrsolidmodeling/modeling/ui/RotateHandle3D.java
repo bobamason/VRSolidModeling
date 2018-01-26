@@ -1,5 +1,7 @@
 package net.masonapps.vrsolidmodeling.modeling.ui;
 
+import android.support.annotation.Nullable;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
@@ -7,6 +9,7 @@ import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Intersector;
@@ -26,18 +29,30 @@ import org.masonapps.libgdxgooglevr.math.PlaneUtils;
 public class RotateHandle3D extends Input3D {
 
 
-    private static final float HANDLE_RADIUS = 0.05f;
+    private static final float HANDLE_RADIUS = 0.075f;
     private final float circleRadius = 1f;
     private float angleDeg = 0f;
     private int numCircleSegments = 64;
-    private boolean dragging = false;
     private Plane plane = new Plane();
     private Vector2 vec2 = new Vector2();
     private Vector3 tmpV = new Vector3();
+    @Nullable
+    private RotationListener listener = null;
 
     public RotateHandle3D(ModelBuilder builder, Axis axis) {
         super(createModelInstance(builder, axis), createBounds(), axis);
         setLightingEnabled(false);
+        switch (axis) {
+            case AXIS_X:
+                setPosition(tmpV.set(0, 0, circleRadius).rotate(Vector3.X, angleDeg));
+                break;
+            case AXIS_Y:
+                setPosition(tmpV.set(circleRadius, 0, 0).rotate(Vector3.Y, angleDeg));
+                break;
+            case AXIS_Z:
+                setPosition(tmpV.set(0, circleRadius, 0).rotate(Vector3.Z, angleDeg));
+                break;
+        }
     }
 
     private static ModelInstance createModelInstance(ModelBuilder builder, Axis axis) {
@@ -53,12 +68,13 @@ public class RotateHandle3D extends Input3D {
                 color.set(Color.GREEN);
                 break;
         }
-        final Model model = builder.createSphere(HANDLE_RADIUS * 2f, HANDLE_RADIUS * 2f, HANDLE_RADIUS * 2f, 12, 6, new Material(new BlendingAttribute(true, 0.5f), ColorAttribute.createDiffuse(color)), VertexAttributes.Usage.Position);
+        final Model model = builder.createSphere(HANDLE_RADIUS * 2f, HANDLE_RADIUS * 2f, HANDLE_RADIUS * 2f, 12, 6, new Material(new BlendingAttribute(true, 1f), new DepthTestAttribute(false), ColorAttribute.createDiffuse(color)), VertexAttributes.Usage.Position);
         return new ModelInstance(model);
     }
 
     private static BoundingBox createBounds() {
-        final float r = HANDLE_RADIUS * (float) Math.sqrt(2);
+//        final float r = HANDLE_RADIUS / (float) Math.sqrt(3);
+        final float r = HANDLE_RADIUS;
         return new BoundingBox(new Vector3(-r, -r, -r), new Vector3(r, r, r));
     }
 
@@ -67,13 +83,13 @@ public class RotateHandle3D extends Input3D {
         super.recalculateTransform();
         switch (axis) {
             case AXIS_X:
-                plane.set(position.x, position.y, position.z, 1f, 0f, 0f);
+                plane.set(0f, 0f, 0f, 1f, 0f, 0f);
                 break;
             case AXIS_Y:
-                plane.set(position.x, position.y, position.z, 0f, 1f, 0f);
+                plane.set(0f, 0f, 0f, 0f, 1f, 0f);
                 break;
             case AXIS_Z:
-                plane.set(position.x, position.y, position.z, 0f, 0f, 1f);
+                plane.set(0f, 0f, 0f, 0f, 0f, 1f);
                 break;
         }
     }
@@ -85,14 +101,14 @@ public class RotateHandle3D extends Input3D {
             angleChanged();
             return true;
         }
-        return super.intersectsRaySphere(ray, getHitPoint3D());
+        return super.performRayTest(ray);
     }
 
     private void angleChanged() {
         switch (axis) {
             case AXIS_X:
                 PlaneUtils.toSubSpace(plane, getHitPoint3D(), vec2);
-                angleDeg = MathUtils.atan2(vec2.y, vec2.x) * MathUtils.radiansToDegrees;
+                angleDeg = -MathUtils.atan2(vec2.y, -vec2.x) * MathUtils.radiansToDegrees;
                 setPosition(tmpV.set(0, 0, circleRadius).rotate(Vector3.X, angleDeg));
                 break;
             case AXIS_Y:
@@ -102,22 +118,30 @@ public class RotateHandle3D extends Input3D {
                 break;
             case AXIS_Z:
                 PlaneUtils.toSubSpace(plane, getHitPoint3D(), vec2);
-                angleDeg = MathUtils.atan2(vec2.y, vec2.x) * MathUtils.radiansToDegrees;
-                setPosition(tmpV.set(circleRadius, 0, 0).rotate(Vector3.Z, angleDeg));
+                angleDeg = -MathUtils.atan2(vec2.x, vec2.y) * MathUtils.radiansToDegrees;
+                setPosition(tmpV.set(0, circleRadius, 0).rotate(Vector3.Z, angleDeg));
                 break;
         }
+        if (listener != null)
+            listener.dragged(axis, angleDeg);
     }
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        dragging = true;
-        return true;
+        if (listener != null)
+            listener.touchDown(axis);
+        return super.touchDown(screenX, screenY, pointer, button);
     }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        dragging = false;
-        return true;
+        if (listener != null)
+            listener.touchUp(axis);
+        return super.touchUp(screenX, screenY, pointer, button);
+    }
+
+    public void setListener(@Nullable RotationListener listener) {
+        this.listener = listener;
     }
 
     public void drawCircle(ShapeRenderer renderer) {
@@ -127,12 +151,15 @@ public class RotateHandle3D extends Input3D {
             final float r = circleRadius;
             switch (axis) {
                 case AXIS_X:
+                    renderer.setColor(Color.RED);
                     renderer.line(0, MathUtils.sin(a) * r, -MathUtils.cos(a) * r, 0, MathUtils.sin(a2) * r, -MathUtils.cos(a2) * r);
                     break;
                 case AXIS_Y:
+                    renderer.setColor(Color.BLUE);
                     renderer.line(MathUtils.cos(a) * r, 0, -MathUtils.sin(a) * r, MathUtils.cos(a2) * r, 0, -MathUtils.sin(a2) * r);
                     break;
                 case AXIS_Z:
+                    renderer.setColor(Color.GREEN);
                     renderer.line(MathUtils.cos(a) * r, MathUtils.sin(a) * r, 0, MathUtils.cos(a2) * r, MathUtils.sin(a2) * r, 0);
                     break;
             }
@@ -150,5 +177,17 @@ public class RotateHandle3D extends Input3D {
 
     public void setNumCircleSegments(int numCircleSegments) {
         this.numCircleSegments = numCircleSegments;
+    }
+
+    public float getAngleDeg() {
+        return angleDeg;
+    }
+
+    public interface RotationListener {
+        void touchDown(Axis axis);
+
+        void dragged(Axis axis, float angleDeg);
+
+        void touchUp(Axis axis);
     }
 }
