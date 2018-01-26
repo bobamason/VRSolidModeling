@@ -3,7 +3,6 @@ package net.masonapps.vrsolidmodeling.modeling.primitives;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -15,33 +14,29 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 
-import net.masonapps.vrsolidmodeling.mesh.MeshUtils;
-
 import org.apache.commons.math3.geometry.euclidean.threed.PolyhedronsSet;
 
 /**
  * Created by Bob on 1/2/2018.
  */
 public class Cube extends Primitive {
-    private final float[] vertices;
-    private final short[] indices;
     private BoundingBox boundingBox;
     private com.badlogic.gdx.graphics.g3d.model.data.ModelData modelData;
 
     public Cube() {
-        boundingBox = new BoundingBox();
-        vertices = new float[]{
-
-        };
-        indices = new short[]{
-
-        };
+        boundingBox = new BoundingBox(new Vector3(-1, -1, -1), new Vector3(1, 1, 1));
     }
 
     @Override
     public void initialize() {
-        boundingBox.set(new Vector3(-1, -1, -1), new Vector3(1, 1, 1));
-        modelData = MeshUtils.createModelData(vertices, indices, VertexAttribute.Position(), VertexAttribute.Normal());
+//        final MeshBuilder meshBuilder = new MeshBuilder();
+//        meshBuilder.begin(VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
+//        BoxShapeBuilder.build(meshBuilder, 2f, 2f, 2f);
+//        final float[] vertices = new float[meshBuilder.getNumVertices()];
+//        meshBuilder.getVertices(vertices, 0);
+//        final short[] indices = new short[meshBuilder.getNumIndices()];
+//        meshBuilder.getIndices(indices, 0);
+//        modelData = MeshUtils.createModelData(vertices, indices, VertexAttribute.Position(), VertexAttribute.Normal());
     }
 
     @Override
@@ -52,7 +47,7 @@ public class Cube extends Primitive {
 
     @Override
     public String getName() {
-        return "cube";
+        return Primitives.KEY_CUBE;
     }
 
     @Override

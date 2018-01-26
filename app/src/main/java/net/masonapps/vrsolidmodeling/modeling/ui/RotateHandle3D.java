@@ -73,8 +73,7 @@ public class RotateHandle3D extends Input3D {
     }
 
     private static BoundingBox createBounds() {
-//        final float r = HANDLE_RADIUS / (float) Math.sqrt(3);
-        final float r = HANDLE_RADIUS;
+        final float r = HANDLE_RADIUS / (float) Math.sqrt(3);
         return new BoundingBox(new Vector3(-r, -r, -r), new Vector3(r, r, r));
     }
 
@@ -101,7 +100,7 @@ public class RotateHandle3D extends Input3D {
             angleChanged();
             return true;
         }
-        return super.performRayTest(ray);
+        return super.intersectsRaySphere(ray, getHitPoint3D());
     }
 
     private void angleChanged() {

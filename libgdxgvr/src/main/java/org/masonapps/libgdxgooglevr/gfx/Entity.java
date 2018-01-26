@@ -154,8 +154,7 @@ public class Entity extends Transformable implements Disposable {
         if (!updated) recalculateTransform();
         final Ray tmpRay = Pools.obtain(Ray.class).set(ray);
         final Vector3 tmp = Pools.obtain(Vector3.class);
-//        tmpRay.mul(inverseTransform);
-//        tmp.set(center).add(position);
+        tmpRay.direction.nor();
         tmp.set(position);
         final boolean intersectRaySphere = Intersector.intersectRaySphere(tmpRay, tmp, radius * Math.min(scale.x, Math.min(scale.y, scale.z)), hitPoint);
 //        if (intersectRaySphere && hitPoint != null) hitPoint.mul(modelInstance.transform);

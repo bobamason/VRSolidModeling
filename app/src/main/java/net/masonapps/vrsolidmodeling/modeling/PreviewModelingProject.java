@@ -45,7 +45,7 @@ public class PreviewModelingProject extends BaseModelingProject {
         final Vector3 tmpV = Pools.obtain(Vector3.class);
         ModelingEntity result = null;
         if (Intersector.intersectRaySphere(ray, position, radius * Math.min(scale.x, Math.min(scale.y, scale.z)), hitPoint)) {
-            result = entities.get(0);
+            result = entities.isEmpty() ? null : entities.get(0);
         }
         Pools.free(tmpV);
         return result;

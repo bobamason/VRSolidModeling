@@ -46,6 +46,7 @@ import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
 import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProject;
 import net.masonapps.vrsolidmodeling.modeling.UndoRedoCache;
+import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
 import net.masonapps.vrsolidmodeling.modeling.ui.TranslateRotateWidget;
 import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
@@ -142,14 +143,14 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         final MainInterface.UiEventListener uiEventListener = new MainInterface.UiEventListener() {
 
             @Override
-            public void onAddClicked() {
+            public void onAddClicked(String key) {
                 final float v = 1f;
                 final Vector3 pos = new Vector3(MathUtils.random(-v, v), MathUtils.random(-v, v), MathUtils.random(-v, v));
 //                final Vector3 pos = new Vector3();
-                final ModelingObject modelingObject = new ModelingObject(getSolidModelingGame().getPrimitive("cube"));
+                final ModelingObject modelingObject = new ModelingObject(Primitives.getPrimitive(key));
                 modelingObject.setPosition(pos).scale(0.25f);
-                final ModelingEntity cube = new ModelingEntity(modelingObject, modelingObject.createModelInstance(getSolidModelingGame().getPrimitiveModelMap()));
-                modelingProject.add(cube);
+                final ModelingEntity entity = new ModelingEntity(modelingObject, modelingObject.createModelInstance(getSolidModelingGame().getPrimitiveModelMap()));
+                modelingProject.add(entity);
             }
 
             @Override
@@ -270,7 +271,6 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             public void update() {
                 super.update();
                 transformUI.update();
-                modelingProject.update();
             }
 
             @Override

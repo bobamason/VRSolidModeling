@@ -13,6 +13,7 @@ import com.badlogic.gdx.utils.Pools;
 
 import net.masonapps.vrsolidmodeling.R;
 import net.masonapps.vrsolidmodeling.Style;
+import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.ui.ColorPickerSimple;
 import net.masonapps.vrsolidmodeling.ui.ConfirmDialog;
 import net.masonapps.vrsolidmodeling.ui.ShapeSelector;
@@ -23,7 +24,7 @@ import org.masonapps.libgdxgooglevr.ui.CylindricalWindowUiContainer;
 import org.masonapps.libgdxgooglevr.ui.WindowTableVR;
 import org.masonapps.libgdxgooglevr.ui.WindowVR;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -65,7 +66,9 @@ public class MainInterface extends CylindricalWindowUiContainer {
     }
 
     private List<ShapeSelector.ShapeItem> createShapeItemList() {
-        return new ArrayList<>();
+        return Arrays.asList(
+                new ShapeSelector.ShapeItem(Primitives.KEY_CUBE, "Cube", Style.Drawables.ic_add),
+                new ShapeSelector.ShapeItem(Primitives.KEY_SPHERE, "Sphere", Style.Drawables.circle));
     }
 
     private void initButtonBar() {
@@ -93,7 +96,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
         addBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                eventListener.onAddClicked();
+                showShapeSelector((item) -> eventListener.onAddClicked(item.primitiveKey));
             }
         });
         buttonBarTable.add(addBtn).padTop(PADDING).padBottom(PADDING).padRight(PADDING);
@@ -224,7 +227,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
 
     public interface UiEventListener {
         // TODO: 1/4/2018 remove test add method
-        void onAddClicked();
+        void onAddClicked(String key);
 
         void onColorChanged(Color color);
         
