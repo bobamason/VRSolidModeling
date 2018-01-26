@@ -32,7 +32,7 @@ public class ShapeSelector extends DialogVR {
                 @Override
                 public void clicked(InputEvent event, float x, float y) {
                     if (listener != null)
-                        listener.onItemClicked(shapeItem, index);
+                        listener.onItemClicked(shapeItem);
                     dismiss();
                 }
             });
@@ -47,11 +47,18 @@ public class ShapeSelector extends DialogVR {
     }
 
     public interface OnShapeItemClickedListener {
-        void onItemClicked(ShapeItem item, int index);
+        void onItemClicked(ShapeItem item);
     }
 
     public static class ShapeItem {
-        public String text;
-        public String drawableName;
+        public final String primitiveKey;
+        public final String text;
+        public final String drawableName;
+
+        public ShapeItem(String primitiveKey, String text, String drawableName) {
+            this.primitiveKey = primitiveKey;
+            this.text = text;
+            this.drawableName = drawableName;
+        }
     }
 }

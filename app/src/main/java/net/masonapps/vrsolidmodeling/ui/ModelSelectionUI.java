@@ -34,7 +34,6 @@ import com.google.vr.sdk.controller.Controller;
 import net.masonapps.vrsolidmodeling.R;
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.Style;
-import net.masonapps.vrsolidmodeling.modeling.BaseModelingProject;
 import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
 import net.masonapps.vrsolidmodeling.modeling.PreviewModelingProject;
 
@@ -159,7 +158,7 @@ public class ModelSelectionUI<T> extends VrUiContainer {
         addProcessor(emptyLabel);
 
         final ModelBuilder builder = new ModelBuilder();
-        sphere = new Entity(new ModelInstance(createSphereModel(builder, Color.WHITE)));
+        sphere = new Entity(new ModelInstance(createSphereModel(builder, new Color(0.85f, 0.9f, 1f, 1f))));
         sphere.setLightingEnabled(true);
         sphere.setVisible(false);
 
@@ -185,6 +184,7 @@ public class ModelSelectionUI<T> extends VrUiContainer {
             focusedIndex = -1;
         } else {
             emptyLabel.setVisible(true);
+            buttonBar.setVisible(false);
         }
     }
 
@@ -208,7 +208,7 @@ public class ModelSelectionUI<T> extends VrUiContainer {
 
     private static Model createSphereModel(ModelBuilder builder, Color color) {
         builder.begin();
-        final MeshPartBuilder part = builder.part("s", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal, new Material(ColorAttribute.createDiffuse(color), ColorAttribute.createSpecular(Color.WHITE), new BlendingAttribute(true, 0.1f)));
+        final MeshPartBuilder part = builder.part("s", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal, new Material(ColorAttribute.createDiffuse(color), ColorAttribute.createSpecular(Color.WHITE), new BlendingAttribute(true, 0.15f)));
         SphereShapeBuilder.build(part, 2f, 2f, 2f, 24, 12);
         return builder.end();
     }
@@ -270,7 +270,6 @@ public class ModelSelectionUI<T> extends VrUiContainer {
     @Override
     public void act() {
         super.act();
-        projects.forEach(BaseModelingProject::update);
         final float deltaTime = GdxVr.graphics.getDeltaTime();
         if (animating) {
             if (animValue < targetValue) {
@@ -337,7 +336,7 @@ public class ModelSelectionUI<T> extends VrUiContainer {
 
     public void renderProjects(ModelBatch batch, Environment environment) {
         if (!sphere.isUpdated())
-            recalculateTransform();
+            sphere.recalculateTransform();
         if (sphere.isVisible())
             batch.render(sphere.modelInstance, environment);
         projects.forEach(project -> project.render(batch, environment));
@@ -490,6 +489,7 @@ public class ModelSelectionUI<T> extends VrUiContainer {
             if (modelingObjects != null) {
                 runOnGLThread(() -> {
                     modelItem.project = new PreviewModelingProject(modelingObjects, getSolidModelingGame().getPrimitiveModelMap());
+                    projects.add(modelItem.project);
                     modelItem.loadModelFuture = null;
                 });
             }

@@ -42,7 +42,7 @@ public class MainActivity extends VrActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        deleteAllProjects();
+//        deleteAllProjects();
 
         vrGame = new SolidModelingGame();
         initialize(vrGame);

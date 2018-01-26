@@ -55,6 +55,7 @@ public class ModelingEntity implements AABBTree.AABBObject {
         final Ray tmpRay = Pools.obtain(Ray.class);
 
         tmpRay.set(ray).mul(modelingObject.getInverseTransform());
+        tmpRay.direction.nor();
         final boolean rayTest = modelingObject.getPrimitive().rayTest(tmpRay, intersection.hitPoint);
         if (rayTest) {
             intersection.object = this;

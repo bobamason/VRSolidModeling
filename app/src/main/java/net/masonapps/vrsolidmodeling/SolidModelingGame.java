@@ -43,8 +43,8 @@ import com.google.vr.sdk.controller.Controller;
 import net.masonapps.vrsolidmodeling.environment.SkyDomeBuilder;
 import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
 import net.masonapps.vrsolidmodeling.modeling.BaseModelingProject;
-import net.masonapps.vrsolidmodeling.modeling.primitives.Cube;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitive;
+import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.screens.ExportScreen;
 import net.masonapps.vrsolidmodeling.screens.LoadingScreen;
 import net.masonapps.vrsolidmodeling.screens.ModelingScreen;
@@ -90,7 +90,6 @@ public class SolidModelingGame extends VrGame {
     private ModelInstance roomInstance = null;
     private boolean loadingFailed = false;
     private boolean appButtonDown = false;
-    private HashMap<String, Primitive> primitiveMap = new HashMap<>();
     private HashMap<String, Model> modelMap = new HashMap<>();
 
     @SuppressLint("SimpleDateFormat")
@@ -144,11 +143,6 @@ public class SolidModelingGame extends VrGame {
         textureParameter.minFilter = Texture.TextureFilter.Linear;
         textureParameter.magFilter = Texture.TextureFilter.Linear;
         loadAsset(Assets.SKY_TEXTURE, Texture.class, textureParameter);
-
-        final Cube cube = new Cube();
-        cube.initialize();
-        primitiveMap.put(cube.getName(), cube);
-        modelMap.put(cube.getName(), cube.createModel());
     }
 
     @Override
@@ -168,9 +162,25 @@ public class SolidModelingGame extends VrGame {
             getSkin().addRegions(atlas);
             setupSkin();
             progressLoadingScreen = new ProgressLoadingScreen(this, getSkin());
-            switchToStartupScreen();
             isAtlasLoaded = true;
+
+            setScreen(progressLoadingScreen);
+            setLoadingScreenMessage("initializing shapes");
+
+            initShapes();
         }
+    }
+
+    private void initShapes() {
+
+        CompletableFuture.runAsync(() ->
+                Primitives.getMap().values()
+                        .forEach(Primitive::initialize))
+                .thenRun(() -> GdxVr.app.postRunnable(() -> {
+                    Primitives.getMap().values()
+                            .forEach(primitive -> modelMap.put(primitive.getName(), primitive.createModel()));
+                    switchToStartupScreen();
+                }));
     }
 
     @Override
@@ -250,7 +260,7 @@ public class SolidModelingGame extends VrGame {
         CompletableFuture.supplyAsync(() -> {
             try {
                 setLoadingScreenMessage("loading project...");
-                return ProjectFileIO.loadFile(file, primitiveMap);
+                return ProjectFileIO.loadFile(file, Primitives.getMap());
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new CompletionException(e);
@@ -513,16 +523,12 @@ public class SolidModelingGame extends VrGame {
             ((ExportScreen) screen).onExportComplete();
     }
 
-    public Primitive getPrimitive(String name) {
-        return primitiveMap.get(name);
-    }
-
     public Model getPrimitiveModel(String name) {
         return modelMap.get(name);
     }
 
     public HashMap<String, Primitive> getPrimitiveMap() {
-        return primitiveMap;
+        return Primitives.getMap();
     }
 
     public HashMap<String, Model> getPrimitiveModelMap() {

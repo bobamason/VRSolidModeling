@@ -32,12 +32,14 @@ public abstract class BaseModelingProject extends Transformable implements Dispo
     public void recalculateTransform() {
         super.recalculateTransform();
         entities.forEach(entity -> entity.setParentTransform(this.transform));
+        updateModelCache();
     }
 
     @Override
     public Transformable setTransform(Matrix4 transform) {
         super.setTransform(transform);
         entities.forEach(entity -> entity.setParentTransform(this.transform));
+        updateModelCache();
         return this;
     }
 
@@ -46,9 +48,7 @@ public abstract class BaseModelingProject extends Transformable implements Dispo
         entity.setParentTransform(this.transform);
     }
 
-    public void update() {
-        if (!isUpdated())
-            recalculateTransform();
+    private void updateModelCache() {
         modelCache.begin();
         for (ModelingEntity entity : entities) {
             entity.update();
@@ -58,6 +58,8 @@ public abstract class BaseModelingProject extends Transformable implements Dispo
     }
 
     public void render(ModelBatch batch, Environment environment) {
+        if (!updated)
+            recalculateTransform();
         batch.render(modelCache, environment);
     }
 

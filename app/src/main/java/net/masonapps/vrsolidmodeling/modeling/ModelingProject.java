@@ -32,6 +32,7 @@ public class ModelingProject extends BaseModelingProject {
         final Matrix4 tmpMat = Pools.obtain(Matrix4.class);
 
         tmpRay.set(ray).mul(inverseTransform);
+        ray.direction.nor();
         intersection.object = null;
         if (aabbTree.rayTest(tmpRay, intersection)) {
                 if (hitPoint != null) hitPoint.set(intersection.hitPoint).mul(transform);
