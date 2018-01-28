@@ -9,10 +9,15 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 
 import net.masonapps.vrsolidmodeling.bvh.BVH;
+import net.masonapps.vrsolidmodeling.bvh.BVHBuilder;
+import net.masonapps.vrsolidmodeling.io.PLYAssetLoader;
+import net.masonapps.vrsolidmodeling.mesh.MeshData;
 
 import org.apache.commons.math3.geometry.euclidean.threed.PolyhedronsSet;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,24 +25,40 @@ import java.util.List;
  * Created by Bob on 1/3/2018.
  */
 
-public abstract class AssetPrimitive extends Primitive {
+public class AssetPrimitive extends Primitive {
+    private final String name;
+    private final String filePath;
     private BoundingBox boundingBox;
     private com.badlogic.gdx.graphics.g3d.model.data.ModelData modelData;
     private BVH bvh;
     private BVH.IntersectionInfo intersectionInfo;
 
-    public AssetPrimitive() {
+    public AssetPrimitive(String name, String filePath) {
+        this.name = name;
+        this.filePath = filePath;
         intersectionInfo = new BVH.IntersectionInfo();
     }
 
     @Override
     public void initialize() {
-
+        try {
+            modelData = PLYAssetLoader.parse(new File(filePath), false);
+            final MeshData meshData = MeshData.fromModelData(modelData);
+            final BVH.Node root = new BVHBuilder().build(meshData);
+            bvh = new BVH(meshData, root);
+        } catch (IOException e) {
+            throw new RuntimeException("unable to load modelData for " + name, e);
+        }
     }
 
     @Override
     public Model createModel() {
         return new Model(modelData);
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override

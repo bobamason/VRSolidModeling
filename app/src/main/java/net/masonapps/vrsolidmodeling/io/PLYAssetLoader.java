@@ -1,22 +1,22 @@
 package net.masonapps.vrsolidmodeling.io;
 
 import android.util.Log;
-import android.util.SparseIntArray;
 
 import com.badlogic.gdx.assets.loaders.ModelLoader;
-import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.graphics.VertexAttribute;
+import com.badlogic.gdx.graphics.g3d.model.data.ModelData;
 import com.badlogic.gdx.utils.FloatArray;
 import com.badlogic.gdx.utils.ShortArray;
 
 import net.masonapps.vrsolidmodeling.mesh.Face;
 import net.masonapps.vrsolidmodeling.mesh.MeshData;
-import net.masonapps.vrsolidmodeling.mesh.Triangle;
+import net.masonapps.vrsolidmodeling.mesh.MeshUtils;
 import net.masonapps.vrsolidmodeling.mesh.Vertex;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -30,7 +30,21 @@ import java.util.List;
 public class PLYAssetLoader {
 //    private static final SimpleDateFormat df = new SimpleDateFormat("mm:ss.SSS");
 
-    private static int parseStream(InputStream inputStream, boolean flipV, FloatArray vertices, ShortArray indices) {
+    public static ModelData parse(File file, boolean flipV) throws IOException {
+        final FloatArray vertices = new FloatArray();
+        final ShortArray indices = new ShortArray();
+        final int vertexSize = parseStream(new BufferedInputStream(new FileInputStream(file)), flipV, vertices, indices);
+        if (vertexSize == 8)
+            return MeshUtils.createModelData(vertices.toArray(), indices.toArray(), VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0));
+        else if (vertexSize == 6)
+            return MeshUtils.createModelData(vertices.toArray(), indices.toArray(), VertexAttribute.Position(), VertexAttribute.Normal());
+        else if (vertexSize == 3)
+            return MeshUtils.createModelData(vertices.toArray(), indices.toArray(), VertexAttribute.Position());
+        else
+            throw new IOException("file " + file.getName() + " was not exported properly or is corrupt");
+    }
+
+    private static int parseStream(InputStream inputStream, boolean flipV, FloatArray vertices, ShortArray indices) throws IOException {
 //        long t = System.currentTimeMillis();
         String line;
         String[] tokens;
@@ -159,10 +173,9 @@ public class PLYAssetLoader {
                 }
                 currentFace++;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e(PLYAssetLoader.class.getSimpleName(), "load ply file failed: " + e.getMessage());
-            return -1;
+        } finally {
+            if (inputStream != null)
+                inputStream.close();
         }
         Log.d(PLYAssetLoader.class.getSimpleName(), "faces " + (indices.size / 3));
 //        Log.d(PLYLoader.class.getSimpleName(), "parseStream eT: " + df.format(System.currentTimeMillis() - t));
@@ -301,72 +314,17 @@ public class PLYAssetLoader {
         return faces;
     }
 
-    public static MeshData createMeshData(File file) throws FileNotFoundException {
+    public static MeshData createMeshData(File file) throws IOException {
         return createMeshData(new FileInputStream(file));
     }
 
-    public static MeshData createMeshData(InputStream inputStream) {
+    public static MeshData createMeshData(InputStream inputStream) throws IOException {
 //        long t = System.currentTimeMillis();
         final FloatArray vertexArray = new FloatArray();
         final ShortArray indexArray = new ShortArray();
         final int vertexSize = parseStream(inputStream, false, vertexArray, indexArray);
-        final List<Vertex> vertexList = new ArrayList<>(vertexArray.size);
-        final List<Triangle> triangles = new ArrayList<>(indexArray.size / 3);
-        final float tolerance = 1e-5f;
-        SparseIntArray indexMap = new SparseIntArray();
 
-        float[] vertices = vertexArray.toArray();
-        short[] indices = indexArray.toArray();
-        int numDuplicates = 0;
-        // TODO: 8/24/2017 remove rotation
-        final Quaternion rotation = new Quaternion();
-        rotation.setFromCross(0f, 0f, -1f, 1f, 0f, 0f);
-        for (int i = 0; i < vertices.length; i += vertexSize) {
-            boolean isDouble = false;
-            final Vertex vertex = new Vertex();
-            final int index = i / vertexSize;
-            // TODO: 8/24/2017 remove rotation
-            vertex.position.set(vertices[i], vertices[i + 1], vertices[i + 2]).mul(rotation);
-            vertex.normal.set(vertices[i + 3], vertices[i + 4], vertices[i + 5]).mul(rotation);
-//            vertex.position.set(vertices[i], vertices[i + 1], vertices[i + 2]);
-//            vertex.normal.set(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
-            if (vertexSize > 6) {
-                final int offset = 6;
-                vertex.uv.set(vertices[i + offset], vertices[i + offset + 1]);
-            }
-            for (int j = 0; j < vertexList.size(); j++) {
-                if (vertexList.get(j).position.dst(vertex.position) <= tolerance) {
-                    numDuplicates++;
-                    indexMap.put(index, j);
-                    isDouble = true;
-                    break;
-                }
-            }
-            if (!isDouble) {
-                vertex.index = vertexList.size();
-                indexMap.put(index, vertexList.size());
-                vertexList.add(vertex);
-            }
-        }
-
-        for (int i = 0; i < indices.length; i += 3) {
-            int ia = indices[i];
-            ia = indexMap.get(ia, ia);
-
-            int ib = indices[i + 1];
-            ib = indexMap.get(ib, ib);
-
-            int ic = indices[i + 2];
-            ic = indexMap.get(ic, ic);
-            final Triangle triangle = new Triangle(vertexList.get(ia), vertexList.get(ib), vertexList.get(ic));
-            triangle.update();
-            triangle.index = triangles.size();
-            triangles.add(triangle);
-        }
-//        Log.d(PLYLoader.class.getSimpleName(), "createTriangleList eT: " + df.format(System.currentTimeMillis() - t));
-        Log.d(PLYAssetLoader.class.getSimpleName(), numDuplicates + " duplicate vertices removed");
-        final MeshData sculptMeshData = new MeshData(vertexList.toArray(new Vertex[vertexList.size()]), triangles.toArray(new Triangle[triangles.size()]));
-        return sculptMeshData;
+        return MeshData.createMeshData(vertexArray.toArray(), indexArray.toArray(), vertexSize);
     }
 
     public static class PLYLoaderParameters extends ModelLoader.ModelParameters {
