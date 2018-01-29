@@ -21,6 +21,7 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 
 import org.masonapps.libgdxgooglevr.math.PlaneUtils;
+import org.masonapps.libgdxgooglevr.utils.Logger;
 
 /**
  * Created by Bob Mason on 1/18/2018.
@@ -45,12 +46,15 @@ public class RotateHandle3D extends Input3D {
         switch (axis) {
             case AXIS_X:
                 setPosition(tmpV.set(0, 0, circleRadius).rotate(Vector3.X, angleDeg));
+                plane.set(0f, 0f, 0f, 1f, 0f, 0f);
                 break;
             case AXIS_Y:
                 setPosition(tmpV.set(circleRadius, 0, 0).rotate(Vector3.Y, angleDeg));
+                plane.set(0f, 0f, 0f, 0f, 1f, 0f);
                 break;
             case AXIS_Z:
                 setPosition(tmpV.set(0, circleRadius, 0).rotate(Vector3.Z, angleDeg));
+                plane.set(0f, 0f, 0f, 0f, 0f, 1f);
                 break;
         }
     }
@@ -78,22 +82,6 @@ public class RotateHandle3D extends Input3D {
     }
 
     @Override
-    public void recalculateTransform() {
-        super.recalculateTransform();
-        switch (axis) {
-            case AXIS_X:
-                plane.set(0f, 0f, 0f, 1f, 0f, 0f);
-                break;
-            case AXIS_Y:
-                plane.set(0f, 0f, 0f, 0f, 1f, 0f);
-                break;
-            case AXIS_Z:
-                plane.set(0f, 0f, 0f, 0f, 0f, 1f);
-                break;
-        }
-    }
-
-    @Override
     public boolean performRayTest(Ray ray) {
         if (!updated) recalculateTransform();
         if (dragging && Intersector.intersectRayPlane(ray, plane, getHitPoint3D())) {
@@ -104,19 +92,18 @@ public class RotateHandle3D extends Input3D {
     }
 
     private void angleChanged() {
+        PlaneUtils.toSubSpace(plane, getHitPoint3D(), vec2);
+        Logger.d("point in plane " + vec2 + " axis " + axis.name());
         switch (axis) {
             case AXIS_X:
-                PlaneUtils.toSubSpace(plane, getHitPoint3D(), vec2);
                 angleDeg = -MathUtils.atan2(vec2.y, -vec2.x) * MathUtils.radiansToDegrees;
                 setPosition(tmpV.set(0, 0, circleRadius).rotate(Vector3.X, angleDeg));
                 break;
             case AXIS_Y:
-                PlaneUtils.toSubSpace(plane, getHitPoint3D(), vec2);
                 angleDeg = MathUtils.atan2(-vec2.y, vec2.x) * MathUtils.radiansToDegrees;
                 setPosition(tmpV.set(circleRadius, 0, 0).rotate(Vector3.Y, angleDeg));
                 break;
             case AXIS_Z:
-                PlaneUtils.toSubSpace(plane, getHitPoint3D(), vec2);
                 angleDeg = -MathUtils.atan2(vec2.x, vec2.y) * MathUtils.radiansToDegrees;
                 setPosition(tmpV.set(0, circleRadius, 0).rotate(Vector3.Z, angleDeg));
                 break;
@@ -180,6 +167,21 @@ public class RotateHandle3D extends Input3D {
 
     public float getAngleDeg() {
         return angleDeg;
+    }
+
+    public void setAngleDeg(float angleDeg) {
+        this.angleDeg = angleDeg;
+        switch (axis) {
+            case AXIS_X:
+                setPosition(tmpV.set(0, 0, circleRadius).rotate(Vector3.X, angleDeg));
+                break;
+            case AXIS_Y:
+                setPosition(tmpV.set(circleRadius, 0, 0).rotate(Vector3.Y, angleDeg));
+                break;
+            case AXIS_Z:
+                setPosition(tmpV.set(0, circleRadius, 0).rotate(Vector3.Z, angleDeg));
+                break;
+        }
     }
 
     public interface RotationListener {

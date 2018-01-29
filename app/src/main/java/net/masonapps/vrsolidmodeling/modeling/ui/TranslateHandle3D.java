@@ -30,6 +30,7 @@ public class TranslateHandle3D extends Input3D {
     private final Plane plane = new Plane();
     private Vector3 normal = new Vector3();
     private Vector3 startHitPoint = new Vector3();
+    private boolean shouldSetPlane = true;
     @Nullable
     private TranslationListener listener = null;
 
@@ -84,18 +85,20 @@ public class TranslateHandle3D extends Input3D {
     @Override
     public boolean performRayTest(Ray ray) {
         if (!updated) recalculateTransform();
-        if (isDragging() && Intersector.intersectRayPlane(ray, plane, getHitPoint3D())) {
-            Logger.d("dragging " + getHitPoint3D());
-            handleDrag();
-            return true;
+        if (isDragging()) {
+            if (shouldSetPlane) {
+                normal.set(ray.origin).sub(position);
+                setToClosestUnitVector(normal);
+                plane.set(position, normal);
+                shouldSetPlane = false;
+            }
+            if (Intersector.intersectRayPlane(ray, plane, getHitPoint3D())) {
+                Logger.d("dragging " + getHitPoint3D());
+                handleDrag();
+                return true;
+            }
         }
-        final boolean intersectsRayBounds = super.intersectsRayBounds(ray, getHitPoint3D());
-        if (intersectsRayBounds) {
-            normal.set(ray.origin).sub(position);
-            setToClosestUnitVector(normal);
-            plane.set(position, normal);
-        }
-        return intersectsRayBounds;
+        return super.intersectsRayBounds(ray, getHitPoint3D());
     }
 
     private void handleDrag() {
@@ -167,6 +170,7 @@ public class TranslateHandle3D extends Input3D {
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         if (listener != null)
             listener.touchUp(axis);
+        shouldSetPlane = true;
         return super.touchUp(screenX, screenY, pointer, button);
     }
 

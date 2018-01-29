@@ -48,7 +48,7 @@ import net.masonapps.vrsolidmodeling.modeling.ModelingProject;
 import net.masonapps.vrsolidmodeling.modeling.UndoRedoCache;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
-import net.masonapps.vrsolidmodeling.modeling.ui.TranslateRotateWidget;
+import net.masonapps.vrsolidmodeling.modeling.ui.TranslateWidget;
 import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
@@ -80,7 +80,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private final UndoRedoCache undoRedoCache;
     private final ShapeRenderer shapeRenderer;
     private final Animator snapAnimator;
-    private final TranslateRotateWidget transformUI;
+    private final TranslateWidget transformUI;
     private final Entity gridEntity;
     private boolean isTouchPadClicked = false;
     private Quaternion rotation = new Quaternion();
@@ -194,7 +194,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
 //        brush.setUseSymmetry(false);
         undoRedoCache.save(null);
-        transformUI = new TranslateRotateWidget();
+        transformUI = new TranslateWidget();
         transformUI.setVisible(false);
         mainInterface.addProcessor(transformUI);
 
