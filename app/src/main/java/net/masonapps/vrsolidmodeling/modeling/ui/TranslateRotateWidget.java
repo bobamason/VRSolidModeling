@@ -7,7 +7,6 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 
-import net.masonapps.vrsolidmodeling.modeling.AABBTree;
 import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
 
 import org.masonapps.libgdxgooglevr.utils.Logger;
@@ -58,9 +57,6 @@ public class TranslateRotateWidget extends UiContainer3D {
                         break;
                 }
 //                SnapUtil.snap(entity.modelingObject.getPosition(), 0.1f);
-                final AABBTree.LeafNode node = entity.getNode();
-                if (node != null)
-                    node.refit();
             }
 
             @Override
@@ -101,9 +97,6 @@ public class TranslateRotateWidget extends UiContainer3D {
                 entity.modelingObject.setRotation(rotY.getAngleDeg(), rotX.getAngleDeg(), rotZ.getAngleDeg());
 //                SnapUtil.snap(entity.modelingObject.getPosition(), 0.1f);
                 setEntity(entity);
-                final AABBTree.LeafNode node = entity.getNode();
-                if (node != null)
-                    node.refit();
             }
 
             @Override

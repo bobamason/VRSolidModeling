@@ -13,7 +13,7 @@
     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
     xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-    inkscape:export-filename="C:\Users\ims_3\AndroidStudioProjects\VRSolidModeling\app\src\main\assets\raw\pack\ic_rotate_handle.png"
+    inkscape:export-filename="C:\Users\ims_3\AndroidStudioProjects\VRSolidModeling\app\src\main\assets\raw\pack\ic_shape_sphere.png"
     inkscape:export-xdpi="90"
     inkscape:export-ydpi="90"
     inkscape:version="0.91 r13725"
@@ -23,9 +23,9 @@
     <inkscape:perspective
         id="perspective4348"
         inkscape:persp3d-origin="124.62082 : -20.123904 : 1"
-        inkscape:vp_x="28.620824 : 3.8760964 : 1"
+        inkscape:vp_x="-128 : -56 : 1"
         inkscape:vp_y="0 : 1000 : 0"
-        inkscape:vp_z="220.62082 : 3.8760964 : 1"
+        inkscape:vp_z="400 : -80 : 1"
         sodipodi:type="inkscape:persp3d"/>
     <path
         d="M 0,0 48,0 48,48 0,48 Z"
@@ -205,9 +205,9 @@
       showguides="false"
       units="px"
       inkscape:bbox-nodes="true"
-      inkscape:current-layer="g4729-9"
-      inkscape:cx="-2.9146487"
-      inkscape:cy="35.612317"
+      inkscape:current-layer="g4391"
+      inkscape:cx="4.2614211"
+      inkscape:cy="172.98352"
       inkscape:document-units="px"
       inkscape:object-nodes="false"
       inkscape:object-paths="false"
@@ -216,7 +216,7 @@
       inkscape:snap-bbox="true"
       inkscape:snap-bbox-midpoints="false"
       inkscape:snap-grids="true"
-      inkscape:snap-nodes="true"
+      inkscape:snap-nodes="false"
       inkscape:snap-others="true"
       inkscape:snap-smooth-nodes="false"
       inkscape:window-height="634"
@@ -224,7 +224,7 @@
       inkscape:window-width="1016"
       inkscape:window-x="230"
       inkscape:window-y="54"
-      inkscape:zoom="1.6757812">
+      inkscape:zoom="0.4189453">
     <inkscape:grid
         id="grid4136"
         type="xygrid"/>
@@ -237,7 +237,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
             rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-        <dc:title></dc:title>
+        <dc:title/>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -1436,6 +1436,9 @@
             id="path4479"
             inkscape:connector-curvature="0"/>
       </g>
+      <g
+          style="opacity:1;fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:8.36299992;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+          id="g4391"/>
     </g>
   </g>
 </svg>

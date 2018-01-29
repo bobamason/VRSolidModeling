@@ -110,6 +110,9 @@ public class Style {
         public static final String touch_pad_button_down = "touch_pad_button_down";
         public static final String left_arrow = "left_arrow";
         public static final String right_arrow = "right_arrow";
+        public static final String ic_shape_cube = "ic_shape_cube";
+        public static final String ic_shape_sphere = "ic_shape_sphere";
+        public static final String ic_shape_cylinder = "ic_shape_cylinder";
         public static final String ic_export = "ic_export";
         public static final String ic_folder = "ic_folder";
         public static final String ic_pan = "ic_pan";

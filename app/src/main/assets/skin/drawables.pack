@@ -1,7 +1,7 @@
 
 drawables.png
 format: RGBA8888
-filter: MipMapLinearLinear,MipMapLinearLinear
+filter: Linear,Linear
 repeat: none
 grid
   rotate: false
@@ -201,37 +201,58 @@ ic_rotate_handle
   orig: 96, 96
   offset: 0, 0
   index: -1
-ic_undo
+ic_shape_cube
   rotate: false
   xy: 685, 95
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
-ic_zoom
+ic_shape_cylinder
   rotate: false
   xy: 745, 389
   size: 96, 96
   orig: 96, 96
   offset: 0, 0
   index: -1
+ic_shape_sphere
+  rotate: false
+  xy: 779, 291
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+ic_undo
+  rotate: false
+  xy: 783, 193
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
+ic_zoom
+  rotate: false
+  xy: 783, 95
+  size: 96, 96
+  orig: 96, 96
+  offset: 0, 0
+  index: -1
 round_button
   rotate: false
-  xy: 779, 315
+  xy: 587, 13
   size: 72, 72
   orig: 72, 72
   offset: 0, 0
   index: -1
 loading_spinner
   rotate: false
-  xy: 783, 249
+  xy: 661, 21
   size: 64, 64
   orig: 64, 64
   offset: 0, 0
   index: -1
 button
   rotate: false
-  xy: 783, 185
+  xy: 727, 31
   size: 62, 62
   split: 8, 8, 8, 8
   orig: 62, 62
@@ -253,7 +274,7 @@ checkbox_on
   index: -1
 ic_color_selector
   rotate: false
-  xy: 783, 151
+  xy: 791, 61
   size: 32, 32
   orig: 32, 32
   offset: 0, 0
@@ -267,7 +288,7 @@ slider_knob
   index: -1
 slider
   rotate: false
-  xy: 967, 933
+  xy: 877, 467
   size: 24, 32
   split: 4, 4, 0, 32
   orig: 24, 32

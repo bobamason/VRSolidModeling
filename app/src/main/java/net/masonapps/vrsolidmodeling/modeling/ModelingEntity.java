@@ -33,6 +33,13 @@ public class ModelingEntity implements AABBTree.AABBObject {
         this.modelingObject = modelingObject;
         this.modelInstance = modelInstance;
         boundingBox = modelingObject.getPrimitive().createBounds();
+        aabb.set(boundingBox).mul(modelingObject.getTransform());
+        modelingObject.setOnTransformChangedListener(() -> {
+            aabb.set(boundingBox).mul(modelingObject.getTransform());
+            modelingObject.getTransform(modelInstance.transform).mulLeft(parentTransform);
+            if (node != null)
+                node.refit();
+        });
     }
 
     @Nullable
@@ -46,7 +53,7 @@ public class ModelingEntity implements AABBTree.AABBObject {
 
     @Override
     public BoundingBox getAABB() {
-        return getTransformedBounds(aabb);
+        return aabb;
     }
 
     @Override
@@ -65,10 +72,6 @@ public class ModelingEntity implements AABBTree.AABBObject {
 
         Pools.free(tmpRay);
         return rayTest;
-    }
-
-    public BoundingBox getTransformedBounds(BoundingBox out) {
-        return out.set(boundingBox).mul(modelingObject.getTransform());
     }
 
     public PolyhedronsSet toPolyhedronsSet() {
@@ -122,10 +125,7 @@ public class ModelingEntity implements AABBTree.AABBObject {
     }
 
     public void update() {
-        if (!modelingObject.isUpdated()) {
-            modelingObject.recalculateTransform();
-            modelingObject.getTransform(modelInstance.transform).mulLeft(parentTransform);
-        }
+        modelingObject.validate();
     }
 
     public BoundingBox getBounds() {

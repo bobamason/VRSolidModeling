@@ -1,11 +1,14 @@
 package net.masonapps.vrsolidmodeling.modeling;
 
+import android.support.annotation.Nullable;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.utils.Array;
 
 import net.masonapps.vrsolidmodeling.io.JsonUtils;
@@ -35,6 +38,8 @@ public class ModelingObject extends Transformable {
     public Color diffuseColor = new Color(Color.GRAY);
     public Color specularColor = new Color(Color.DARK_GRAY);
     public float shininess = 16f;
+    @Nullable
+    private OnTransformChangedListener listener = null;
 
     public ModelingObject(Primitive primitive) {
         this.primitive = primitive;
@@ -56,6 +61,25 @@ public class ModelingObject extends Transformable {
         modelingObject.scale.fromString(jsonObject.getString(KEY_SCALE));
         modelingObject.recalculateTransform();
         return modelingObject;
+    }
+
+    @Override
+    public Transformable setTransform(Matrix4 transform) {
+        super.setTransform(transform);
+        if (listener != null)
+            listener.transformChanged();
+        return this;
+    }
+
+    @Override
+    public void recalculateTransform() {
+        super.recalculateTransform();
+        if (listener != null)
+            listener.transformChanged();
+    }
+
+    public void setOnTransformChangedListener(@Nullable OnTransformChangedListener listener) {
+        this.listener = listener;
     }
 
     public Primitive getPrimitive() {
@@ -84,11 +108,14 @@ public class ModelingObject extends Transformable {
     }
 
     public ModelInstance createModelInstance(HashMap<String, Model> modelMap) {
-        if (!updated)
-            recalculateTransform();
+        validate();
         final ModelInstance modelInstance = new ModelInstance(modelMap.get(primitive.getName()), transform.cpy());
         final Material material = createMaterial();
         modelInstance.materials.get(0).set(material.get(new Array<>(), material.getMask()));
         return modelInstance;
+    }
+
+    public interface OnTransformChangedListener {
+        void transformChanged();
     }
 }

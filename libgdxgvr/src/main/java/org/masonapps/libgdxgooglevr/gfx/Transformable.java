@@ -20,13 +20,12 @@ public class Transformable {
     protected boolean updated = false;
 
     public Matrix4 getTransform(Matrix4 out) {
-        if (!updated) recalculateTransform();
+        validate();
         return out.set(transform);
     }
 
     public Matrix4 getTransform() {
-        if (!updated)
-            recalculateTransform();
+        validate();
         return transform;
     }
 
@@ -42,6 +41,11 @@ public class Transformable {
         }
         updated = true;
         return this;
+    }
+
+    public void validate() {
+        if (!updated)
+            recalculateTransform();
     }
 
     public Transformable setScale(float x, float y, float z) {
@@ -182,8 +186,7 @@ public class Transformable {
     }
 
     public Quaternion getRotation() {
-        if (!updated)
-            recalculateTransform();
+        validate();
         return rotation;
     }
 
@@ -260,8 +263,7 @@ public class Transformable {
     }
 
     public Vector3 getPosition() {
-        if (!updated)
-            recalculateTransform();
+        validate();
         return position;
     }
 

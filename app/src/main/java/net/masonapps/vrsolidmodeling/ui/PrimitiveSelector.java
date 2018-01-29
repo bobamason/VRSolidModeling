@@ -17,22 +17,22 @@ import java.util.List;
  * Created by Bob Mason on 1/25/2018.
  */
 
-public class ShapeSelector extends DialogVR {
+public class PrimitiveSelector extends DialogVR {
     @Nullable
-    private OnShapeItemClickedListener listener = null;
+    private OnPrimitiveItemClickedListener listener = null;
 
-    public ShapeSelector(Batch batch, Skin skin, List<ShapeItem> items) {
+    public PrimitiveSelector(Batch batch, Skin skin, List<PrimitiveItem> items) {
         super(batch, 100, 100);
         final Table table = getTable();
         for (int i = 0; i < items.size(); i++) {
             final int index = i;
-            final ShapeItem shapeItem = items.get(index);
-            final VerticalImageTextButton button = new VerticalImageTextButton(shapeItem.text, Style.createImageTextButtonStyle(skin, shapeItem.drawableName));
+            final PrimitiveItem primitiveItem = items.get(index);
+            final VerticalImageTextButton button = new VerticalImageTextButton(primitiveItem.text, Style.createImageTextButtonStyle(skin, primitiveItem.drawableName));
             button.addListener(new ClickListener() {
                 @Override
                 public void clicked(InputEvent event, float x, float y) {
                     if (listener != null)
-                        listener.onItemClicked(shapeItem);
+                        listener.onItemClicked(primitiveItem);
                     dismiss();
                 }
             });
@@ -42,20 +42,20 @@ public class ShapeSelector extends DialogVR {
         resizeToFitTable();
     }
 
-    public void setListener(@Nullable OnShapeItemClickedListener listener) {
+    public void setListener(@Nullable OnPrimitiveItemClickedListener listener) {
         this.listener = listener;
     }
 
-    public interface OnShapeItemClickedListener {
-        void onItemClicked(ShapeItem item);
+    public interface OnPrimitiveItemClickedListener {
+        void onItemClicked(PrimitiveItem item);
     }
 
-    public static class ShapeItem {
+    public static class PrimitiveItem {
         public final String primitiveKey;
         public final String text;
         public final String drawableName;
 
-        public ShapeItem(String primitiveKey, String text, String drawableName) {
+        public PrimitiveItem(String primitiveKey, String text, String drawableName) {
             this.primitiveKey = primitiveKey;
             this.text = text;
             this.drawableName = drawableName;

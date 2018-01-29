@@ -27,22 +27,22 @@ import java.util.List;
 
 public class AssetPrimitive extends Primitive {
     private final String name;
-    private final String filePath;
+    private final String fileName;
     private BoundingBox boundingBox;
     private com.badlogic.gdx.graphics.g3d.model.data.ModelData modelData;
     private BVH bvh;
     private BVH.IntersectionInfo intersectionInfo;
 
-    public AssetPrimitive(String name, String filePath) {
+    public AssetPrimitive(String name, String fileName) {
         this.name = name;
-        this.filePath = filePath;
+        this.fileName = fileName;
         intersectionInfo = new BVH.IntersectionInfo();
     }
 
     @Override
-    public void initialize() {
+    public void initialize(File dir) {
         try {
-            modelData = PLYAssetLoader.parse(new File(filePath), false);
+            modelData = PLYAssetLoader.parse(new File(dir, fileName), false);
             final MeshData meshData = MeshData.fromModelData(modelData);
             final BVH.Node root = new BVHBuilder().build(meshData);
             bvh = new BVH(meshData, root);

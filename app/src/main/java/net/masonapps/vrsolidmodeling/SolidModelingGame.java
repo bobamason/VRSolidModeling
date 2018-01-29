@@ -175,7 +175,10 @@ public class SolidModelingGame extends VrGame {
 
         CompletableFuture.runAsync(() ->
                 Primitives.getMap().values()
-                        .forEach(Primitive::initialize))
+                        .forEach(primitive -> {
+                            final File fileDir = GdxVr.app.getActivityWeakReference().get().getFilesDir();
+                            primitive.initialize(fileDir);
+                        }))
                 .thenRun(() -> GdxVr.app.postRunnable(() -> {
                     Primitives.getMap().values()
                             .forEach(primitive -> modelMap.put(primitive.getName(), primitive.createModel()));
