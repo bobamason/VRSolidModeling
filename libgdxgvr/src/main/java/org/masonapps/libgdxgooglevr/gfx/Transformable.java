@@ -25,6 +25,8 @@ public class Transformable {
     }
 
     public Matrix4 getTransform() {
+        if (!updated)
+            recalculateTransform();
         return transform;
     }
 
@@ -180,6 +182,8 @@ public class Transformable {
     }
 
     public Quaternion getRotation() {
+        if (!updated)
+            recalculateTransform();
         return rotation;
     }
 
@@ -256,6 +260,8 @@ public class Transformable {
     }
 
     public Vector3 getPosition() {
+        if (!updated)
+            recalculateTransform();
         return position;
     }
 

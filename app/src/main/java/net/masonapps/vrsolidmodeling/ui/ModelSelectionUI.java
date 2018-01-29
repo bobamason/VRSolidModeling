@@ -34,6 +34,7 @@ import com.google.vr.sdk.controller.Controller;
 import net.masonapps.vrsolidmodeling.R;
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.Style;
+import net.masonapps.vrsolidmodeling.modeling.BaseModelingProject;
 import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
 import net.masonapps.vrsolidmodeling.modeling.PreviewModelingProject;
 
@@ -75,7 +76,6 @@ public class ModelSelectionUI<T> extends VrUiContainer {
     private final LoadingSpinnerVR previousSpinner;
     private final LoadingSpinnerVR currentSpinner;
     private final LoadingSpinnerVR nextSpinner;
-    private final World world;
     private NumberFormat nf = NumberFormat.getIntegerInstance();
     private boolean modelTest = false;
     private List<T> list;
@@ -144,11 +144,10 @@ public class ModelSelectionUI<T> extends VrUiContainer {
     private Interpolation interpolation = Interpolation.linear;
     private SolidModelingGame solidModelingGame;
 
-    public ModelSelectionUI(SolidModelingGame game, SpriteBatch spriteBatch, Skin skin, List<T> list, ModelAdapter<T> adapter, FileButtonBar.OnFileButtonClicked<T> listener, World world) {
+    public ModelSelectionUI(SolidModelingGame game, SpriteBatch spriteBatch, Skin skin, List<T> list, ModelAdapter<T> adapter, FileButtonBar.OnFileButtonClicked<T> listener) {
         super();
         solidModelingGame = game;
         this.adapter = adapter;
-        this.world = world;
         gestureDetector = new GestureDetector(gestureAdapter);
         this.list = Collections.synchronizedList(list);
 
@@ -334,6 +333,10 @@ public class ModelSelectionUI<T> extends VrUiContainer {
         Pools.free(nPos);
     }
 
+    public void updateProjects() {
+        projects.forEach(BaseModelingProject::update);
+    }
+    
     public void renderProjects(ModelBatch batch, Environment environment) {
         if (!sphere.isUpdated())
             sphere.recalculateTransform();

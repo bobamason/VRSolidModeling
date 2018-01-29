@@ -41,7 +41,7 @@ public abstract class ModelSelectionScreen<T> extends RoomScreen implements File
 
         final SpriteBatch spriteBatch = new SpriteBatch();
         manageDisposable(spriteBatch);
-        ui = new ModelSelectionUI<>(game, spriteBatch, skin, list, this, this, world);
+        ui = new ModelSelectionUI<>(game, spriteBatch, skin, list, this, this);
     }
 
     @Override
@@ -55,15 +55,19 @@ public abstract class ModelSelectionScreen<T> extends RoomScreen implements File
     @Override
     protected World createWorld() {
         return new World() {
+
+            @Override
+            public void update() {
+                super.update();
+                ui.updateProjects();
+            }
+
             @Override
             public void render(ModelBatch batch, Environment environment) {
                 final ModelInstance roomInstance = getSolidModelingGame().getRoomInstance();
                 if (roomInstance != null)
                     batch.render(roomInstance, getEnvironment());
                 super.render(batch, environment);
-                final ModelInstance roomInstance = getSolidModelingGame().getRoomInstance();
-                if (roomInstance != null)
-                    batch.render(roomInstance);
                 ui.renderProjects(batch, environment);
             }
         };

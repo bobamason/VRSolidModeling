@@ -270,6 +270,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             @Override
             public void update() {
                 super.update();
+                modelingProject.update();
                 transformUI.update();
             }
 

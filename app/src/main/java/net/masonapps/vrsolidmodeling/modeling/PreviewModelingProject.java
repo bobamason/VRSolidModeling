@@ -26,7 +26,7 @@ public class PreviewModelingProject extends BaseModelingProject {
         if (modelingObjects.isEmpty()) {
             bounds.set(new Vector3(-1f, -1f, -1f), new Vector3(1f, 1f, 1f));
         } else {
-            bounds.inf();
+            bounds.clr();
             final BoundingBox tmpBB = new BoundingBox();
             for (ModelingObject modelingObject : modelingObjects) {
                 final ModelingEntity modelingEntity = new ModelingEntity(modelingObject, modelingObject.createModelInstance(modelMap));
