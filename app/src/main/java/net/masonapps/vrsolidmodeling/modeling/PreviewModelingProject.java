@@ -27,11 +27,10 @@ public class PreviewModelingProject extends BaseModelingProject {
             bounds.set(new Vector3(-1f, -1f, -1f), new Vector3(1f, 1f, 1f));
         } else {
             bounds.clr();
-            final BoundingBox tmpBB = new BoundingBox();
             for (ModelingObject modelingObject : modelingObjects) {
                 final ModelingEntity modelingEntity = new ModelingEntity(modelingObject, modelingObject.createModelInstance(modelMap));
                 add(modelingEntity);
-                bounds.ext(modelingEntity.getTransformedBounds(tmpBB));
+                bounds.ext(modelingEntity.getAABB());
             }
         }
         final Vector3 dimens = new Vector3();
