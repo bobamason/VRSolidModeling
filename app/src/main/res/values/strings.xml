@@ -38,4 +38,6 @@
     <string name="view">View</string>
     <string name="brush">brush</string>
     <string name="title_transform">Transform</string>
+    <string name="translate">move</string>
+    <string name="scale">scale</string>
 </resources>

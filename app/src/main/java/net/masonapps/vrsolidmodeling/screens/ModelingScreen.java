@@ -199,6 +199,9 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         mainInterface.addProcessor(transformUI);
 
         final ModelBuilder modelBuilder = new ModelBuilder();
+        getWorld().add(Style.newGradientBackground(getVrCamera().far - 1f));
+        getWorld().add(new Entity(new ModelInstance(createGridBox(modelBuilder, skin, getVrCamera().far / 2f))));
+        
         gridEntity = new Entity(new ModelInstance(createGrid(modelBuilder, skin, 1f)));
         gridEntity.setLightingEnabled(false);
         getWorld().add(gridEntity);
@@ -218,6 +221,12 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 0f, 1f, 0f,
                 material,
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.TextureCoordinates
+        );
+    }
+
+    private static Model createGridBox(ModelBuilder builder, Skin skin, float radius) {
+        final Material material = new Material(TextureAttribute.createDiffuse(skin.getRegion(Style.Drawables.grid)), ColorAttribute.createDiffuse(Color.GRAY), FloatAttribute.createAlphaTest(0.5f), IntAttribute.createCullFace(0), new BlendingAttribute(true, 1f));
+        return builder.createBox(radius * 2f, radius * 2f, radius * 2f, material, VertexAttributes.Usage.Position | VertexAttributes.Usage.TextureCoordinates
         );
     }
 

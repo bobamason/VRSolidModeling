@@ -118,7 +118,9 @@ public class Style {
         public static final String ic_pan = "ic_pan";
         public static final String ic_redo = "ic_redo";
         public static final String ic_undo = "ic_undo";
+        public static final String ic_translate = "ic_translate";
         public static final String ic_rotate = "ic_rotate";
+        public static final String ic_scale = "ic_scale";
         public static final String ic_rotate_handle = "ic_rotate_handle";
         public static final String ic_zoom = "ic_zoom";
         public static final String ic_add = "ic_add";
