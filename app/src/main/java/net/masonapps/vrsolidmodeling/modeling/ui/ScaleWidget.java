@@ -26,11 +26,11 @@ public class ScaleWidget extends UiContainer3D {
     public ScaleWidget() {
         super();
         final ModelBuilder builder = new ModelBuilder();
-        addTranslationHandles(builder);
+        addHandles(builder);
         bounds.set(new Vector3(-1.5f, -1.5f, -1.5f), new Vector3(1.5f, 1.5f, 1.5f));
     }
 
-    protected void addTranslationHandles(ModelBuilder builder) {
+    protected void addHandles(ModelBuilder builder) {
         final ScaleHandle3D.ScaleListener scaleListener = new ScaleHandle3D.ScaleListener() {
             @Override
             public void touchDown(Input3D.Axis axis) {
@@ -96,7 +96,8 @@ public class ScaleWidget extends UiContainer3D {
         if (this.entity != null) {
             tmpM.idt()
                     .translate(this.entity.modelingObject.getPosition())
-                    .rotate(this.entity.modelingObject.getRotation());
+                    .rotate(this.entity.modelingObject.getRotation())
+                    .mulLeft(this.entity.getParentTransform());
             setTransform(tmpM);
             setVisible(true);
         } else {

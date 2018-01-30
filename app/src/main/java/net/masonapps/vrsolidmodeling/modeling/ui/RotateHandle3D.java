@@ -101,11 +101,11 @@ public class RotateHandle3D extends Input3D {
                 setPosition(tmpV.set(0, 0, circleRadius).rotate(Vector3.X, angleDeg));
                 break;
             case AXIS_Y:
-                angleDeg = MathUtils.atan2(-vec2.y, vec2.x) * MathUtils.radiansToDegrees;
+                angleDeg = MathUtils.atan2(vec2.y, vec2.x) * MathUtils.radiansToDegrees;
                 setPosition(tmpV.set(circleRadius, 0, 0).rotate(Vector3.Y, angleDeg));
                 break;
             case AXIS_Z:
-                angleDeg = MathUtils.atan2(vec2.x, -vec2.y) * MathUtils.radiansToDegrees;
+                angleDeg = -MathUtils.atan2(vec2.x, vec2.y) * MathUtils.radiansToDegrees;
                 setPosition(tmpV.set(0, circleRadius, 0).rotate(Vector3.Z, angleDeg));
                 break;
         }

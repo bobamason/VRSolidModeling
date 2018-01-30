@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.Ray;
 
 import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
 
@@ -43,7 +44,6 @@ public class TranslateWidget extends UiContainer3D {
 
             @Override
             public void dragged(Input3D.Axis axis, float value) {
-                Logger.d("dragging position " + getPosition());
                 Logger.d("dragging hitPoint " + getHitPoint3D());
                 Logger.d("dragging " + axis.name() + " by " + value);
                 if (entity == null) return;
@@ -83,17 +83,29 @@ public class TranslateWidget extends UiContainer3D {
     }
 
     @Override
-    public void update() {
+    public boolean performRayTest(Ray ray) {
+        final boolean rayTest = super.performRayTest(ray);
         if (isDragging && entity != null) {
             tmpM.set(entity.getParentTransform())
                     .translate(entity.modelingObject.getPosition());
             setTransform(tmpM);
         }
+        return rayTest;
+    }
+
+    @Override
+    public void update() {
         super.update();
     }
 
     @Override
-    public void drawShapes(ShapeRenderer shapeRenderer) {
+    public void drawShapes(ShapeRenderer renderer) {
+        if (!isVisible()) return;
+        renderer.setTransformMatrix(transform);
+        for (Input3D processor : processors) {
+            if (processor instanceof TranslateHandle3D)
+                ((TranslateHandle3D) processor).drawLines(renderer);
+        }
     }
 
     @Override

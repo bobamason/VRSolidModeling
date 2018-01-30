@@ -20,6 +20,8 @@ import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 
+import org.masonapps.libgdxgooglevr.math.PlaneUtils;
+
 /**
  * Created by Bob Mason on 1/18/2018.
  */
@@ -78,17 +80,17 @@ public class ScaleHandle3D extends Input3D {
         switch (axis) {
             case AXIS_X:
                 if (listener != null)
-                    listener.dragged(axis, MathUtils.clamp(hitPoint.x - startHitPoint.x, 0.001f, 10f));
+                    listener.dragged(axis, MathUtils.clamp(hitPoint.x - startHitPoint.x, -10f, 10f));
                 setPosition(len * scaleValue, 0, 0);
                 break;
             case AXIS_Y:
                 if (listener != null)
-                    listener.dragged(axis, MathUtils.clamp(hitPoint.y - startHitPoint.y, 0.001f, 10f));
+                    listener.dragged(axis, MathUtils.clamp(hitPoint.y - startHitPoint.y, -10f, 10f));
                 setPosition(0, len * scaleValue, 0);
                 break;
             case AXIS_Z:
                 if (listener != null)
-                    listener.dragged(axis, MathUtils.clamp(hitPoint.z - startHitPoint.z, 0.001f, 10f));
+                    listener.dragged(axis, MathUtils.clamp(hitPoint.z - startHitPoint.z, -10f, 10f));
                 setPosition(0, 0, len * scaleValue);
                 break;
         }
@@ -96,7 +98,7 @@ public class ScaleHandle3D extends Input3D {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        startHitPoint.set(getHitPoint3D());
+        PlaneUtils.project(getHitPoint3D(), plane, startHitPoint);
         if (listener != null)
             listener.touchDown(axis);
         return super.touchDown(screenX, screenY, pointer, button);

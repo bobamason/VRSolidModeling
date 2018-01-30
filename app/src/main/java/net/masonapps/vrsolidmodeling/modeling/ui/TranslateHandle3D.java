@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.DepthTestAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.ArrowShapeBuilder;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Plane;
@@ -151,6 +152,24 @@ public class TranslateHandle3D extends Input3D {
                     v.y = Math.signum(v.y);
                     v.z = 0f;
                 }
+                break;
+        }
+    }
+
+    public void drawLines(ShapeRenderer renderer) {
+        if (!isDragging()) return;
+        switch (axis) {
+            case AXIS_X:
+                renderer.setColor(Color.RED);
+                renderer.line(-20, 0, 0, 20, 0, 0);
+                break;
+            case AXIS_Y:
+                renderer.setColor(Color.BLUE);
+                renderer.line(0, -20, 0, 0, 20, 0);
+                break;
+            case AXIS_Z:
+                renderer.setColor(Color.GREEN);
+                renderer.line(0, 0, -20, 0, 0, 20);
                 break;
         }
     }
