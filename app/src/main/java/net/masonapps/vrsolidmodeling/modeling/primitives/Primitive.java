@@ -11,7 +11,7 @@ import com.badlogic.gdx.utils.Disposable;
 
 import org.apache.commons.math3.geometry.euclidean.threed.PolyhedronsSet;
 
-import java.io.File;
+import java.io.InputStream;
 
 /**
  * Created by Bob Mason on 1/2/2018.
@@ -22,7 +22,7 @@ public abstract class Primitive implements Disposable {
     public Primitive() {
     }
 
-    public abstract void initialize(File dir);
+    public abstract void initialize(InputStream inputStream);
 
     public abstract Model createModel();
 

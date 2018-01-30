@@ -4,12 +4,15 @@ import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
+
+import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
 
 import org.masonapps.libgdxgooglevr.gfx.Transformable;
 import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
@@ -160,4 +163,10 @@ public abstract class UiContainer3D extends Transformable implements VrInputProc
     public void setVisible(boolean visible) {
         this.visible = visible;
     }
+
+    public void drawShapes(ShapeRenderer shapeRenderer) {
+
+    }
+
+    public abstract void setEntity(ModelingEntity entity);
 }

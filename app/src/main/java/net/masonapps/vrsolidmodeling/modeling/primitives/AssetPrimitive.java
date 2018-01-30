@@ -16,8 +16,8 @@ import net.masonapps.vrsolidmodeling.mesh.MeshData;
 import org.apache.commons.math3.geometry.euclidean.threed.PolyhedronsSet;
 import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,25 +27,26 @@ import java.util.List;
 
 public class AssetPrimitive extends Primitive {
     private final String name;
-    private final String fileName;
-    private BoundingBox boundingBox;
+    private final String asset;
     private com.badlogic.gdx.graphics.g3d.model.data.ModelData modelData;
     private BVH bvh;
     private BVH.IntersectionInfo intersectionInfo;
+    private boolean isInitialized = false;
 
-    public AssetPrimitive(String name, String fileName) {
+    public AssetPrimitive(String name, String asset) {
         this.name = name;
-        this.fileName = fileName;
+        this.asset = asset;
         intersectionInfo = new BVH.IntersectionInfo();
     }
 
     @Override
-    public void initialize(File dir) {
+    public void initialize(InputStream inputStream) {
         try {
-            modelData = PLYAssetLoader.parse(new File(dir, fileName), false);
+            modelData = PLYAssetLoader.parse(inputStream, false);
             final MeshData meshData = MeshData.fromModelData(modelData);
             final BVH.Node root = new BVHBuilder().build(meshData);
             bvh = new BVH(meshData, root);
+            isInitialized = true;
         } catch (IOException e) {
             throw new RuntimeException("unable to load modelData for " + name, e);
         }
@@ -53,6 +54,7 @@ public class AssetPrimitive extends Primitive {
 
     @Override
     public Model createModel() {
+        throwErrorIfNotInitialized();
         return new Model(modelData);
     }
 
@@ -61,13 +63,19 @@ public class AssetPrimitive extends Primitive {
         return name;
     }
 
+    public String getAsset() {
+        return asset;
+    }
+
     @Override
     public BoundingBox createBounds() {
-        return new BoundingBox(boundingBox);
+        throwErrorIfNotInitialized();
+        return new BoundingBox(bvh.root.bb);
     }
 
     @Override
     public PolyhedronsSet toPolyhedronsSet(Matrix4 transform) {
+        throwErrorIfNotInitialized();
         final List<Vector3D> vertices = new ArrayList<>();
         final List<int[]> facets = new ArrayList<>();
         return new PolyhedronsSet(vertices, facets, 1e-10);
@@ -79,5 +87,10 @@ public class AssetPrimitive extends Primitive {
         if (intersection && hitPoint != null)
             hitPoint.set(intersectionInfo.hitPoint);
         return intersection;
+    }
+
+    private void throwErrorIfNotInitialized() {
+        if (!isInitialized)
+            throw new RuntimeException("primitive " + getName() + " must be initialized");
     }
 }

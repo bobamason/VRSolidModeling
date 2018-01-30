@@ -46,6 +46,7 @@ public class TransformModeTable extends TableVR {
             }
         });
         table.add(scaleBtn);
+        resizeToFitTable();
     }
 
     public enum TransformMode {

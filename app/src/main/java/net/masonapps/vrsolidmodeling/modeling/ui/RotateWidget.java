@@ -65,6 +65,7 @@ public class RotateWidget extends UiContainer3D {
         bounds.set(new Vector3(-1.5f, -1.5f, -1.5f), new Vector3(1.5f, 1.5f, 1.5f));
     }
 
+    @Override
     public void drawShapes(ShapeRenderer renderer) {
         if (!isVisible()) return;
         renderer.setTransformMatrix(transform);
@@ -74,6 +75,7 @@ public class RotateWidget extends UiContainer3D {
         }
     }
 
+    @Override
     public void setEntity(@Nullable ModelingEntity entity) {
         this.entity = entity;
         if (this.entity != null) {

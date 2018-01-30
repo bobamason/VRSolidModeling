@@ -18,8 +18,8 @@ public class PlaneUtils {
     public static Vector2 toSubSpace(Plane plane, Vector3 point, Vector2 out) {
         final Vector3 u = Pools.obtain(Vector3.class);
         final Vector3 v = Pools.obtain(Vector3.class);
-        
-        u.set(Vector3.Y).crs(plane.normal).nor();
+
+        u.set(Math.abs(plane.normal.dot(Vector3.Y)) < 0.998f ? Vector3.Y : Vector3.Z).crs(plane.normal).nor();
         v.set(plane.normal).crs(u).nor();
         out.x = point.dot(u);
         out.y = point.dot(v);

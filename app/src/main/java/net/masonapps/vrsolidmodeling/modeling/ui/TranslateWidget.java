@@ -22,6 +22,7 @@ public class TranslateWidget extends UiContainer3D {
     @Nullable
     private ModelingEntity entity = null;
     private Vector3 startPosition = new Vector3();
+    private boolean isDragging = false;
 
     public TranslateWidget() {
         super();
@@ -37,10 +38,13 @@ public class TranslateWidget extends UiContainer3D {
                 Logger.d("drag start " + axis.name());
                 if (entity == null) return;
                 startPosition.set(entity.modelingObject.getPosition());
+                isDragging = true;
             }
 
             @Override
             public void dragged(Input3D.Axis axis, float value) {
+                Logger.d("dragging position " + getPosition());
+                Logger.d("dragging hitPoint " + getHitPoint3D());
                 Logger.d("dragging " + axis.name() + " by " + value);
                 if (entity == null) return;
                 entity.modelingObject.setPosition(startPosition);
@@ -56,14 +60,12 @@ public class TranslateWidget extends UiContainer3D {
                         break;
                 }
 //                SnapUtil.snap(entity.modelingObject.getPosition(), 0.1f);
-                tmpM.set(entity.getParentTransform())
-                        .translate(entity.modelingObject.getPosition());
-                setTransform(tmpM);
             }
 
             @Override
             public void touchUp(Input3D.Axis axis) {
                 Logger.d("drag end " + axis.name());
+                isDragging = false;
             }
         };
 
@@ -80,10 +82,21 @@ public class TranslateWidget extends UiContainer3D {
         add(transZ);
     }
 
-    public void drawShapes(ShapeRenderer renderer) {
-        return;
+    @Override
+    public void update() {
+        if (isDragging && entity != null) {
+            tmpM.set(entity.getParentTransform())
+                    .translate(entity.modelingObject.getPosition());
+            setTransform(tmpM);
+        }
+        super.update();
     }
 
+    @Override
+    public void drawShapes(ShapeRenderer shapeRenderer) {
+    }
+
+    @Override
     public void setEntity(@Nullable ModelingEntity entity) {
         this.entity = entity;
         if (this.entity != null) {

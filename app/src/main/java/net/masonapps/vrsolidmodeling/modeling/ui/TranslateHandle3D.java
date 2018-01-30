@@ -19,8 +19,6 @@ import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 
-import org.masonapps.libgdxgooglevr.utils.Logger;
-
 /**
  * Created by Bob Mason on 1/18/2018.
  */
@@ -73,7 +71,7 @@ public class TranslateHandle3D extends Input3D {
                 break;
         }
         builder.begin();
-        final MeshPartBuilder part = builder.part("t" + axis.name(), GLES20.GL_TRIANGLES, VertexAttributes.Usage.Position, new Material(new BlendingAttribute(true, 1f), new DepthTestAttribute(false), ColorAttribute.createDiffuse(color)));
+        final MeshPartBuilder part = builder.part("t" + axis.name(), GLES20.GL_TRIANGLES, VertexAttributes.Usage.Position, new Material(new BlendingAttribute(true, 1f), new DepthTestAttribute(0), ColorAttribute.createDiffuse(color)));
         ArrowShapeBuilder.build(part,
                 from.x, from.y, from.z,
                 to.x, to.y, to.z,
@@ -93,7 +91,6 @@ public class TranslateHandle3D extends Input3D {
                 shouldSetPlane = false;
             }
             if (Intersector.intersectRayPlane(ray, plane, getHitPoint3D())) {
-                Logger.d("dragging " + getHitPoint3D());
                 handleDrag();
                 return true;
             }

@@ -31,9 +31,13 @@ public class PLYAssetLoader {
 //    private static final SimpleDateFormat df = new SimpleDateFormat("mm:ss.SSS");
 
     public static ModelData parse(File file, boolean flipV) throws IOException {
+        return parse(new FileInputStream(file), flipV);
+    }
+
+    public static ModelData parse(InputStream inputStream, boolean flipV) throws IOException {
         final FloatArray vertices = new FloatArray();
         final ShortArray indices = new ShortArray();
-        final int vertexSize = parseStream(new BufferedInputStream(new FileInputStream(file)), flipV, vertices, indices);
+        final int vertexSize = parseStream(new BufferedInputStream(inputStream), flipV, vertices, indices);
         if (vertexSize == 8)
             return MeshUtils.createModelData(vertices.toArray(), indices.toArray(), VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0));
         else if (vertexSize == 6)
@@ -41,7 +45,7 @@ public class PLYAssetLoader {
         else if (vertexSize == 3)
             return MeshUtils.createModelData(vertices.toArray(), indices.toArray(), VertexAttribute.Position());
         else
-            throw new IOException("file " + file.getName() + " was not exported properly or is corrupt");
+            throw new IOException("file was not exported properly or is corrupt");
     }
 
     private static int parseStream(InputStream inputStream, boolean flipV, FloatArray vertices, ShortArray indices) throws IOException {

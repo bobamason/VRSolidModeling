@@ -84,4 +84,8 @@ public class PhongShader extends DefaultShader {
         return phongFragmentShader;
     }
 
+    @Override
+    public void render(Renderable renderable, Attributes combinedAttributes) {
+        super.render(renderable, combinedAttributes);
+    }
 }

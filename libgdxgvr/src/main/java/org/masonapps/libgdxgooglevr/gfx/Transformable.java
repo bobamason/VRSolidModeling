@@ -301,6 +301,7 @@ public class Transformable {
     }
 
     public Vector3 getScale() {
+        validate();
         return scale;
     }
 

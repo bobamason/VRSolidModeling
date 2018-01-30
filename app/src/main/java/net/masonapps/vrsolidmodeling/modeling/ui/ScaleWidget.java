@@ -21,7 +21,7 @@ public class ScaleWidget extends UiContainer3D {
     private final Matrix4 tmpM = new Matrix4();
     @Nullable
     private ModelingEntity entity = null;
-    private Vector3 startPosition = new Vector3();
+    private Vector3 startScale = new Vector3();
 
     public ScaleWidget() {
         super();
@@ -31,69 +31,72 @@ public class ScaleWidget extends UiContainer3D {
     }
 
     protected void addTranslationHandles(ModelBuilder builder) {
-        final TranslateHandle3D.TranslationListener translationListener = new TranslateHandle3D.TranslationListener() {
+        final ScaleHandle3D.ScaleListener scaleListener = new ScaleHandle3D.ScaleListener() {
             @Override
             public void touchDown(Input3D.Axis axis) {
-                Logger.d("drag start " + axis.name());
+                Logger.d("scale drag start " + axis.name());
                 if (entity == null) return;
-                startPosition.set(entity.modelingObject.getPosition());
+                startScale.set(entity.modelingObject.getScale());
             }
 
             @Override
             public void dragged(Input3D.Axis axis, float value) {
-                Logger.d("dragging " + axis.name() + " by " + value);
+                Logger.d("scale dragging " + axis.name() + " by " + value);
                 if (entity == null) return;
-                entity.modelingObject.setPosition(startPosition);
+                entity.modelingObject.setScale(startScale.x, startScale.y, startScale.z);
                 switch (axis) {
                     case AXIS_X:
-                        entity.modelingObject.translateX(value);
+                        entity.modelingObject.scaleX(value);
                         break;
                     case AXIS_Y:
-                        entity.modelingObject.translateY(value);
+                        entity.modelingObject.scaleY(value);
                         break;
                     case AXIS_Z:
-                        entity.modelingObject.translateZ(value);
+                        entity.modelingObject.scaleZ(value);
                         break;
                 }
 //                SnapUtil.snap(entity.modelingObject.getPosition(), 0.1f);
-                tmpM.set(entity.getParentTransform())
-                        .translate(entity.modelingObject.getPosition());
-                setTransform(tmpM);
+//                tmpM.set(entity.getParentTransform())
+//                        .translate(entity.modelingObject.getPosition());
+//                setTransform(tmpM);
             }
 
             @Override
             public void touchUp(Input3D.Axis axis) {
-                Logger.d("drag end " + axis.name());
+                Logger.d("scale drag end " + axis.name());
             }
         };
 
-        final TranslateHandle3D transX = new TranslateHandle3D(builder, Input3D.Axis.AXIS_X);
-        transX.setListener(translationListener);
-        add(transX);
+        final ScaleHandle3D scaleX = new ScaleHandle3D(builder, Input3D.Axis.AXIS_X);
+        scaleX.setListener(scaleListener);
+        add(scaleX);
 
-        final TranslateHandle3D transY = new TranslateHandle3D(builder, Input3D.Axis.AXIS_Y);
-        transY.setListener(translationListener);
-        add(transY);
+        final ScaleHandle3D scaleY = new ScaleHandle3D(builder, Input3D.Axis.AXIS_Y);
+        scaleY.setListener(scaleListener);
+        add(scaleY);
 
-        final TranslateHandle3D transZ = new TranslateHandle3D(builder, Input3D.Axis.AXIS_Z);
-        transZ.setListener(translationListener);
-        add(transZ);
+        final ScaleHandle3D scaleZ = new ScaleHandle3D(builder, Input3D.Axis.AXIS_Z);
+        scaleZ.setListener(scaleListener);
+        add(scaleZ);
     }
 
+    @Override
     public void drawShapes(ShapeRenderer renderer) {
         if (!isVisible()) return;
         renderer.setTransformMatrix(transform);
         for (Input3D processor : processors) {
-            if (processor instanceof RotateHandle3D)
-                ((RotateHandle3D) processor).drawCircle(renderer);
+            if (processor instanceof ScaleHandle3D)
+                ((ScaleHandle3D) processor).drawLines(renderer);
         }
     }
 
+    @Override
     public void setEntity(@Nullable ModelingEntity entity) {
         this.entity = entity;
         if (this.entity != null) {
-            tmpM.set(this.entity.getParentTransform())
-                    .translate(this.entity.modelingObject.getPosition());
+            tmpM.idt()
+                    .translate(this.entity.modelingObject.getPosition())
+                    .rotate(this.entity.modelingObject.getRotation());
             setTransform(tmpM);
             setVisible(true);
         } else {

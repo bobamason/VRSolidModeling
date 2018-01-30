@@ -43,6 +43,7 @@ import com.google.vr.sdk.controller.Controller;
 import net.masonapps.vrsolidmodeling.environment.SkyDomeBuilder;
 import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
 import net.masonapps.vrsolidmodeling.modeling.BaseModelingProject;
+import net.masonapps.vrsolidmodeling.modeling.primitives.AssetPrimitive;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitive;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.screens.ExportScreen;
@@ -61,6 +62,7 @@ import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
 import org.masonapps.libgdxgooglevr.utils.Logger;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -176,8 +178,16 @@ public class SolidModelingGame extends VrGame {
         CompletableFuture.runAsync(() ->
                 Primitives.getMap().values()
                         .forEach(primitive -> {
-                            final File fileDir = GdxVr.app.getActivityWeakReference().get().getFilesDir();
-                            primitive.initialize(fileDir);
+                            if (primitive instanceof AssetPrimitive) {
+                                final android.content.res.AssetManager assets = GdxVr.app.getActivityWeakReference().get().getAssets();
+                                try {
+                                    primitive.initialize(assets.open(((AssetPrimitive) primitive).getAsset()));
+                                } catch (IOException e) {
+                                    throw new RuntimeException("unable to load primitive " + primitive.getName(), e);
+                                }
+                            } else {
+                                primitive.initialize(null);
+                            }
                         }))
                 .thenRun(() -> GdxVr.app.postRunnable(() -> {
                     Primitives.getMap().values()

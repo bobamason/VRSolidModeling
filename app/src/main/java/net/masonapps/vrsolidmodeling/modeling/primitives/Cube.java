@@ -16,7 +16,7 @@ import com.badlogic.gdx.math.collision.Ray;
 
 import org.apache.commons.math3.geometry.euclidean.threed.PolyhedronsSet;
 
-import java.io.File;
+import java.io.InputStream;
 
 /**
  * Created by Bob on 1/2/2018.
@@ -30,7 +30,7 @@ public class Cube extends Primitive {
     }
 
     @Override
-    public void initialize(File dir) {
+    public void initialize(InputStream inputStream) {
 //        final MeshBuilder meshBuilder = new MeshBuilder();
 //        meshBuilder.begin(VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates);
 //        BoxShapeBuilder.build(meshBuilder, 2f, 2f, 2f);

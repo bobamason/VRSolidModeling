@@ -72,7 +72,7 @@ public class RotateHandle3D extends Input3D {
                 color.set(Color.GREEN);
                 break;
         }
-        final Model model = builder.createSphere(HANDLE_RADIUS * 2f, HANDLE_RADIUS * 2f, HANDLE_RADIUS * 2f, 12, 6, new Material(new BlendingAttribute(true, 1f), new DepthTestAttribute(false), ColorAttribute.createDiffuse(color)), VertexAttributes.Usage.Position);
+        final Model model = builder.createSphere(HANDLE_RADIUS * 2f, HANDLE_RADIUS * 2f, HANDLE_RADIUS * 2f, 12, 6, new Material(new BlendingAttribute(true, 1f), new DepthTestAttribute(0), ColorAttribute.createDiffuse(color)), VertexAttributes.Usage.Position);
         return new ModelInstance(model);
     }
 
@@ -91,6 +91,7 @@ public class RotateHandle3D extends Input3D {
         return super.intersectsRaySphere(ray, getHitPoint3D());
     }
 
+    @SuppressWarnings("SuspiciousNameCombination")
     private void angleChanged() {
         PlaneUtils.toSubSpace(plane, getHitPoint3D(), vec2);
         Logger.d("point in plane " + vec2 + " axis " + axis.name());
@@ -104,7 +105,7 @@ public class RotateHandle3D extends Input3D {
                 setPosition(tmpV.set(circleRadius, 0, 0).rotate(Vector3.Y, angleDeg));
                 break;
             case AXIS_Z:
-                angleDeg = -MathUtils.atan2(vec2.x, vec2.y) * MathUtils.radiansToDegrees;
+                angleDeg = MathUtils.atan2(vec2.x, -vec2.y) * MathUtils.radiansToDegrees;
                 setPosition(tmpV.set(0, circleRadius, 0).rotate(Vector3.Z, angleDeg));
                 break;
         }
