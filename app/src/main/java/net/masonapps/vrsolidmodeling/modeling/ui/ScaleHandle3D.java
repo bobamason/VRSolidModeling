@@ -1,7 +1,6 @@
 package net.masonapps.vrsolidmodeling.modeling.ui;
 
 import android.opengl.GLES20;
-import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.VertexAttributes;
@@ -15,27 +14,24 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Intersector;
-import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
-
-import org.masonapps.libgdxgooglevr.math.PlaneUtils;
+import com.badlogic.gdx.utils.Pools;
 
 /**
  * Created by Bob Mason on 1/18/2018.
  */
 
-public class ScaleHandle3D extends Input3D {
+public class ScaleHandle3D extends DragHandle3D {
 
+    private static final float len = 0.5f;
     private final Plane plane = new Plane();
-    private Vector3 normal = new Vector3();
     private Vector3 startHitPoint = new Vector3();
     private boolean shouldSetPlane = true;
-    @Nullable
-    private ScaleListener listener = null;
     private float scaleValue = 1f;
-    private float len = 0.5f;
+    private float lastDst = 0f;
 
     public ScaleHandle3D(ModelBuilder builder, Axis axis) {
         super(createModelInstance(builder, axis), axis);
@@ -43,15 +39,12 @@ public class ScaleHandle3D extends Input3D {
         switch (axis) {
             case AXIS_X:
                 plane.set(1f, 0f, 0f, 0f);
-                setPosition(len * scaleValue, 0, 0);
                 break;
             case AXIS_Y:
                 plane.set(0f, 1f, 0f, 0f);
-                setPosition(0, len * scaleValue, 0);
                 break;
             case AXIS_Z:
                 plane.set(0f, 0f, 1f, 0f);
-                setPosition(0, 0, len * scaleValue);
                 break;
         }
     }
@@ -61,7 +54,20 @@ public class ScaleHandle3D extends Input3D {
         final float s = 0.25f;
         builder.begin();
         final MeshPartBuilder part = builder.part("t" + axis.name(), GLES20.GL_TRIANGLES, VertexAttributes.Usage.Position, new Material(new BlendingAttribute(true, 1f), new DepthTestAttribute(0), ColorAttribute.createDiffuse(color)));
-        BoxShapeBuilder.build(part, s, s, s);
+        final Matrix4 matrix = new Matrix4();
+        switch (axis) {
+            case AXIS_X:
+                matrix.setToTranslation(len, 0f, 0f);
+                break;
+            case AXIS_Y:
+                matrix.setToTranslation(0f, len, 0f);
+                break;
+            case AXIS_Z:
+                matrix.setToTranslation(0f, 0f, len);
+                break;
+        }
+        matrix.scale(s, s, s);
+        BoxShapeBuilder.build(part, matrix);
         return new ModelInstance(builder.end());
     }
 
@@ -76,69 +82,63 @@ public class ScaleHandle3D extends Input3D {
     }
 
     private void handleDrag() {
-        final Vector3 hitPoint = getHitPoint3D();
+        if (transformable == null) return;
+        final float dst = getHitPoint3D().dst(transformable.getPosition());
+        float value = dst - lastDst + 1f;
         switch (axis) {
             case AXIS_X:
-                if (listener != null)
-                    listener.dragged(axis, MathUtils.clamp(hitPoint.x - startHitPoint.x, -10f, 10f));
-                setPosition(len * scaleValue, 0, 0);
+                transformable.scaleX(value);
                 break;
             case AXIS_Y:
-                if (listener != null)
-                    listener.dragged(axis, MathUtils.clamp(hitPoint.y - startHitPoint.y, -10f, 10f));
-                setPosition(0, len * scaleValue, 0);
+                transformable.scaleY(value);
                 break;
             case AXIS_Z:
-                if (listener != null)
-                    listener.dragged(axis, MathUtils.clamp(hitPoint.z - startHitPoint.z, -10f, 10f));
-                setPosition(0, 0, len * scaleValue);
+                transformable.scaleZ(value);
                 break;
         }
+        lastDst = dst;
     }
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        PlaneUtils.project(getHitPoint3D(), plane, startHitPoint);
-        if (listener != null)
-            listener.touchDown(axis);
+        if (transformable != null) {
+            lastDst = getHitPoint3D().dst(transformable.getPosition());
+        }
         return super.touchDown(screenX, screenY, pointer, button);
     }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        if (listener != null)
-            listener.touchUp(axis);
         shouldSetPlane = true;
         return super.touchUp(screenX, screenY, pointer, button);
 
     }
 
-    public void drawLines(ShapeRenderer renderer) {
-        switch (axis) {
-            case AXIS_X:
-                renderer.setColor(Color.RED);
-                renderer.line(0, 0, 0, len * scaleValue, 0, 0);
-                break;
-            case AXIS_Y:
-                renderer.setColor(Color.BLUE);
-                renderer.line(0, 0, 0, 0, len * scaleValue, 0);
-                break;
-            case AXIS_Z:
-                renderer.setColor(Color.GREEN);
-                renderer.line(0, 0, 0, 0, 0, len * scaleValue);
-                break;
+    @Override
+    public void update() {
+        if (transformable != null) {
+            setPosition(transformable.getPosition());
+            setRotation(transformable.getRotation());
         }
     }
 
-    public void setListener(@Nullable ScaleListener listener) {
-        this.listener = listener;
-    }
-
-    public interface ScaleListener {
-        void touchDown(Axis axis);
-
-        void dragged(Axis axis, float value);
-
-        void touchUp(Axis axis);
+    @Override
+    public void drawShapes(ShapeRenderer renderer) {
+        final Vector3 tmp = Pools.obtain(Vector3.class);
+        switch (axis) {
+            case AXIS_X:
+                renderer.setColor(Color.RED);
+                renderer.line(Vector3.Zero, tmp.set(len * scaleValue, 0, 0).mul(rotation).add(position));
+                break;
+            case AXIS_Y:
+                renderer.setColor(Color.BLUE);
+                renderer.line(Vector3.Zero, tmp.set(0, len * scaleValue, 0).mul(rotation).add(position));
+                break;
+            case AXIS_Z:
+                renderer.setColor(Color.GREEN);
+                renderer.line(Vector3.Zero, tmp.set(0, 0, len * scaleValue).mul(rotation).add(position));
+                break;
+        }
+        Pools.free(tmp);
     }
 }

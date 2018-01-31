@@ -61,7 +61,7 @@ public class RotationUtil {
         return false;
     }
 
-    public static Vector3 setToClosestUnitVector(Vector3 v) {
+    public static void setToClosestUnitVector(Vector3 v) {
         if (Math.abs(v.x) > Math.abs(v.y)) {
             if (Math.abs(v.x) > Math.abs(v.z)) {
                 v.x = Math.signum(v.x);
@@ -83,7 +83,6 @@ public class RotationUtil {
                 v.y = 0f;
             }
         }
-        return v;
     }
 
     public static float setToClosestUnitVectors(Vector3 dir, Vector3 up) {
@@ -120,5 +119,11 @@ public class RotationUtil {
         }
         up.set(axis).scl(Math.signum(d));
         return 1f - Math.abs(closest);
+    }
+
+    public static void snapAxisAngle(Quaternion q) {
+        q.getAxisAngleRad(tmp);
+        setToClosestUnitVector(tmp);
+        q.setFromAxisRad(tmp, q.getAngleAroundRad(tmp));
     }
 }

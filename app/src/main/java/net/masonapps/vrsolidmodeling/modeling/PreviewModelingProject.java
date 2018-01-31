@@ -33,9 +33,7 @@ public class PreviewModelingProject extends BaseModelingProject {
                 bounds.ext(modelingEntity.getAABB());
             }
         }
-        final Vector3 dimens = new Vector3();
-        bounds.getDimensions(dimens);
-        radius = dimens.len() / 2f;
+        radius = (float) Math.sqrt(Math.max(bounds.min.len2(), bounds.max.len2()));
     }
 
     @Nullable

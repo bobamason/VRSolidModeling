@@ -51,8 +51,8 @@ import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
 import net.masonapps.vrsolidmodeling.modeling.ui.RotateWidget;
 import net.masonapps.vrsolidmodeling.modeling.ui.ScaleWidget;
 import net.masonapps.vrsolidmodeling.modeling.ui.TransformModeTable;
+import net.masonapps.vrsolidmodeling.modeling.ui.TransformWidget3D;
 import net.masonapps.vrsolidmodeling.modeling.ui.TranslateWidget;
-import net.masonapps.vrsolidmodeling.modeling.ui.UiContainer3D;
 import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
@@ -85,7 +85,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private final ShapeRenderer shapeRenderer;
     private final Animator snapAnimator;
     private final Entity gridEntity;
-    private UiContainer3D transformUI;
+    private TransformWidget3D transformUI;
     private boolean isTouchPadClicked = false;
     private Quaternion rotation = new Quaternion();
     private Quaternion lastRotation = new Quaternion();
@@ -200,11 +200,13 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 //        brush.setUseSymmetry(false);
         undoRedoCache.save(null);
 
-        final TranslateWidget translateWidget = new TranslateWidget();
+        final ModelBuilder modelBuilder = new ModelBuilder();
+
+        final TranslateWidget translateWidget = new TranslateWidget(modelBuilder);
         translateWidget.setVisible(false);
-        final RotateWidget rotateWidget = new RotateWidget();
+        final RotateWidget rotateWidget = new RotateWidget(modelBuilder);
         rotateWidget.setVisible(false);
-        final ScaleWidget scaleWidget = new ScaleWidget();
+        final ScaleWidget scaleWidget = new ScaleWidget(modelBuilder);
         scaleWidget.setVisible(false);
 
         mainInterface.addProcessor(translateWidget);
@@ -217,28 +219,25 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             switch (mode) {
                 case TRANSLATE:
                     transformUI = translateWidget;
-                    transformUI.setVisible(true);
                     rotateWidget.setVisible(false);
                     scaleWidget.setVisible(false);
                     break;
                 case ROTATE:
                     transformUI = rotateWidget;
-                    transformUI.setVisible(true);
                     translateWidget.setVisible(false);
                     scaleWidget.setVisible(false);
                     break;
                 case SCALE:
                     transformUI = scaleWidget;
-                    transformUI.setVisible(true);
                     translateWidget.setVisible(false);
                     rotateWidget.setVisible(false);
                     break;
             }
+            transformUI.setEntity(selectedEntity);
         });
         mainInterface.addProcessor(transformModeTable);
         transformModeTable.setVisible(false);
 
-        final ModelBuilder modelBuilder = new ModelBuilder();
         getWorld().add(Style.newGradientBackground(getVrCamera().far - 1f));
 
         gridEntity = new Entity(new ModelInstance(createGrid(modelBuilder, skin, 1f)));
@@ -326,7 +325,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             public void render(ModelBatch batch, Environment environment) {
                 super.render(batch, environment);
                 modelingProject.render(batch, environment);
-                transformUI.render(batch, environment);
+                transformUI.render(batch);
             }
         };
     }
@@ -382,7 +381,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                     .add(modelingProject.getPosition())
                     .add(-0.45f, -0.45f, 0);
             transformModeTable.setPosition(pos);
-            transformModeTable.lookAt(pos.add(0, 0, -1), Vector3.Y);
+            transformModeTable.lookAt(pos.add(0, 0, 1), Vector3.Y);
             Pools.free(pos);
         }
 //        Logger.d(GdxVr.graphics.getFramesPerSecond() + "fps");
@@ -416,11 +415,10 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private void rotate() {
         final Quaternion rotDiff = Pools.obtain(Quaternion.class);
         rotDiff.set(lastRotation).conjugate().mulLeft(GdxVr.input.getControllerOrientation());
-//        rotDiff.conjugate();
+//        RotationUtil.snapAxisAngle(rotDiff);
+//        Logger.d("rotDiff " + rotDiff);
+        
         rotation.mulLeft(rotDiff);
-//        getVrCamera().position.set(0, 0, 4).mul(rotation);
-//        getVrCamera().up.set(0, 1, 0).mul(rotation);
-//        getVrCamera().lookAt(Vector3.Zero);
         modelingProject.setRotation(rotation);
         gridEntity.setPosition(modelingProject.getPosition());
         gridEntity.setRotation(modelingProject.getRotation());

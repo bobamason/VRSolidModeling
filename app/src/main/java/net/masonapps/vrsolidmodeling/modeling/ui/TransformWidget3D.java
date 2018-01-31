@@ -1,8 +1,8 @@
 package net.masonapps.vrsolidmodeling.modeling.ui;
 
+import android.support.annotation.CallSuper;
 import android.support.annotation.Nullable;
 
-import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Intersector;
@@ -24,22 +24,24 @@ import java.util.List;
  * Created by Bob Mason on 1/17/2018.
  */
 
-public abstract class UiContainer3D extends Transformable implements VrInputProcessor {
+public abstract class TransformWidget3D extends Transformable implements VrInputProcessor {
 
-    protected List<Input3D> processors;
+    protected List<DragHandle3D> processors;
     protected BoundingBox bounds = new BoundingBox();
+    @Nullable
+    protected ModelingEntity entity = null;
     private boolean isCursorOver = false;
     private Vector3 hitPoint = new Vector3();
     @Nullable
-    private Input3D focusedProcessor = null;
+    private DragHandle3D focusedProcessor = null;
     private Ray transformedRay = new Ray();
     private boolean visible = false;
 
-    public UiContainer3D() {
+    public TransformWidget3D() {
         processors = new ArrayList<>();
     }
 
-    public void add(Input3D processor) {
+    public void add(DragHandle3D processor) {
         processors.add(processor);
         processor.setParentTransform(transform);
         bounds.ext(processor.getBounds());
@@ -71,10 +73,10 @@ public abstract class UiContainer3D extends Transformable implements VrInputProc
             } else
                 isCursorOver = false;
         } else {
-            Input3D tempProcessor = null;
+            DragHandle3D tempProcessor = null;
             if (Intersector.intersectRayBoundsFast(transformedRay, bounds)) {
                 float d = Float.MAX_VALUE;
-                for (Input3D processor : processors) {
+                for (DragHandle3D processor : processors) {
                     if (processor.performRayTest(transformedRay)) {
                         if (processor.getHitPoint3D().dst2(ray.origin) < d) {
                             hitPoint.set(processor.getHitPoint3D()).mul(transform);
@@ -149,11 +151,19 @@ public abstract class UiContainer3D extends Transformable implements VrInputProc
 
     public void update() {
         if (!updated) recalculateTransform();
+        processors.forEach(DragHandle3D::update);
     }
 
-    public void render(ModelBatch batch, Environment environment) {
+    public void render(ModelBatch batch) {
         if (!isVisible()) return;
-        processors.forEach(processor -> processor.render(batch, environment));
+        processors.forEach(processor -> processor.render(batch));
+    }
+
+    @CallSuper
+    public void drawShapes(ShapeRenderer renderer) {
+        if (!isVisible()) return;
+        renderer.setTransformMatrix(transform);
+        processors.forEach(processor -> processor.drawShapes(renderer));
     }
 
     public boolean isVisible() {
@@ -164,9 +174,15 @@ public abstract class UiContainer3D extends Transformable implements VrInputProc
         this.visible = visible;
     }
 
-    public void drawShapes(ShapeRenderer shapeRenderer) {
-
+    @CallSuper
+    public void setEntity(@Nullable ModelingEntity entity) {
+        this.entity = entity;
+        processors.forEach(processor -> processor.setTransformable(entity == null ? null : entity.modelingObject));
+        if (this.entity != null) {
+            setTransform(this.entity.getParentTransform());
+            setVisible(true);
+        } else {
+            setVisible(false);
+        }
     }
-
-    public abstract void setEntity(ModelingEntity entity);
 }

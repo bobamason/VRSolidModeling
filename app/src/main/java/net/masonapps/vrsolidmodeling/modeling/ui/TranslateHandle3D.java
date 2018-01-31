@@ -19,19 +19,23 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
+import com.badlogic.gdx.utils.Pools;
+
+import net.masonapps.vrsolidmodeling.math.SnapUtil;
+
+import org.masonapps.libgdxgooglevr.gfx.Transformable;
 
 /**
  * Created by Bob Mason on 1/18/2018.
  */
 
-public class TranslateHandle3D extends Input3D {
+public class TranslateHandle3D extends DragHandle3D {
 
     private final Plane plane = new Plane();
     private Vector3 normal = new Vector3();
     private Vector3 startHitPoint = new Vector3();
+    private Vector3 startPosition = new Vector3();
     private boolean shouldSetPlane = true;
-    @Nullable
-    private TranslationListener listener = null;
 
     public TranslateHandle3D(ModelBuilder builder, Axis axis) {
         super(createModelInstance(builder, axis), axis);
@@ -83,6 +87,7 @@ public class TranslateHandle3D extends Input3D {
 
     @Override
     public boolean performRayTest(Ray ray) {
+        if (transformable == null) return false;
         if (!updated) recalculateTransform();
         if (isDragging()) {
             if (shouldSetPlane) {
@@ -100,21 +105,27 @@ public class TranslateHandle3D extends Input3D {
     }
 
     private void handleDrag() {
+        if (transformable == null) return;
         final Vector3 hitPoint = getHitPoint3D();
+        final Vector3 position = transformable.getPosition();
+        position.set(startPosition);
+        float value;
         switch (axis) {
             case AXIS_X:
-                if (listener != null)
-                    listener.dragged(axis, MathUtils.clamp(hitPoint.x - startHitPoint.x, -10f, 10f));
+                value = MathUtils.clamp(hitPoint.x - startHitPoint.x, -10f, 10f);
+                position.add(value, 0, 0);
                 break;
             case AXIS_Y:
-                if (listener != null)
-                    listener.dragged(axis, MathUtils.clamp(hitPoint.y - startHitPoint.y, -10f, 10f));
+                value = MathUtils.clamp(hitPoint.y - startHitPoint.y, -10f, 10f);
+                position.add(0, value, 0);
                 break;
             case AXIS_Z:
-                if (listener != null)
-                    listener.dragged(axis, MathUtils.clamp(hitPoint.z - startHitPoint.z, -10f, 10f));
+                value = MathUtils.clamp(hitPoint.z - startHitPoint.z, -10f, 10f);
+                position.add(0, 0, value);
                 break;
         }
+        SnapUtil.snap(position, 0.01f);
+        transformable.invalidate();
     }
 
 
@@ -156,49 +167,55 @@ public class TranslateHandle3D extends Input3D {
         }
     }
 
-    public void drawLines(ShapeRenderer renderer) {
+    @Override
+    public void update() {
+        if (transformable != null)
+            setPosition(transformable.getPosition());
+    }
+
+    @Override
+    public void drawShapes(ShapeRenderer renderer) {
         if (!isDragging()) return;
+        final Vector3 tmp = Pools.obtain(Vector3.class);
+        final Vector3 tmp2 = Pools.obtain(Vector3.class);
         switch (axis) {
             case AXIS_X:
                 renderer.setColor(Color.RED);
-                renderer.line(-20, 0, 0, 20, 0, 0);
+                renderer.line(tmp.set(position).add(-20, 0, 0), tmp2.set(position).add(20, 0, 0));
                 break;
             case AXIS_Y:
                 renderer.setColor(Color.BLUE);
-                renderer.line(0, -20, 0, 0, 20, 0);
+                renderer.line(tmp.set(position).add(0, -20, 0), tmp2.set(position).add(0, 20, 0));
                 break;
             case AXIS_Z:
                 renderer.setColor(Color.GREEN);
-                renderer.line(0, 0, -20, 0, 0, 20);
+                renderer.line(tmp.set(position).add(0, 0, -20), tmp2.set(position).add(0, 0, 20));
                 break;
         }
+        Pools.free(tmp);
+        Pools.free(tmp2);
     }
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        startHitPoint.set(getHitPoint3D());
-        if (listener != null)
-            listener.touchDown(axis);
+        if (transformable != null) {
+            startHitPoint.set(getHitPoint3D());
+            startPosition.set(transformable.getPosition());
+        }
         return super.touchDown(screenX, screenY, pointer, button);
     }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        if (listener != null)
-            listener.touchUp(axis);
         shouldSetPlane = true;
         return super.touchUp(screenX, screenY, pointer, button);
     }
 
-    public void setListener(@Nullable TranslationListener listener) {
-        this.listener = listener;
-    }
-
-    public interface TranslationListener {
-        void touchDown(Axis axis);
-
-        void dragged(Axis axis, float value);
-
-        void touchUp(Axis axis);
+    @Override
+    public void setTransformable(@Nullable Transformable transformable) {
+        super.setTransformable(transformable);
+        if (transformable != null) {
+            setPosition(transformable.getPosition());
+        }
     }
 }
