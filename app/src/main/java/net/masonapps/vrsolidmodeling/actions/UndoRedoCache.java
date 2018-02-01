@@ -1,5 +1,6 @@
-package net.masonapps.vrsolidmodeling.modeling;
+package net.masonapps.vrsolidmodeling.actions;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import java.util.Stack;
@@ -9,21 +10,22 @@ import java.util.Stack;
  */
 
 public class UndoRedoCache {
-    private static final int MAX_UNDO_STACK_COUNT = 10;
-    private Stack<Object> undoStack = new Stack<>();
-    private Stack<Object> redoStack = new Stack<>();
+    private static final int MAX_UNDO_STACK_COUNT = 20;
+    private Stack<Action> undoStack = new Stack<>();
+    private Stack<Action> redoStack = new Stack<>();
     @Nullable
-    private Object current = null;
+    private Action current = null;
 
     public static void applySaveData() {
     }
 
     @Nullable
-    public Object undo() {
+    public Action undo() {
         if (undoStack.empty()) return null;
         if (current != null)
             redoStack.push(current);
         current = undoStack.pop();
+        current.undoAction();
         return current;
     }
 
@@ -32,11 +34,12 @@ public class UndoRedoCache {
     }
 
     @Nullable
-    public Object redo() {
+    public Action redo() {
         if (redoStack.empty()) return null;
         if (current != null)
             undoStack.push(current);
         current = redoStack.pop();
+        current.redoAction();
         return current;
     }
 
@@ -44,13 +47,13 @@ public class UndoRedoCache {
         return redoStack.size();
     }
 
-    public void save(Object obj) {
+    public void save(@NonNull Action action) {
         if (undoStack.size() >= MAX_UNDO_STACK_COUNT)
             undoStack.remove(0);
         redoStack.clear();
         if (current != null)
             undoStack.push(current);
-        current = obj;
+        current = action;
     }
 
     public void clear() {

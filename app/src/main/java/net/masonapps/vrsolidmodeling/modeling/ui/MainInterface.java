@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.ui.Container;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
@@ -33,17 +34,19 @@ import java.util.function.Consumer;
 public class MainInterface extends CylindricalWindowUiContainer {
 
     public static final String WINDOW_BUTTON_BAR = "winBtnBar";
-    public static final String WINDOW_COLOR_PICKER = "winColorPicker";
-    public static final String WINDOW_BRUSH_SETTINGS = "winBrushSettings";
+    public static final String WINDOW_MAIN = "winColorPicker";
     public static final String WINDOW_VIEW_CONTROLS = "winViewControls";
     private static final float PADDING = 8f;
     private final Skin skin;
     private final UiEventListener eventListener;
+    private final WindowTableVR mainTable;
     private final WindowTableVR buttonBar;
     private final ColorPickerSimple colorPicker;
     private final ConfirmDialog confirmDialog;
     private final PrimitiveSelector primitiveSelector;
     private final ViewControls viewControls;
+    private final Container<Table> container;
+    private TransformModeTable transformModeTable;
 
     public MainInterface(Batch spriteBatch, Skin skin, UiEventListener listener) {
         super(2f, 4f);
@@ -51,20 +54,24 @@ public class MainInterface extends CylindricalWindowUiContainer {
         this.eventListener = listener;
         final WindowVR.WindowVrStyle windowStyleWithClose = Style.createWindowVrStyle(skin);
         windowStyleWithClose.closeDrawable = skin.newDrawable(Style.Drawables.ic_close);
+        container = new Container<>();
+        mainTable = new WindowTableVR(spriteBatch, skin, 200, 200, Style.createWindowVrStyle(skin));
         buttonBar = new WindowTableVR(spriteBatch, skin, 560, 112, Style.createWindowVrStyle(skin));
-        colorPicker = new ColorPickerSimple(spriteBatch, skin, 448, 448, Style.getStringResource(R.string.title_color_picker, "Color"), windowStyleWithClose);
+        colorPicker = new ColorPickerSimple(skin, 448, 448);
         confirmDialog = new ConfirmDialog(spriteBatch, skin);
         primitiveSelector = new PrimitiveSelector(spriteBatch, skin, Primitives.createListItems());
         viewControls = new ViewControls(spriteBatch, skin, windowStyleWithClose);
+        transformModeTable = new TransformModeTable(skin, listener::onTransformModeChanged);
+        transformModeTable.setVisible(false);
         initButtonBar();
-        initColorTable();
+        initMainTable();
         initConfirmDialog();
         initShapeSelector();
         initViewControls();
     }
 
     private void initButtonBar() {
-        final Table buttonBarTable = buttonBar.getTable();
+        final Table buttonBarTable = new Table(skin);
 
         final VerticalImageTextButton undoBtn = new VerticalImageTextButton(Style.getStringResource(R.string.undo, "undo"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_undo));
         undoBtn.addListener(new ClickListener() {
@@ -97,7 +104,8 @@ public class MainInterface extends CylindricalWindowUiContainer {
         colorBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                colorPicker.setVisible(!colorPicker.isVisible());
+                container.setActor(colorPicker);
+                mainTable.resizeToFitTable();
             }
         });
         buttonBarTable.add(colorBtn).padTop(PADDING).padBottom(PADDING).padRight(PADDING);
@@ -120,10 +128,13 @@ public class MainInterface extends CylindricalWindowUiContainer {
         });
         buttonBarTable.add(exportBtn).padTop(PADDING).padBottom(PADDING).padRight(PADDING);
 
-        addProcessor(buttonBar);
-        buttonBar.resizeToFitTable();
-        buttonBar.setPosition(new CylindricalCoordinate(getRadius(), 90f, -0.75f, CylindricalCoordinate.AngleMode.degrees).toCartesian());
-        buttonBar.lookAt(new Vector3(0, buttonBar.getPosition().y, 0), Vector3.Y);
+//        addProcessor(buttonBar);
+//        buttonBar.resizeToFitTable();
+//        buttonBar.setPosition(new CylindricalCoordinate(getRadius(), 90f, -0.75f, CylindricalCoordinate.AngleMode.degrees).toCartesian());
+//        buttonBar.lookAt(new Vector3(0, buttonBar.getPosition().y, 0), Vector3.Y);
+        mainTable.getTable().add(buttonBarTable).center().expandX().row();
+        mainTable.getTable().add(transformModeTable).center().expandX().row();
+        mainTable.getTable().add(container).expand();
     }
 
     private void initConfirmDialog() {
@@ -139,13 +150,13 @@ public class MainInterface extends CylindricalWindowUiContainer {
         confirmDialog.show();
     }
 
-    private void initColorTable() {
+    private void initMainTable() {
         final CylindricalCoordinate coordinate = new CylindricalCoordinate(getRadius(), 50f, 0.35f, CylindricalCoordinate.AngleMode.degrees);
-        colorPicker.setPosition(coordinate.toCartesian());
-        colorPicker.lookAt(new Vector3(0, coordinate.vertical, 0), Vector3.Y);
-        colorPicker.setVisible(false);
+        mainTable.setPosition(coordinate.toCartesian());
+        mainTable.lookAt(new Vector3(0, coordinate.vertical, 0), Vector3.Y);
         colorPicker.setColorListener(eventListener::onColorChanged);
-        addProcessor(colorPicker);
+        mainTable.resizeToFitTable();
+        addProcessor(mainTable);
     }
 
     private void initShapeSelector() {
@@ -180,9 +191,9 @@ public class MainInterface extends CylindricalWindowUiContainer {
         buttonBar.setPosition(tmp);
         snapDragTableToCylinder(buttonBar);
 
-        tmp.fromString(sharedPreferences.getString(WINDOW_COLOR_PICKER, colorPicker.getPosition().toString()));
-        colorPicker.setPosition(tmp);
-        snapDragTableToCylinder(colorPicker);
+        tmp.fromString(sharedPreferences.getString(WINDOW_MAIN, mainTable.getPosition().toString()));
+        mainTable.setPosition(tmp);
+        snapDragTableToCylinder(mainTable);
 
         tmp.fromString(sharedPreferences.getString(WINDOW_VIEW_CONTROLS, viewControls.getPosition().toString()));
         viewControls.setPosition(tmp);
@@ -201,7 +212,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
 
     public void saveWindowPositions(SharedPreferences.Editor editor) {
         editor.putString(WINDOW_BUTTON_BAR, buttonBar.getPosition().toString());
-        editor.putString(WINDOW_COLOR_PICKER, colorPicker.getPosition().toString());
+        editor.putString(WINDOW_MAIN, mainTable.getPosition().toString());
         editor.putString(WINDOW_VIEW_CONTROLS, viewControls.getPosition().toString());
     }
 
@@ -222,6 +233,8 @@ public class MainInterface extends CylindricalWindowUiContainer {
         void onAddClicked(String key);
 
         void onColorChanged(Color color);
+
+        void onTransformModeChanged(TransformModeTable.TransformMode mode);
         
         void onUndoClicked();
 

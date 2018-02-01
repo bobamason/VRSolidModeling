@@ -1,4 +1,4 @@
-package net.masonapps.vrsolidmodeling.modeling.ui;
+package net.masonapps.vrsolidmodeling.modeling.transform;
 
 import android.support.annotation.Nullable;
 
@@ -42,6 +42,8 @@ public class RotateHandle3D extends DragHandle3D {
     private Vector2 vec2 = new Vector2();
     private Quaternion tmpQ = new Quaternion();
     private float angle = 0f;
+    private Vector3 tmpV = new Vector3();
+    private boolean shouldSetPlane = true;
 
     public RotateHandle3D(ModelBuilder builder, Axis axis) {
         super(createModelInstance(builder, axis), createBounds(axis), axis);
@@ -102,9 +104,25 @@ public class RotateHandle3D extends DragHandle3D {
     public boolean performRayTest(Ray ray) {
         if (transformable == null) return false;
         if (!updated) recalculateTransform();
-        if (dragging && Intersector.intersectRayPlane(ray, plane, getHitPoint3D())) {
-            angleChanged();
-            return true;
+        if (isDragging()) {
+            if (shouldSetPlane) {
+                switch (axis) {
+                    case AXIS_X:
+                        plane.set(transformable.getPosition(), tmpV.set(1, 0, 0));
+                        break;
+                    case AXIS_Y:
+                        plane.set(transformable.getPosition(), tmpV.set(0, 1, 0));
+                        break;
+                    case AXIS_Z:
+                        plane.set(transformable.getPosition(), tmpV.set(0, 0, 1));
+                        break;
+                }
+                shouldSetPlane = false;
+            }
+            if (Intersector.intersectRayPlane(ray, plane, getHitPoint3D())) {
+                angleChanged();
+                return true;
+            }
         }
         return super.performRayTest(ray);
     }
@@ -176,6 +194,13 @@ public class RotateHandle3D extends DragHandle3D {
                     break;
             }
         }
+    }
+
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        shouldSetPlane = true;
+        return super.touchUp(screenX, screenY, pointer, button);
+
     }
 
     @Override

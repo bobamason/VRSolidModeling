@@ -1,4 +1,4 @@
-package net.masonapps.vrsolidmodeling.modeling.ui;
+package net.masonapps.vrsolidmodeling.modeling.transform;
 
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
@@ -17,6 +17,6 @@ public class TranslateWidget extends TransformWidget3D {
         add(transY);
         final TranslateHandle3D transZ = new TranslateHandle3D(builder, DragHandle3D.Axis.AXIS_Z);
         add(transZ);
-        bounds.set(new Vector3(-1.f, -1.f, -1.f), new Vector3(1.f, 1.f, 1.f));
+        bounds.set(new Vector3(-2f, -2f, -2f), new Vector3(2f, 2f, 2f));
     }
 }

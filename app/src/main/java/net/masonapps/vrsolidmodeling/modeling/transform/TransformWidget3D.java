@@ -1,11 +1,10 @@
-package net.masonapps.vrsolidmodeling.modeling.ui;
+package net.masonapps.vrsolidmodeling.modeling.transform;
 
 import android.support.annotation.CallSuper;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -74,7 +73,7 @@ public abstract class TransformWidget3D extends Transformable implements VrInput
                 isCursorOver = false;
         } else {
             DragHandle3D tempProcessor = null;
-            if (Intersector.intersectRayBoundsFast(transformedRay, bounds)) {
+//            if (Intersector.intersectRayBoundsFast(transformedRay, bounds)) {
                 float d = Float.MAX_VALUE;
                 for (DragHandle3D processor : processors) {
                     if (processor.performRayTest(transformedRay)) {
@@ -84,7 +83,7 @@ public abstract class TransformWidget3D extends Transformable implements VrInput
                         }
                     }
                 }
-            }
+//            }
             if (tempProcessor != focusedProcessor && focusedProcessor != null)
                 focusedProcessor.touchUp(0, 0, 0, 0);
             focusedProcessor = tempProcessor;

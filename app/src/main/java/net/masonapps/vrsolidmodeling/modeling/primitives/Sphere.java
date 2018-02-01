@@ -27,7 +27,7 @@ public class Sphere extends Primitive {
     private com.badlogic.gdx.graphics.g3d.model.data.ModelData modelData;
 
     public Sphere() {
-        boundingBox = new BoundingBox(new Vector3(-1, -1, -1), new Vector3(1, 1, 1));
+        boundingBox = new BoundingBox(new Vector3(-0.5f, -0.5f, -0.5f), new Vector3(0.5f, 0.5f, 0.5f));
     }
     
     @Override
@@ -45,7 +45,7 @@ public class Sphere extends Primitive {
     @Override
     public Model createModel() {
 //        return new Model(modelData);
-        return new ModelBuilder().createSphere(2f, 2f, 2f, 24, 12, new Material(ColorAttribute.createDiffuse(Color.WHITE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        return new ModelBuilder().createSphere(boundingBox.getWidth(), boundingBox.getHeight(), boundingBox.getDepth(), 24, 12, new Material(ColorAttribute.createDiffuse(Color.WHITE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package net.masonapps.vrsolidmodeling.modeling.ui;
+package net.masonapps.vrsolidmodeling.modeling.transform;
 
 import android.opengl.GLES20;
 import android.support.annotation.Nullable;
@@ -18,6 +18,7 @@ import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Pools;
 
@@ -38,7 +39,7 @@ public class TranslateHandle3D extends DragHandle3D {
     private boolean shouldSetPlane = true;
 
     public TranslateHandle3D(ModelBuilder builder, Axis axis) {
-        super(createModelInstance(builder, axis), axis);
+        super(createModelInstance(builder, axis), createBounds(axis), axis);
         setLightingEnabled(false);
         switch (axis) {
             case AXIS_X:
@@ -85,6 +86,27 @@ public class TranslateHandle3D extends DragHandle3D {
         return new ModelInstance(builder.end());
     }
 
+    private static BoundingBox createBounds(Axis axis) {
+        final float len = 0.65f;
+        final float margin = 0.25f;
+        final BoundingBox bb = new BoundingBox();
+        switch (axis) {
+            case AXIS_X:
+                bb.min.set(len * margin, -margin, -margin);
+                bb.max.set(1f + margin * len, margin, margin);
+                break;
+            case AXIS_Y:
+                bb.min.set(-margin, len * margin, -margin);
+                bb.max.set(margin, 1f + margin * len, margin);
+                break;
+            case AXIS_Z:
+                bb.min.set(-margin, -margin, len * margin);
+                bb.max.set(margin, margin, 1f + margin * len);
+                break;
+        }
+        return bb;
+    }
+
     @Override
     public boolean performRayTest(Ray ray) {
         if (transformable == null) return false;
@@ -127,7 +149,6 @@ public class TranslateHandle3D extends DragHandle3D {
         SnapUtil.snap(position, 0.01f);
         transformable.invalidate();
     }
-
 
     private void setToClosestUnitVector(Vector3 v) {
         switch (axis) {

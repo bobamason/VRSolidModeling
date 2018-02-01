@@ -37,6 +37,7 @@ import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.Style;
+import net.masonapps.vrsolidmodeling.actions.UndoRedoCache;
 import net.masonapps.vrsolidmodeling.math.Animator;
 import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
@@ -45,14 +46,13 @@ import net.masonapps.vrsolidmodeling.modeling.BaseModelingProject;
 import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
 import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProject;
-import net.masonapps.vrsolidmodeling.modeling.UndoRedoCache;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
+import net.masonapps.vrsolidmodeling.modeling.transform.RotateWidget;
+import net.masonapps.vrsolidmodeling.modeling.transform.ScaleWidget;
+import net.masonapps.vrsolidmodeling.modeling.transform.TransformWidget3D;
+import net.masonapps.vrsolidmodeling.modeling.transform.TranslateWidget;
 import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
-import net.masonapps.vrsolidmodeling.modeling.ui.RotateWidget;
-import net.masonapps.vrsolidmodeling.modeling.ui.ScaleWidget;
 import net.masonapps.vrsolidmodeling.modeling.ui.TransformModeTable;
-import net.masonapps.vrsolidmodeling.modeling.ui.TransformWidget3D;
-import net.masonapps.vrsolidmodeling.modeling.ui.TranslateWidget;
 import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
@@ -83,14 +83,18 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private final MainInterface mainInterface;
     private final UndoRedoCache undoRedoCache;
     private final ShapeRenderer shapeRenderer;
-    private final Animator snapAnimator;
+    private final Animator rotationAnimator;
+    private final Animator positionAnimator;
     private final Entity gridEntity;
     private TransformWidget3D transformUI;
     private boolean isTouchPadClicked = false;
     private Quaternion rotation = new Quaternion();
     private Quaternion lastRotation = new Quaternion();
-    private Quaternion startRotation = new Quaternion();
     private Quaternion snappedRotation = new Quaternion();
+    private Vector3 projectPosition = new Vector3(0, 0, -3);
+    private Vector3 position = new Vector3(projectPosition);
+    private Vector3 snappedPosition = new Vector3(projectPosition);
+    private Vector3 center = new Vector3();
     private String projectName;
     private ViewAction viewAction = ACTION_NONE;
     private InputMode currentInputMode = InputMode.VIEW;
@@ -101,7 +105,6 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private ModelingEntity selectedEntity = null;
     private ModelingProject modelingProject;
     private Vector3 hitPoint = new Vector3();
-    private TransformModeTable transformModeTable;
 
     public ModelingScreen(VrGame game, String projectName) {
         this(game, projectName, new ArrayList<>());
@@ -114,54 +117,92 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         setBackgroundColor(Color.SKY);
         modelingProject = new ModelingProject();
 
-        snapAnimator = new Animator(new Animator.AnimationListener() {
+        final ModelBuilder modelBuilder = new ModelBuilder();
+
+        final TranslateWidget translateWidget = new TranslateWidget(modelBuilder);
+        translateWidget.setVisible(false);
+        final RotateWidget rotateWidget = new RotateWidget(modelBuilder);
+        rotateWidget.setVisible(false);
+        final ScaleWidget scaleWidget = new ScaleWidget(modelBuilder);
+        scaleWidget.setVisible(false);
+
+        transformUI = translateWidget;
+
+        rotationAnimator = new Animator(new Animator.AnimationListener() {
             @Override
             public void apply(float value) {
-                modelingProject.getRotation().set(rotation).slerp(snappedRotation, value);
-                lastRotation.set(modelingProject.getRotation());
-                modelingProject.recalculateTransform();
-                gridEntity.setPosition(modelingProject.getPosition());
-                gridEntity.setRotation(modelingProject.getRotation());
-                transformUI.setEntity(selectedEntity);
-
-//                getVrCamera().position.set(0, 0, 4).mul(snappedRotation);
-//                getVrCamera().up.set(0, 1, 0).mul(snappedRotation);
-//                getVrCamera().lookAt(Vector3.Zero);
+                final Quaternion rot = modelingProject.getRotation();
+                rot.set(rotation).slerp(snappedRotation, value);
+                lastRotation.set(rot);
+                modelingProject.invalidate();
             }
 
             @Override
             public void finished() {
-                transformUI.setEntity(selectedEntity);
                 rotation.set(snappedRotation);
                 lastRotation.set(rotation);
             }
         });
-        snapAnimator.setInterpolation(Interpolation.linear);
+        rotationAnimator.setInterpolation(Interpolation.linear);
+
+        positionAnimator = new Animator(new Animator.AnimationListener() {
+            @Override
+            public void apply(float value) {
+                modelingProject.getPosition().set(position).slerp(snappedPosition, value);
+                modelingProject.invalidate();
+            }
+
+            @Override
+            public void finished() {
+                rotation.set(snappedRotation);
+                lastRotation.set(rotation);
+            }
+        });
+        positionAnimator.setInterpolation(Interpolation.linear);
 
         shapeRenderer = new ShapeRenderer();
         shapeRenderer.setAutoShapeType(true);
         final SpriteBatch spriteBatch = new SpriteBatch();
         manageDisposable(shapeRenderer, spriteBatch);
 
-        modelingProject.setPosition(0, 0, -3);
+        modelingProject.setPosition(projectPosition);
 
         final MainInterface.UiEventListener uiEventListener = new MainInterface.UiEventListener() {
 
             @Override
             public void onAddClicked(String key) {
-                final float v = 1f;
-                final Vector3 pos = new Vector3(MathUtils.random(-v, v), MathUtils.random(-v, v), MathUtils.random(-v, v));
-//                final Vector3 pos = new Vector3();
                 final ModelingObject modelingObject = new ModelingObject(Primitives.getPrimitive(key));
-                modelingObject.setPosition(pos).scale(0.25f);
                 final ModelingEntity entity = new ModelingEntity(modelingObject, modelingObject.createModelInstance(getSolidModelingGame().getPrimitiveModelMap()));
                 modelingProject.add(entity);
+                setSelectedEntity(entity);
             }
 
             @Override
             public void onColorChanged(Color color) {
                 if (selectedEntity != null)
                     selectedEntity.setDiffuseColor(color);
+            }
+
+            @Override
+            public void onTransformModeChanged(TransformModeTable.TransformMode mode) {
+                switch (mode) {
+                    case TRANSLATE:
+                        transformUI = translateWidget;
+                        rotateWidget.setVisible(false);
+                        scaleWidget.setVisible(false);
+                        break;
+                    case ROTATE:
+                        transformUI = rotateWidget;
+                        translateWidget.setVisible(false);
+                        scaleWidget.setVisible(false);
+                        break;
+                    case SCALE:
+                        transformUI = scaleWidget;
+                        translateWidget.setVisible(false);
+                        rotateWidget.setVisible(false);
+                        break;
+                }
+                transformUI.setEntity(selectedEntity);
             }
 
             @Override
@@ -188,55 +229,20 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         mainInterface.setViewControlsListener(new ViewControls.ViewControlListener() {
             @Override
             public void onViewSelected(Side side) {
-                final Quaternion tmpQ = Pools.obtain(Quaternion.class);
-                RotationUtil.rotateToViewSide(tmpQ, side);
-                rotation.set(tmpQ);
-                lastRotation.set(tmpQ);
-                // TODO: 12/20/2017 update camera 
-                Pools.free(tmpQ);
+                RotationUtil.rotateToViewSide(snappedRotation, side);
+                final Quaternion rotDiff = Pools.obtain(Quaternion.class);
+                rotDiff.set(rotation).conjugate().mulLeft(snappedRotation);
+                final float angleRad = rotDiff.getAngleRad();
+                final float duration = Math.abs(angleRad < MathUtils.PI ? angleRad : MathUtils.PI2 - angleRad) / MathUtils.PI;
+                Pools.free(rotDiff);
+                rotationAnimator.setDuration(duration);
+                rotationAnimator.start();
             }
         });
-
-//        brush.setUseSymmetry(false);
-        undoRedoCache.save(null);
-
-        final ModelBuilder modelBuilder = new ModelBuilder();
-
-        final TranslateWidget translateWidget = new TranslateWidget(modelBuilder);
-        translateWidget.setVisible(false);
-        final RotateWidget rotateWidget = new RotateWidget(modelBuilder);
-        rotateWidget.setVisible(false);
-        final ScaleWidget scaleWidget = new ScaleWidget(modelBuilder);
-        scaleWidget.setVisible(false);
 
         mainInterface.addProcessor(translateWidget);
         mainInterface.addProcessor(rotateWidget);
         mainInterface.addProcessor(scaleWidget);
-
-        transformUI = translateWidget;
-
-        transformModeTable = new TransformModeTable(spriteBatch, skin, mode -> {
-            switch (mode) {
-                case TRANSLATE:
-                    transformUI = translateWidget;
-                    rotateWidget.setVisible(false);
-                    scaleWidget.setVisible(false);
-                    break;
-                case ROTATE:
-                    transformUI = rotateWidget;
-                    translateWidget.setVisible(false);
-                    scaleWidget.setVisible(false);
-                    break;
-                case SCALE:
-                    transformUI = scaleWidget;
-                    translateWidget.setVisible(false);
-                    rotateWidget.setVisible(false);
-                    break;
-            }
-            transformUI.setEntity(selectedEntity);
-        });
-        mainInterface.addProcessor(transformModeTable);
-        transformModeTable.setVisible(false);
 
         getWorld().add(Style.newGradientBackground(getVrCamera().far - 1f));
 
@@ -373,18 +379,33 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         if (currentInputMode == InputMode.SELECT)
             getSolidModelingGame().getCursor().position.set(hitPoint);
         mainInterface.act();
-        snapAnimator.update(GdxVr.graphics.getDeltaTime());
-        transformModeTable.setVisible(selectedEntity != null);
-        if (selectedEntity != null) {
-            final Vector3 pos = Pools.obtain(Vector3.class);
-            pos.set(selectedEntity.modelingObject.getPosition())
-                    .add(modelingProject.getPosition())
-                    .add(-0.45f, -0.45f, 0);
-            transformModeTable.setPosition(pos);
-            transformModeTable.lookAt(pos.add(0, 0, 1), Vector3.Y);
-            Pools.free(pos);
-        }
+        rotationAnimator.update(GdxVr.graphics.getDeltaTime());
+        positionAnimator.update(GdxVr.graphics.getDeltaTime());
+        transformUI.setEntity(selectedEntity);
+        gridEntity.setPosition(modelingProject.getPosition());
+        gridEntity.setRotation(modelingProject.getRotation());
 //        Logger.d(GdxVr.graphics.getFramesPerSecond() + "fps");
+    }
+
+    @Nullable
+    public ModelingEntity getSelectedEntity() {
+        return selectedEntity;
+    }
+
+    private void setSelectedEntity(@Nullable ModelingEntity entity) {
+        selectedEntity = entity;
+        transformUI.setEntity(selectedEntity);
+
+        if (selectedEntity != null) {
+            center.set(selectedEntity.modelingObject.getPosition());
+            snappedPosition.set(center).scl(-1).mul(rotation).add(projectPosition);
+            positionAnimator.setDuration(0.5f);
+            positionAnimator.start();
+
+            final Color diffuseColor = selectedEntity.getDiffuseColor();
+            if (diffuseColor != null)
+                mainInterface.getColorPicker().setColor(diffuseColor);
+        }
     }
 
     @Override
@@ -420,8 +441,10 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         
         rotation.mulLeft(rotDiff);
         modelingProject.setRotation(rotation);
-        gridEntity.setPosition(modelingProject.getPosition());
-        gridEntity.setRotation(modelingProject.getRotation());
+        position.set(center).scl(-1).mul(rotation).add(projectPosition);
+        modelingProject.setPosition(position);
+//        gridEntity.setPosition(modelingProject.getPosition());
+//        gridEntity.setRotation(modelingProject.getRotation());
         lastRotation.set(GdxVr.input.getControllerOrientation());
         Pools.free(rotDiff);
         if (selectedEntity != null) {
@@ -435,6 +458,10 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             if (selectedEntity != null) {
                 selectedEntity = null;
                 transformUI.setVisible(false);
+                center.set(0, 0, 0);
+                snappedPosition.set(center).scl(-1).mul(rotation).add(projectPosition);
+                positionAnimator.setDuration(0.5f);
+                positionAnimator.start();
             } else {
                 getSolidModelingGame().closeModelingScreen();
                 getSolidModelingGame().switchToStartupScreen();
@@ -492,15 +519,10 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 break;
             case SELECT:
                 if (focusedEntity != null) {
-                    selectedEntity = focusedEntity;
-                    transformUI.setEntity(selectedEntity);
-                    final Color diffuseColor = selectedEntity.getDiffuseColor();
-                    if (diffuseColor != null)
-                        mainInterface.getColorPicker().setColor(diffuseColor);
+                    setSelectedEntity(focusedEntity);
                 }
                 break;
             case VIEW:
-                startRotation.set(GdxVr.input.getControllerOrientation());
                 lastRotation.set(GdxVr.input.getControllerOrientation());
                 viewAction = ROTATE;
                 currentState = STATE_VIEW_TRANSFORM;
@@ -519,8 +541,13 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                     final float angleRad = rotDiff.getAngleRad();
                     final float duration = Math.abs(angleRad < MathUtils.PI ? angleRad : MathUtils.PI2 - angleRad) / MathUtils.PI;
                     Pools.free(rotDiff);
-                    snapAnimator.setDuration(duration);
-                    snapAnimator.start();
+                    rotationAnimator.setDuration(duration);
+                    rotationAnimator.start();
+
+                    snappedPosition.set(center).scl(-1).mul(snappedRotation).add(projectPosition);
+                    positionAnimator.setDuration(duration);
+                    positionAnimator.start();
+                    
                     transformUI.setVisible(false);
                 }
 //                final float len = getVrCamera().position.len();

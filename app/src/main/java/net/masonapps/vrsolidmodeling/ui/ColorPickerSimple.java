@@ -5,18 +5,16 @@ import android.support.annotation.Nullable;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 
 import net.masonapps.vrsolidmodeling.Style;
-
-import org.masonapps.libgdxgooglevr.ui.WindowTableVR;
 
 import java.util.function.Consumer;
 
@@ -24,7 +22,7 @@ import java.util.function.Consumer;
  * Created by Bob on 8/3/2017.
  */
 
-public class ColorPickerSimple extends WindowTableVR {
+public class ColorPickerSimple extends Table {
 
     public static final int PADDING = 10;
     @Nullable
@@ -34,10 +32,9 @@ public class ColorPickerSimple extends WindowTableVR {
     private int[][] colors;
     private Image colorGridImage;
 
-    public ColorPickerSimple(Batch batch, Skin skin, int width, int height, String title, WindowVrStyle windowStyle) {
-        super(batch, skin, width, height, title, windowStyle);
+    public ColorPickerSimple(Skin skin, int width, int height) {
+        super(skin);
         init(skin, width, height);
-        resizeToFitTable();
     }
 
     private void init(Skin skin, int tableWidth, int tableHeight) {
@@ -60,7 +57,7 @@ public class ColorPickerSimple extends WindowTableVR {
         colorGridTexture = new Texture(pixmap);
         colorGridImage = new Image(colorGridTexture);
         highlightImage = new Image(skin.newDrawable(Style.Drawables.ic_color_selector));
-        getTable().add(colorGridImage).size(tableWidth, tableHeight).pad(PADDING);
+        add(colorGridImage).size(tableWidth, tableHeight).pad(PADDING);
         colorGridImage.setTouchable(Touchable.enabled);
 
         highlightImage.setSize(w, h);
@@ -88,9 +85,7 @@ public class ColorPickerSimple extends WindowTableVR {
         this.colorListener = colorListener;
     }
 
-    @Override
     public void dispose() {
-        super.dispose();
         colorGridTexture.dispose();
     }
 
