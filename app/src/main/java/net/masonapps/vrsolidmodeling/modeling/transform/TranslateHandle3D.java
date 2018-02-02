@@ -150,44 +150,6 @@ public class TranslateHandle3D extends DragHandle3D {
         transformable.invalidate();
     }
 
-    private void setToClosestUnitVector(Vector3 v) {
-        switch (axis) {
-            case AXIS_X:
-                if (Math.abs(v.y) > Math.abs(v.z)) {
-                    v.x = 0f;
-                    v.y = Math.signum(v.y);
-                    v.z = 0f;
-                } else {
-                    v.x = 0f;
-                    v.y = 0f;
-                    v.z = Math.signum(v.z);
-                }
-                break;
-            case AXIS_Y:
-                if (Math.abs(v.x) > Math.abs(v.z)) {
-                    v.x = Math.signum(v.x);
-                    v.y = 0f;
-                    v.z = 0f;
-                } else {
-                    v.x = 0f;
-                    v.y = 0f;
-                    v.z = Math.signum(v.z);
-                }
-                break;
-            case AXIS_Z:
-                if (Math.abs(v.x) > Math.abs(v.y)) {
-                    v.x = Math.signum(v.x);
-                    v.y = 0f;
-                    v.z = 0f;
-                } else {
-                    v.x = 0f;
-                    v.y = Math.signum(v.y);
-                    v.z = 0f;
-                }
-                break;
-        }
-    }
-
     @Override
     public void update() {
         if (transformable != null)
@@ -215,6 +177,19 @@ public class TranslateHandle3D extends DragHandle3D {
         }
         Pools.free(tmp);
         Pools.free(tmp2);
+
+//        switch (axis) {
+//            case AXIS_X:
+//                renderer.setColor(Color.RED);
+//                break;
+//            case AXIS_Y:
+//                renderer.setColor(Color.BLUE);
+//                break;
+//            case AXIS_Z:
+//                renderer.setColor(Color.GREEN);
+//                break;
+//        }
+//        PlaneUtils.debugDraw(renderer, plane);
     }
 
     @Override

@@ -55,6 +55,7 @@ public class WindowTableVR extends WindowVR {
         Log.d(WindowTableVR.class.getSimpleName(), "size: " + w + " x " + h);
         table.setFillParent(true);
         setSize(w, h);
+        invalidate();
     }
 
     @Override

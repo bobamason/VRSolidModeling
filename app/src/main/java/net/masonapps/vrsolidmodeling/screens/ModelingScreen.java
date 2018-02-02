@@ -51,8 +51,8 @@ import net.masonapps.vrsolidmodeling.modeling.transform.RotateWidget;
 import net.masonapps.vrsolidmodeling.modeling.transform.ScaleWidget;
 import net.masonapps.vrsolidmodeling.modeling.transform.TransformWidget3D;
 import net.masonapps.vrsolidmodeling.modeling.transform.TranslateWidget;
+import net.masonapps.vrsolidmodeling.modeling.ui.EditModeTable;
 import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
-import net.masonapps.vrsolidmodeling.modeling.ui.TransformModeTable;
 import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
@@ -61,6 +61,7 @@ import org.masonapps.libgdxgooglevr.gfx.VrGame;
 import org.masonapps.libgdxgooglevr.gfx.VrWorldScreen;
 import org.masonapps.libgdxgooglevr.gfx.World;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
+import org.masonapps.libgdxgooglevr.ui.VrUiContainer;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -86,6 +87,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private final Animator rotationAnimator;
     private final Animator positionAnimator;
     private final Entity gridEntity;
+    private final VrUiContainer inputProcessor;
     private TransformWidget3D transformUI;
     private boolean isTouchPadClicked = false;
     private Quaternion rotation = new Quaternion();
@@ -135,6 +137,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 rot.set(rotation).slerp(snappedRotation, value);
                 lastRotation.set(rot);
                 modelingProject.invalidate();
+                transformUI.setTransform(modelingProject.getTransform());
             }
 
             @Override
@@ -150,6 +153,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             public void apply(float value) {
                 modelingProject.getPosition().set(position).slerp(snappedPosition, value);
                 modelingProject.invalidate();
+                transformUI.setTransform(modelingProject.getTransform());
             }
 
             @Override
@@ -184,22 +188,28 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             }
 
             @Override
-            public void onTransformModeChanged(TransformModeTable.TransformMode mode) {
+            public void onEditModeChanged(EditModeTable.EditMode mode) {
                 switch (mode) {
                     case TRANSLATE:
                         transformUI = translateWidget;
                         rotateWidget.setVisible(false);
                         scaleWidget.setVisible(false);
+                        transformUI.setVisible(true);
                         break;
                     case ROTATE:
                         transformUI = rotateWidget;
                         translateWidget.setVisible(false);
                         scaleWidget.setVisible(false);
+                        transformUI.setVisible(true);
                         break;
                     case SCALE:
                         transformUI = scaleWidget;
                         translateWidget.setVisible(false);
                         rotateWidget.setVisible(false);
+                        transformUI.setVisible(true);
+                        break;
+                    default:
+                        transformUI.setVisible(false);
                         break;
                 }
                 transformUI.setEntity(selectedEntity);
@@ -240,9 +250,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             }
         });
 
-        mainInterface.addProcessor(translateWidget);
-        mainInterface.addProcessor(rotateWidget);
-        mainInterface.addProcessor(scaleWidget);
+        inputProcessor = new VrUiContainer(translateWidget, rotateWidget, scaleWidget, mainInterface);
 
         getWorld().add(Style.newGradientBackground(getVrCamera().far - 1f));
 
@@ -359,7 +367,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     @Override
     public void show() {
         super.show();
-        GdxVr.input.setInputProcessor(mainInterface);
+        GdxVr.input.setInputProcessor(inputProcessor);
 //        buttonControls.attachListener();
     }
 
@@ -381,7 +389,6 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         mainInterface.act();
         rotationAnimator.update(GdxVr.graphics.getDeltaTime());
         positionAnimator.update(GdxVr.graphics.getDeltaTime());
-        transformUI.setEntity(selectedEntity);
         gridEntity.setPosition(modelingProject.getPosition());
         gridEntity.setRotation(modelingProject.getRotation());
 //        Logger.d(GdxVr.graphics.getFramesPerSecond() + "fps");
@@ -394,7 +401,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
     private void setSelectedEntity(@Nullable ModelingEntity entity) {
         selectedEntity = entity;
-        transformUI.setEntity(selectedEntity);
+        mainInterface.setEntity(selectedEntity);
 
         if (selectedEntity != null) {
             center.set(selectedEntity.modelingObject.getPosition());
@@ -405,6 +412,12 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             final Color diffuseColor = selectedEntity.getDiffuseColor();
             if (diffuseColor != null)
                 mainInterface.getColorPicker().setColor(diffuseColor);
+        } else {
+            transformUI.setVisible(false);
+            center.set(0, 0, 0);
+            snappedPosition.set(center).scl(-1).mul(rotation).add(projectPosition);
+            positionAnimator.setDuration(0.5f);
+            positionAnimator.start();
         }
     }
 
@@ -438,7 +451,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         rotDiff.set(lastRotation).conjugate().mulLeft(GdxVr.input.getControllerOrientation());
 //        RotationUtil.snapAxisAngle(rotDiff);
 //        Logger.d("rotDiff " + rotDiff);
-        
+
         rotation.mulLeft(rotDiff);
         modelingProject.setRotation(rotation);
         position.set(center).scl(-1).mul(rotation).add(projectPosition);
@@ -447,21 +460,14 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 //        gridEntity.setRotation(modelingProject.getRotation());
         lastRotation.set(GdxVr.input.getControllerOrientation());
         Pools.free(rotDiff);
-        if (selectedEntity != null) {
-            transformUI.setEntity(selectedEntity);
-        }
+        transformUI.setTransform(modelingProject.getTransform());
     }
 
     @Override
     public void onControllerBackButtonClicked() {
         if (!mainInterface.onControllerBackButtonClicked()) {
             if (selectedEntity != null) {
-                selectedEntity = null;
-                transformUI.setVisible(false);
-                center.set(0, 0, 0);
-                snappedPosition.set(center).scl(-1).mul(rotation).add(projectPosition);
-                positionAnimator.setDuration(0.5f);
-                positionAnimator.start();
+                setSelectedEntity(null);
             } else {
                 getSolidModelingGame().closeModelingScreen();
                 getSolidModelingGame().switchToStartupScreen();
@@ -547,8 +553,6 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                     snappedPosition.set(center).scl(-1).mul(snappedRotation).add(projectPosition);
                     positionAnimator.setDuration(duration);
                     positionAnimator.start();
-                    
-                    transformUI.setVisible(false);
                 }
 //                final float len = getVrCamera().position.len();
 //                RotationUtil.setToClosestUnitVector(getVrCamera().position).scl(len);
@@ -567,7 +571,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private void updateCurrentInputMode() {
         switch (currentState) {
             case STATE_NONE:
-                if (mainInterface.isCursorOver())
+                if (inputProcessor.isCursorOver())
                     currentInputMode = InputMode.UI;
                 else if ((focusedEntity = modelingProject.rayTest(GdxVr.input.getInputRay(), hitPoint)) != null)
                     currentInputMode = InputMode.SELECT;

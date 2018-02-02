@@ -179,9 +179,6 @@ public abstract class TransformWidget3D extends Transformable implements VrInput
         processors.forEach(processor -> processor.setTransformable(entity == null ? null : entity.modelingObject));
         if (this.entity != null) {
             setTransform(this.entity.getParentTransform());
-            setVisible(true);
-        } else {
-            setVisible(false);
         }
     }
 }

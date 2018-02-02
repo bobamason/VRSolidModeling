@@ -29,11 +29,12 @@ import org.masonapps.libgdxgooglevr.gfx.Transformable;
 
 public class ScaleHandle3D extends DragHandle3D {
 
-    private static final float len = 1.f;
+    private static final float len = 0.675f;
     private final Plane plane = new Plane();
     private float scaleValue = 1f;
     private float lastDst = 0f;
     private Vector3 tmpV = new Vector3();
+    private Vector3 normal = new Vector3();
     private boolean shouldSetPlane = true;
 
     public ScaleHandle3D(ModelBuilder builder, Axis axis) {
@@ -81,17 +82,9 @@ public class ScaleHandle3D extends DragHandle3D {
         if (!updated) recalculateTransform();
         if (isDragging()) {
             if (shouldSetPlane) {
-                switch (axis) {
-                    case AXIS_X:
-                        plane.set(transformable.getPosition(), tmpV.set(1, 0, 0).mul(transformable.getRotation()));
-                        break;
-                    case AXIS_Y:
-                        plane.set(transformable.getPosition(), tmpV.set(0, 1, 0).mul(transformable.getRotation()));
-                        break;
-                    case AXIS_Z:
-                        plane.set(transformable.getPosition(), tmpV.set(0, 0, 1).mul(transformable.getRotation()));
-                        break;
-                }
+                normal.set(ray.origin).sub(position);
+                setToClosestUnitVector(normal);
+                plane.set(position, normal.mul(transformable.getRotation()));
                 shouldSetPlane = false;
             }
             if (Intersector.intersectRayPlane(ray, plane, getHitPoint3D())) {
@@ -202,5 +195,18 @@ public class ScaleHandle3D extends DragHandle3D {
             }
             Pools.free(tmp);
         }
+
+//        switch (axis) {
+//            case AXIS_X:
+//                renderer.setColor(Color.RED);
+//                break;
+//            case AXIS_Y:
+//                renderer.setColor(Color.BLUE);
+//                break;
+//            case AXIS_Z:
+//                renderer.setColor(Color.GREEN);
+//                break;
+//        }
+//        PlaneUtils.debugDraw(renderer, plane);
     }
 }

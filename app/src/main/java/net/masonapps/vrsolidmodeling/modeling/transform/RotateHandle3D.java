@@ -134,19 +134,19 @@ public class RotateHandle3D extends DragHandle3D {
         final Quaternion rotation = transformable.getRotation();
         switch (axis) {
             case AXIS_X:
-                angle = -MathUtils.atan2(vec2.y, -vec2.x) * MathUtils.radiansToDegrees;
-                angle = SnapUtil.snap(angle, 5);
+                angle = MathUtils.atan2(-vec2.y, vec2.x) * MathUtils.radiansToDegrees;
+                angle = MathUtils.clamp(SnapUtil.snap(angle, 5), -90f, 90f);
                 rotation.setEulerAngles(rotation.getYaw(), angle, rotation.getRoll());
                 setRotation(0, angle, 0);
                 break;
             case AXIS_Y:
-                angle = MathUtils.atan2(vec2.y, vec2.x) * MathUtils.radiansToDegrees;
+                angle = MathUtils.atan2(-vec2.y, vec2.x) * MathUtils.radiansToDegrees;
                 angle = SnapUtil.snap(angle, 5);
                 rotation.setEulerAngles(angle, rotation.getPitch(), rotation.getRoll());
                 setRotation(angle, 0, 0);
                 break;
             case AXIS_Z:
-                angle = -MathUtils.atan2(vec2.x, vec2.y) * MathUtils.radiansToDegrees;
+                angle = MathUtils.atan2(-vec2.x, -vec2.y) * MathUtils.radiansToDegrees;
                 angle = SnapUtil.snap(angle, 5);
                 rotation.setEulerAngles(rotation.getYaw(), rotation.getPitch(), angle);
                 setRotation(0, 0, angle);
@@ -208,13 +208,14 @@ public class RotateHandle3D extends DragHandle3D {
         final Vector3 tmp = Pools.obtain(Vector3.class);
         final Vector3 tmp2 = Pools.obtain(Vector3.class);
         for (int i = 0; i < numCircleSegments; i++) {
-            final float a = MathUtils.PI2 / (float) numCircleSegments * i;
-            final float a2 = MathUtils.PI2 / (float) numCircleSegments * (i + 1);
+            final float a = MathUtils.PI2 / (float) numCircleSegments * i - MathUtils.PI;
+            final float a2 = MathUtils.PI2 / (float) numCircleSegments * (i + 1) - MathUtils.PI;
             final float r = circleRadius;
             switch (axis) {
                 case AXIS_X:
                     renderer.setColor(Color.RED);
-                    renderer.line(tmp.set(0, MathUtils.sin(a) * r, -MathUtils.cos(a) * r).add(position), tmp2.set(0, MathUtils.sin(a2) * r, -MathUtils.cos(a2) * r).add(position));
+                    if (a >= -MathUtils.PI / 2f && a2 <= MathUtils.PI / 2f)
+                        renderer.line(tmp.set(0, MathUtils.sin(a) * r, MathUtils.cos(a) * r).add(position), tmp2.set(0, MathUtils.sin(a2) * r, MathUtils.cos(a2) * r).add(position));
                     break;
                 case AXIS_Y:
                     renderer.setColor(Color.BLUE);
@@ -228,6 +229,19 @@ public class RotateHandle3D extends DragHandle3D {
         }
         Pools.free(tmp);
         Pools.free(tmp2);
+
+//        switch (axis) {
+//            case AXIS_X:
+//                renderer.setColor(Color.RED);
+//                break;
+//            case AXIS_Y:
+//                renderer.setColor(Color.BLUE);
+//                break;
+//            case AXIS_Z:
+//                renderer.setColor(Color.GREEN);
+//                break;
+//        }
+//        PlaneUtils.debugDraw(renderer, plane);
     }
 
     @Override

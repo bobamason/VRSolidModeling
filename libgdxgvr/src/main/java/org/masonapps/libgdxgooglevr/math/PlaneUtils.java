@@ -1,5 +1,6 @@
 package org.masonapps.libgdxgooglevr.math;
 
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -53,5 +54,16 @@ public class PlaneUtils {
 
     public static void project(Vector3 in, Plane plane, Vector3 out) {
         out.set(plane.normal).scl(-plane.distance(in)).add(in);
+    }
+
+    public static void debugDraw(ShapeRenderer renderer, Plane plane) {
+        final Vector2 p0 = new Vector2(-1, -1);
+        final Vector2 p1 = new Vector2(1, -1);
+        final Vector2 p2 = new Vector2(1, 1);
+        final Vector2 p3 = new Vector2(-1, 1);
+        renderer.line(toSpace(plane, p0), toSpace(plane, p1));
+        renderer.line(toSpace(plane, p1), toSpace(plane, p2));
+        renderer.line(toSpace(plane, p2), toSpace(plane, p3));
+        renderer.line(toSpace(plane, p3), toSpace(plane, p0));
     }
 }
