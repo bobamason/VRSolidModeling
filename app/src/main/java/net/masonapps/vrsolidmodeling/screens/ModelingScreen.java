@@ -2,6 +2,7 @@ package net.masonapps.vrsolidmodeling.screens;
 
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.Camera;
@@ -27,6 +28,7 @@ import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -37,6 +39,9 @@ import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.Style;
+import net.masonapps.vrsolidmodeling.actions.AddAction;
+import net.masonapps.vrsolidmodeling.actions.ColorAction;
+import net.masonapps.vrsolidmodeling.actions.TransformAction;
 import net.masonapps.vrsolidmodeling.actions.UndoRedoCache;
 import net.masonapps.vrsolidmodeling.math.Animator;
 import net.masonapps.vrsolidmodeling.math.RotationUtil;
@@ -118,6 +123,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
         setBackgroundColor(Color.SKY);
         modelingProject = new ModelingProject();
+        undoRedoCache = new UndoRedoCache();
 
         final ModelBuilder modelBuilder = new ModelBuilder();
 
@@ -127,6 +133,24 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         rotateWidget.setVisible(false);
         final ScaleWidget scaleWidget = new ScaleWidget(modelBuilder);
         scaleWidget.setVisible(false);
+
+        final TransformWidget3D.OnTransformActionListener transformActionListener = new TransformWidget3D.OnTransformActionListener() {
+
+            Matrix4 oldTransform;
+
+            @Override
+            public void onTransformStarted(@NonNull ModelingEntity entity) {
+                oldTransform = entity.modelingObject.getTransform(new Matrix4());
+            }
+
+            @Override
+            public void onTransformFinished(@NonNull ModelingEntity entity) {
+                undoRedoCache.save(new TransformAction(entity, oldTransform, entity.modelingObject.getTransform(new Matrix4())));
+            }
+        };
+        translateWidget.setListener(transformActionListener);
+        rotateWidget.setListener(transformActionListener);
+        scaleWidget.setListener(transformActionListener);
 
         transformUI = translateWidget;
 
@@ -179,12 +203,16 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 final ModelingEntity entity = new ModelingEntity(modelingObject, modelingObject.createModelInstance(getSolidModelingGame().getPrimitiveModelMap()));
                 modelingProject.add(entity);
                 setSelectedEntity(entity);
+                undoRedoCache.save(new AddAction(entity, modelingProject));
             }
 
             @Override
             public void onColorChanged(Color color) {
-                if (selectedEntity != null)
+                if (selectedEntity != null) {
+                    final ColorAction colorAction = new ColorAction(selectedEntity, selectedEntity.getDiffuseColor().cpy(), color.cpy(), c -> mainInterface.getColorPicker().setColor(c));
+                    undoRedoCache.save(colorAction);
                     selectedEntity.setDiffuseColor(color);
+                }
             }
 
             @Override
@@ -217,12 +245,12 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void onUndoClicked() {
-                UndoRedoCache.applySaveData();
+                undoRedoCache.undo();
             }
 
             @Override
             public void onRedoClicked() {
-                UndoRedoCache.applySaveData();
+                undoRedoCache.redo();
             }
 
             @Override
@@ -233,7 +261,6 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         final Skin skin = getSolidModelingGame().getSkin();
         mainInterface = new MainInterface(spriteBatch, skin, uiEventListener);
         mainInterface.loadWindowPositions(PreferenceManager.getDefaultSharedPreferences(GdxVr.app.getContext()));
-        undoRedoCache = new UndoRedoCache();
 
 
         mainInterface.setViewControlsListener(new ViewControls.ViewControlListener() {

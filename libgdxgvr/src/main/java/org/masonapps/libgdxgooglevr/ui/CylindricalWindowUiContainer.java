@@ -120,6 +120,13 @@ public class CylindricalWindowUiContainer extends VrUiContainer implements Daydr
     }
 
     @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        isDragging = false;
+        focusedWindow = null;
+        return super.touchUp(screenX, screenY, pointer, button);
+    }
+
+    @Override
     public void onControllerTouchPadEvent(Controller controller, DaydreamTouchEvent event) {
     }
 

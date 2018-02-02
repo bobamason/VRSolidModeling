@@ -25,7 +25,6 @@ import net.masonapps.vrsolidmodeling.ui.VerticalImageTextButton;
 import org.masonapps.libgdxgooglevr.math.CylindricalCoordinate;
 import org.masonapps.libgdxgooglevr.ui.CylindricalWindowUiContainer;
 import org.masonapps.libgdxgooglevr.ui.WindowTableVR;
-import org.masonapps.libgdxgooglevr.ui.WindowVR;
 
 import java.util.function.Consumer;
 
@@ -56,8 +55,8 @@ public class MainInterface extends CylindricalWindowUiContainer {
         super(2f, 4f);
         this.skin = skin;
         this.eventListener = listener;
-        final WindowVR.WindowVrStyle windowStyleWithClose = Style.createWindowVrStyle(skin);
-        windowStyleWithClose.closeDrawable = skin.newDrawable(Style.Drawables.ic_close);
+//        final WindowVR.WindowVrStyle windowStyleWithClose = Style.createWindowVrStyle(skin);
+//        windowStyleWithClose.closeDrawable = skin.newDrawable(Style.Drawables.ic_close);
         container = new Container<>();
         emptyTable = new Table();
         container.setActor(emptyTable);
@@ -65,7 +64,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
         colorPicker = new ColorPickerSimple(skin, 448, 448);
         confirmDialog = new ConfirmDialog(spriteBatch, skin);
         primitiveSelector = new PrimitiveSelector(spriteBatch, skin, Primitives.createListItems());
-        viewControls = new ViewControls(spriteBatch, skin, windowStyleWithClose);
+        viewControls = new ViewControls(spriteBatch, skin, Style.createWindowVrStyle(skin));
         editModeTable = new EditModeTable(skin);
         initMainTable();
         initConfirmDialog();
@@ -190,7 +189,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
         final CylindricalCoordinate coordinate = new CylindricalCoordinate(getRadius(), 40f, -0.35f, CylindricalCoordinate.AngleMode.degrees);
         viewControls.setPosition(coordinate.toCartesian());
         viewControls.lookAt(new Vector3(0, coordinate.vertical, 0), Vector3.Y);
-        viewControls.setVisible(false);
+//        viewControls.setVisible(false);
         addProcessor(viewControls);
     }
 

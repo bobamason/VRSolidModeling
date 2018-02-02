@@ -46,6 +46,10 @@ public abstract class BaseModelingProject extends Transformable implements Dispo
         entity.setParentTransform(this.transform);
     }
 
+    public void remove(ModelingEntity entity) {
+        entities.remove(entity);
+    }
+
     public void update() {
         if (!updated)
             recalculateTransform();

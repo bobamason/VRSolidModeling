@@ -25,6 +25,12 @@ public class ModelingProject extends BaseModelingProject {
         aabbTree.insert(entity);
     }
 
+    @Override
+    public void remove(ModelingEntity entity) {
+        super.remove(entity);
+        aabbTree.remove(entity);
+    }
+
     @Nullable
     @Override
     public ModelingEntity rayTest(Ray ray, @Nullable Vector3 hitPoint) {

@@ -1,6 +1,7 @@
 package net.masonapps.vrsolidmodeling.modeling.transform;
 
 import android.support.annotation.CallSuper;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
@@ -32,9 +33,12 @@ public abstract class TransformWidget3D extends Transformable implements VrInput
     private boolean isCursorOver = false;
     private Vector3 hitPoint = new Vector3();
     @Nullable
+    private OnTransformActionListener listener = null;
+    @Nullable
     private DragHandle3D focusedProcessor = null;
     private Ray transformedRay = new Ray();
     private boolean visible = false;
+    private boolean touchDown = false;
 
     public TransformWidget3D() {
         processors = new ArrayList<>();
@@ -44,6 +48,10 @@ public abstract class TransformWidget3D extends Transformable implements VrInput
         processors.add(processor);
         processor.setParentTransform(transform);
         bounds.ext(processor.getBounds());
+    }
+
+    public void setListener(@Nullable OnTransformActionListener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -125,11 +133,19 @@ public abstract class TransformWidget3D extends Transformable implements VrInput
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        return focusedProcessor != null && focusedProcessor.touchDown(screenX, screenY, pointer, button);
+        touchDown = focusedProcessor != null && focusedProcessor.touchDown(screenX, screenY, pointer, button);
+        if (touchDown && listener != null && entity != null)
+            listener.onTransformStarted(entity);
+        return touchDown;
     }
 
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        if (touchDown) {
+            if (listener != null && entity != null)
+                listener.onTransformFinished(entity);
+            touchDown = false;
+        }
         return focusedProcessor != null && focusedProcessor.touchUp(screenX, screenY, pointer, button);
     }
 
@@ -180,5 +196,11 @@ public abstract class TransformWidget3D extends Transformable implements VrInput
         if (this.entity != null) {
             setTransform(this.entity.getParentTransform());
         }
+    }
+
+    public interface OnTransformActionListener {
+        void onTransformStarted(@NonNull ModelingEntity entity);
+
+        void onTransformFinished(@NonNull ModelingEntity entity);
     }
 }
