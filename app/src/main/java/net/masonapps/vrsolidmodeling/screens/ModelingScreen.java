@@ -182,8 +182,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void finished() {
-                rotation.set(snappedRotation);
-                lastRotation.set(rotation);
+                position.set(snappedPosition);
             }
         });
         positionAnimator.setInterpolation(Interpolation.linear);
