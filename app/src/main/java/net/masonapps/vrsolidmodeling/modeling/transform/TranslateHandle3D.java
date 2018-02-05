@@ -58,7 +58,7 @@ public class TranslateHandle3D extends DragHandle3D {
         final Color color = new Color();
         final Vector3 from = new Vector3();
         final Vector3 to = new Vector3();
-        final float len = 0.65f;
+        final float len = 0.8f;
         switch (axis) {
             case AXIS_X:
                 from.set(len * 0.5f, 0, 0);
@@ -87,21 +87,21 @@ public class TranslateHandle3D extends DragHandle3D {
     }
 
     private static BoundingBox createBounds(Axis axis) {
-        final float len = 0.65f;
-        final float margin = 0.25f;
+        final float margin = 0.125f;
+        final float len = 0.8f;
         final BoundingBox bb = new BoundingBox();
         switch (axis) {
             case AXIS_X:
-                bb.min.set(len * margin, -margin, -margin);
-                bb.max.set(1f + margin * len, margin, margin);
+                bb.min.set(len * 0.5f - margin, -margin, -margin);
+                bb.max.set(len + margin, margin, margin);
                 break;
             case AXIS_Y:
-                bb.min.set(-margin, len * margin, -margin);
-                bb.max.set(margin, 1f + margin * len, margin);
+                bb.min.set(-margin, len * 0.5f - margin, -margin);
+                bb.max.set(margin, len + margin, margin);
                 break;
             case AXIS_Z:
-                bb.min.set(-margin, -margin, len * margin);
-                bb.max.set(margin, margin, 1f + margin * len);
+                bb.min.set(-margin, -margin, len * 0.5f - margin);
+                bb.max.set(margin, margin, len + margin);
                 break;
         }
         return bb;
@@ -193,18 +193,18 @@ public class TranslateHandle3D extends DragHandle3D {
     }
 
     @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+    public boolean touchDown() {
         if (transformable != null) {
             startHitPoint.set(getHitPoint3D());
             startPosition.set(transformable.getPosition());
         }
-        return super.touchDown(screenX, screenY, pointer, button);
+        return super.touchDown();
     }
 
     @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+    public boolean touchUp() {
         shouldSetPlane = true;
-        return super.touchUp(screenX, screenY, pointer, button);
+        return super.touchUp();
     }
 
     @Override

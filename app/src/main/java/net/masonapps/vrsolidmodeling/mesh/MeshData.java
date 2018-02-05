@@ -94,6 +94,28 @@ public class MeshData {
         return new MeshData(vertexList.toArray(new Vertex[vertexList.size()]), triangles.toArray(new Triangle[triangles.size()]));
     }
 
+    public static Triangle[] fromFaces(List<Face> faceList) {
+        final List<Triangle> triangleList = new ArrayList<>();
+        faceList.forEach(face -> {
+            for (int i = 2; i < face.vertices.length; i++) {
+                Vertex v1;
+                Vertex v2;
+                Vertex v3;
+                if (i >= 3) {
+                    v1 = face.vertices[0];
+                    v2 = face.vertices[i - 1];
+                    v3 = face.vertices[i];
+                } else {
+                    v1 = face.vertices[i - 2];
+                    v2 = face.vertices[i - 1];
+                    v3 = face.vertices[i];
+                }
+                triangleList.add(new Triangle(v1, v2, v3));
+            }
+        });
+        return triangleList.toArray(new Triangle[triangleList.size()]);
+    }
+
     public Triangle[] getTriangles() {
         return triangles;
     }

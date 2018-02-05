@@ -7,20 +7,18 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 
 import org.masonapps.libgdxgooglevr.gfx.Entity;
 import org.masonapps.libgdxgooglevr.gfx.Transformable;
-import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
 
 /**
  * Created by Bob Mason on 1/17/2018.
  */
 
-public abstract class DragHandle3D extends Entity implements VrInputProcessor {
+public abstract class DragHandle3D extends Entity {
 
     protected final Axis axis;
     private final Vector3 hitPoint = new Vector3();
@@ -55,7 +53,6 @@ public abstract class DragHandle3D extends Entity implements VrInputProcessor {
 
     public abstract void drawShapes(ShapeRenderer renderer);
 
-    @Override
     public boolean performRayTest(Ray ray) {
         return intersectsRayBoundsFast(ray);
     }
@@ -126,64 +123,24 @@ public abstract class DragHandle3D extends Entity implements VrInputProcessor {
         return dragging;
     }
 
-    @Override
     public boolean isCursorOver() {
         return isCursorOver;
     }
 
-    @Nullable
-    @Override
-    public Vector2 getHitPoint2D() {
-        return null;
-    }
-
-    @Override
     @NonNull
     public Vector3 getHitPoint3D() {
         return hitPoint;
     }
 
-    @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+    public boolean touchDown() {
         if (transformable == null) return false;
         dragging = true;
         return true;
     }
 
-    @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+    public boolean touchUp() {
         dragging = false;
         return transformable != null;
-    }
-
-    @Override
-    public boolean keyDown(int keycode) {
-        return false;
-    }
-
-    @Override
-    public boolean keyUp(int keycode) {
-        return false;
-    }
-
-    @Override
-    public boolean keyTyped(char character) {
-        return false;
-    }
-
-    @Override
-    public boolean touchDragged(int screenX, int screenY, int pointer) {
-        return false;
-    }
-
-    @Override
-    public boolean mouseMoved(int screenX, int screenY) {
-        return false;
-    }
-
-    @Override
-    public boolean scrolled(int amount) {
-        return false;
     }
 
     public void setTransformable(@Nullable Transformable transformable) {

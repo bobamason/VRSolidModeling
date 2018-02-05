@@ -11,14 +11,17 @@ import com.badlogic.gdx.math.collision.Ray;
 import net.masonapps.vrsolidmodeling.bvh.BVH;
 import net.masonapps.vrsolidmodeling.bvh.BVHBuilder;
 import net.masonapps.vrsolidmodeling.io.PLYAssetLoader;
+import net.masonapps.vrsolidmodeling.mesh.Face;
 import net.masonapps.vrsolidmodeling.mesh.MeshData;
+import net.masonapps.vrsolidmodeling.mesh.MeshUtils;
+import net.masonapps.vrsolidmodeling.mesh.PolyhedronUtils;
+import net.masonapps.vrsolidmodeling.mesh.Triangle;
+import net.masonapps.vrsolidmodeling.mesh.Vertex;
 
 import org.apache.commons.math3.geometry.euclidean.threed.PolyhedronsSet;
-import org.apache.commons.math3.geometry.euclidean.threed.Vector3D;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,6 +35,8 @@ public class AssetPrimitive extends Primitive {
     private BVH bvh;
     private BVH.IntersectionInfo intersectionInfo;
     private boolean isInitialized = false;
+    private List<Face> faceList;
+    private List<Vertex> vertexList;
 
     public AssetPrimitive(String name, String asset) {
         this.name = name;
@@ -42,10 +47,11 @@ public class AssetPrimitive extends Primitive {
     @Override
     public void initialize(InputStream inputStream) {
         try {
-            modelData = PLYAssetLoader.parse(inputStream, false);
-            final MeshData meshData = MeshData.fromModelData(modelData);
-            final BVH.Node root = new BVHBuilder().build(meshData);
-            bvh = new BVH(meshData, root);
+            PLYAssetLoader.parseFaceList(inputStream, false, vertexList, faceList);
+            final Triangle[] triangles = MeshData.fromFaces(faceList);
+            modelData = MeshUtils.createModelData(vertexList.toArray(new Vertex[vertexList.size()]), triangles);
+            final BVH.Node root = new BVHBuilder().build(triangles);
+            bvh = new BVH(root);
             isInitialized = true;
         } catch (IOException e) {
             throw new RuntimeException("unable to load modelData for " + name, e);
@@ -76,9 +82,7 @@ public class AssetPrimitive extends Primitive {
     @Override
     public PolyhedronsSet toPolyhedronsSet(Matrix4 transform) {
         throwErrorIfNotInitialized();
-        final List<Vector3D> vertices = new ArrayList<>();
-        final List<int[]> facets = new ArrayList<>();
-        return new PolyhedronsSet(vertices, facets, 1e-10);
+        return PolyhedronUtils.fromFaces(vertexList, faceList, transform);
     }
 
     @Override

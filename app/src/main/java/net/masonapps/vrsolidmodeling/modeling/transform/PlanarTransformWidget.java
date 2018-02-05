@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
@@ -14,15 +15,16 @@ import com.badlogic.gdx.math.collision.Ray;
 import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
 
 import org.masonapps.libgdxgooglevr.gfx.Transformable;
+import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Bob Mason on 1/17/2018.
+ * Created by Bob Mason on 2/5/2018.
  */
 
-public abstract class TransformWidget3D extends Transformable {
+public class PlanarTransformWidget extends Transformable implements VrInputProcessor {
 
     protected List<DragHandle3D> processors;
     protected BoundingBox bounds = new BoundingBox();
@@ -31,14 +33,14 @@ public abstract class TransformWidget3D extends Transformable {
     private boolean isCursorOver = false;
     private Vector3 hitPoint = new Vector3();
     @Nullable
-    private OnTransformActionListener listener = null;
+    private TransformWidget3D.OnTransformActionListener listener = null;
     @Nullable
     private DragHandle3D focusedProcessor = null;
     private Ray transformedRay = new Ray();
     private boolean visible = false;
     private boolean touchDown = false;
 
-    public TransformWidget3D() {
+    public PlanarTransformWidget() {
         processors = new ArrayList<>();
     }
 
@@ -48,7 +50,7 @@ public abstract class TransformWidget3D extends Transformable {
         bounds.ext(processor.getBounds());
     }
 
-    public void setListener(@Nullable OnTransformActionListener listener) {
+    public void setListener(@Nullable TransformWidget3D.OnTransformActionListener listener) {
         this.listener = listener;
     }
 
@@ -66,6 +68,7 @@ public abstract class TransformWidget3D extends Transformable {
     }
 
     @SuppressWarnings("ConstantConditions")
+    @Override
     public boolean performRayTest(Ray ray) {
         if (!visible) return false;
         if (!updated) recalculateTransform();
@@ -79,46 +82,86 @@ public abstract class TransformWidget3D extends Transformable {
         } else {
             DragHandle3D tempProcessor = null;
 //            if (Intersector.intersectRayBoundsFast(transformedRay, bounds)) {
-                float d = Float.MAX_VALUE;
-                for (DragHandle3D processor : processors) {
-                    if (processor.performRayTest(transformedRay)) {
-                        if (processor.getHitPoint3D().dst2(ray.origin) < d) {
-                            hitPoint.set(processor.getHitPoint3D()).mul(transform);
-                            tempProcessor = processor;
-                        }
+            float d = Float.MAX_VALUE;
+            for (DragHandle3D processor : processors) {
+                if (processor.performRayTest(transformedRay)) {
+                    if (processor.getHitPoint3D().dst2(ray.origin) < d) {
+                        hitPoint.set(processor.getHitPoint3D()).mul(transform);
+                        tempProcessor = processor;
                     }
                 }
+            }
 //            }
             if (tempProcessor != focusedProcessor && focusedProcessor != null)
-                focusedProcessor.touchUp();
+                focusedProcessor.touchUp(0, 0, 0, 0);
             focusedProcessor = tempProcessor;
             isCursorOver = focusedProcessor != null;
         }
         return isCursorOver;
     }
 
+    @Override
     public boolean isCursorOver() {
         return isCursorOver;
     }
 
+    @Nullable
+    @Override
+    public Vector2 getHitPoint2D() {
+        return null;
+    }
+
+    @Override
     public Vector3 getHitPoint3D() {
         return hitPoint;
     }
 
-    public boolean touchDown() {
-        touchDown = focusedProcessor != null && focusedProcessor.touchDown();
+    @Override
+    public boolean keyDown(int keycode) {
+        return false;
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+        return false;
+    }
+
+    @Override
+    public boolean keyTyped(char character) {
+        return false;
+    }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        touchDown = focusedProcessor != null && focusedProcessor.touchDown(screenX, screenY, pointer, button);
         if (touchDown && listener != null && entity != null)
             listener.onTransformStarted(entity);
         return touchDown;
     }
 
-    public boolean touchUp() {
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         if (touchDown) {
             if (listener != null && entity != null)
                 listener.onTransformFinished(entity);
             touchDown = false;
         }
-        return focusedProcessor != null && focusedProcessor.touchUp();
+        return focusedProcessor != null && focusedProcessor.touchUp(screenX, screenY, pointer, button);
+    }
+
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        return focusedProcessor != null && focusedProcessor.touchDragged(screenX, screenY, pointer);
+    }
+
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        return false;
+    }
+
+    @Override
+    public boolean scrolled(int amount) {
+        return false;
     }
 
     public void update() {

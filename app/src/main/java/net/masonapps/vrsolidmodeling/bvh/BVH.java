@@ -1,6 +1,5 @@
 package net.masonapps.vrsolidmodeling.bvh;
 
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.math.Intersector;
@@ -8,7 +7,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 
-import net.masonapps.vrsolidmodeling.mesh.MeshData;
 import net.masonapps.vrsolidmodeling.mesh.Triangle;
 
 import java.util.Arrays;
@@ -18,15 +16,12 @@ import java.util.Arrays;
  */
 public class BVH {
     public Node root;
-    private MeshData meshData;
 
-    public BVH(@NonNull MeshData meshData, BVHBuilder.Method method, int splitLimit) {
-        this.meshData = meshData;
-        this.root = new BVHBuilder(method, splitLimit).build(meshData);
+    public BVH(Triangle[] triangles, BVHBuilder.Method method, int splitLimit) {
+        this.root = new BVHBuilder(method, splitLimit).build(triangles);
     }
 
-    public BVH(@NonNull MeshData meshData, BVH.Node root) {
-        this.meshData = meshData;
+    public BVH(BVH.Node root) {
         this.root = root;
     }
 
@@ -96,14 +91,6 @@ public class BVH {
      */
     public boolean anyIntersection(Ray ray) {
         return Intersector.intersectRayBoundsFast(ray, root.bb) && root.anyIntersection(ray);
-    }
-
-    public MeshData getMeshData() {
-        return meshData;
-    }
-
-    public void setMeshData(MeshData meshData) {
-        this.meshData = meshData;
     }
 
     public void refit() {

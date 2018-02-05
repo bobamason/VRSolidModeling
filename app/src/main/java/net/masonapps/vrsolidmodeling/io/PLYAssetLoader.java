@@ -186,10 +186,7 @@ public class PLYAssetLoader {
         return vertexSize;
     }
 
-    private static List<Face> parseFaceList(InputStream inputStream, boolean flipV) {
-//        long t = System.currentTimeMillis();
-        List<Vertex> vertices = new ArrayList<>();
-        List<Face> faces = new ArrayList<>();
+    public static void parseFaceList(InputStream inputStream, boolean flipV, List<Vertex> vertices, List<Face> faces) throws IOException {
         String line;
         String[] tokens;
         int xIndex = -1, yIndex = -1, zIndex = -1, nxIndex = -1, nyIndex = -1, nzIndex = -1, uIndex = -1, vIndex = -1;
@@ -288,6 +285,7 @@ public class PLYAssetLoader {
                 if (hasUV) {
                     vertex.uv.set(u, flipV ? 1f - v : v);
                 }
+                vertex.index = currentVertex;
                 vertices.add(vertex);
                 currentVertex++;
             }
@@ -309,13 +307,11 @@ public class PLYAssetLoader {
                 tempVerts.clear();
                 currentFace++;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e(PLYAssetLoader.class.getSimpleName(), "load ply file failed: " + e.getMessage());
+        } finally {
+            if (reader != null)
+                reader.close();
         }
         Log.d(PLYAssetLoader.class.getSimpleName(), "faces " + faces.size());
-//        Log.d(PLYLoader.class.getSimpleName(), "parseStream eT: " + df.format(System.currentTimeMillis() - t));
-        return faces;
     }
 
     public static MeshData createMeshData(File file) throws IOException {

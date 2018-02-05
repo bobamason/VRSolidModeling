@@ -197,9 +197,9 @@ public class RotateHandle3D extends DragHandle3D {
     }
 
     @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+    public boolean touchUp() {
         shouldSetPlane = true;
-        return super.touchUp(screenX, screenY, pointer, button);
+        return super.touchUp();
 
     }
 

@@ -2,7 +2,6 @@ package net.masonapps.vrsolidmodeling.bvh;
 
 import com.badlogic.gdx.math.collision.BoundingBox;
 
-import net.masonapps.vrsolidmodeling.mesh.MeshData;
 import net.masonapps.vrsolidmodeling.mesh.Triangle;
 
 import java.util.Arrays;
@@ -278,9 +277,7 @@ public class BVHBuilder {
         actions.push(Action.PUSH);
     }
 
-    public BVH.Node build(MeshData meshData) {
-        final Triangle[] triangleArray = new Triangle[meshData.getTriangleCount()];
-        System.arraycopy(meshData.getTriangles(), 0, triangleArray, 0, triangleArray.length);
+    public BVH.Node build(Triangle[] triangleArray) {
 
         final Random random = new Random(420);
         for (int i = triangleArray.length; i > 1; i--) {

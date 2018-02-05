@@ -11,6 +11,8 @@ import com.badlogic.gdx.graphics.g3d.model.data.ModelNode;
 import com.badlogic.gdx.graphics.g3d.model.data.ModelNodePart;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.FloatArray;
+import com.badlogic.gdx.utils.ShortArray;
 
 /**
  * Created by Bob on 1/3/2018.
@@ -52,5 +54,28 @@ public class MeshUtils {
         mat.opacity = 1f;
         data.materials.add(mat);
         return data;
+    }
+
+    public static ModelData createModelData(Vertex[] vertexArray, Triangle[] triangles) {
+        final FloatArray vertices = new FloatArray();
+        final ShortArray indices = new ShortArray();
+        for (Vertex vertex : vertexArray) {
+            vertices.add(vertex.position.x);
+            vertices.add(vertex.position.y);
+            vertices.add(vertex.position.z);
+
+            vertices.add(vertex.normal.x);
+            vertices.add(vertex.normal.y);
+            vertices.add(vertex.normal.z);
+
+            vertices.add(vertex.uv.x);
+            vertices.add(vertex.uv.y);
+        }
+        for (Triangle triangle : triangles) {
+            indices.add(triangle.v1.index);
+            indices.add(triangle.v2.index);
+            indices.add(triangle.v3.index);
+        }
+        return createModelData(vertices.toArray(), indices.toArray(), VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0));
     }
 }

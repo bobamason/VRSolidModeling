@@ -119,17 +119,17 @@ public class ScaleHandle3D extends DragHandle3D {
     }
 
     @Override
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+    public boolean touchDown() {
         if (transformable != null) {
             lastDst = getHitPoint3D().dst(transformable.getPosition());
         }
-        return super.touchDown(screenX, screenY, pointer, button);
+        return super.touchDown();
     }
 
     @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+    public boolean touchUp() {
         shouldSetPlane = true;
-        return super.touchUp(screenX, screenY, pointer, button);
+        return super.touchUp();
 
     }
 
