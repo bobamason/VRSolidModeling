@@ -66,6 +66,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
         primitiveSelector = new PrimitiveSelector(spriteBatch, skin, Primitives.createListItems());
         viewControls = new ViewControls(spriteBatch, skin, Style.createWindowVrStyle(skin));
         editModeTable = new EditModeTable(skin);
+        editModeTable.setListener(this::editModeChanged);
         initMainTable();
         initConfirmDialog();
         initShapeSelector();
@@ -120,9 +121,12 @@ public class MainInterface extends CylindricalWindowUiContainer {
         });
         buttonBarTable.add(exportBtn).padTop(PADDING).padBottom(PADDING).padRight(PADDING);
 
-        mainTable.getTable().add(buttonBarTable).center().expandX().row();
-        editModeTable.setListener(this::editModeChanged);
-        mainTable.getTable().add(editModeTable).center().expandX().row();
+        final Container<Table> optionContainer = new Container<>();
+        final Table optionsTable = new Table(skin);
+        optionsTable.add(buttonBarTable).left().expandX().row();
+        optionsTable.add(editModeTable).left().expandX();
+        container.setActor(optionsTable);
+        mainTable.getTable().add(optionContainer).left().expand();
         mainTable.getTable().add(container).expand();
 
         final CylindricalCoordinate coordinate = new CylindricalCoordinate(getRadius(), 50f, 0.35f, CylindricalCoordinate.AngleMode.degrees);
