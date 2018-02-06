@@ -93,7 +93,7 @@ public class PlanarTransformWidget extends Transformable implements VrInputProce
             }
 //            }
             if (tempProcessor != focusedProcessor && focusedProcessor != null)
-                focusedProcessor.touchUp(0, 0, 0, 0);
+                focusedProcessor.touchUp();
             focusedProcessor = tempProcessor;
             isCursorOver = focusedProcessor != null;
         }
@@ -133,7 +133,7 @@ public class PlanarTransformWidget extends Transformable implements VrInputProce
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        touchDown = focusedProcessor != null && focusedProcessor.touchDown(screenX, screenY, pointer, button);
+        touchDown = focusedProcessor != null && focusedProcessor.touchDown();
         if (touchDown && listener != null && entity != null)
             listener.onTransformStarted(entity);
         return touchDown;
@@ -146,12 +146,12 @@ public class PlanarTransformWidget extends Transformable implements VrInputProce
                 listener.onTransformFinished(entity);
             touchDown = false;
         }
-        return focusedProcessor != null && focusedProcessor.touchUp(screenX, screenY, pointer, button);
+        return focusedProcessor != null && focusedProcessor.touchUp();
     }
 
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
-        return focusedProcessor != null && focusedProcessor.touchDragged(screenX, screenY, pointer);
+        return true;
     }
 
     @Override

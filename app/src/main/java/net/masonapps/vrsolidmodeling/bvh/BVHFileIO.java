@@ -83,7 +83,7 @@ public class BVHFileIO {
         final BufferedReader reader = new BufferedReader(new InputStreamReader(outputStream));
         try {
             final BVH.Node root = deserializeNode(meshData, reader);
-            final BVH bvh = new BVH(meshData, root);
+            final BVH bvh = new BVH(root);
             bvh.refit();
             return bvh;
         } finally {

@@ -114,6 +114,12 @@ public class ModelingEntity implements AABBTree.AABBObject {
         modelingObject.shininess = value;
     }
 
+    public ModelingEntity copy() {
+        final ModelingEntity modelingEntity = new ModelingEntity(this.modelingObject.copy(), this.modelInstance.copy());
+        modelingEntity.setParentTransform(this.parentTransform);
+        return modelingEntity;
+    }
+
     public Matrix4 getParentTransform() {
         return parentTransform;
     }

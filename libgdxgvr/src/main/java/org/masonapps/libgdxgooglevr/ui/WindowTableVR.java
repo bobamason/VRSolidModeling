@@ -14,7 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 public class WindowTableVR extends WindowVR {
 
 
-    protected final Table table;
+    protected Table table;
 
     public WindowTableVR(Batch batch, int virtualPixelWidth, int virtualPixelHeight, String title, WindowVrStyle windowStyle) {
         this(batch, null, virtualPixelWidth, virtualPixelHeight, title, windowStyle);
@@ -45,6 +45,11 @@ public class WindowTableVR extends WindowVR {
 
     public Table getTable() {
         return table;
+    }
+
+    public void setTable(Table table) {
+        this.table = table;
+        resizeToFitTable();
     }
 
     public void resizeToFitTable() {

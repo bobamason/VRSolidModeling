@@ -20,8 +20,8 @@ import net.masonapps.vrsolidmodeling.mesh.Vertex;
 
 import org.apache.commons.math3.geometry.euclidean.threed.PolyhedronsSet;
 
-import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,8 +35,8 @@ public class AssetPrimitive extends Primitive {
     private BVH bvh;
     private BVH.IntersectionInfo intersectionInfo;
     private boolean isInitialized = false;
-    private List<Face> faceList;
-    private List<Vertex> vertexList;
+    private List<Face> faceList = new ArrayList<>();
+    private List<Vertex> vertexList = new ArrayList<>();
 
     public AssetPrimitive(String name, String asset) {
         this.name = name;
@@ -53,7 +53,7 @@ public class AssetPrimitive extends Primitive {
             final BVH.Node root = new BVHBuilder().build(triangles);
             bvh = new BVH(root);
             isInitialized = true;
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("unable to load modelData for " + name, e);
         }
     }

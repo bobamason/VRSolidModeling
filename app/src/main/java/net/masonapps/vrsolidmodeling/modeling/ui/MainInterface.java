@@ -125,7 +125,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
         final Table optionsTable = new Table(skin);
         optionsTable.add(buttonBarTable).left().expandX().row();
         optionsTable.add(editModeTable).left().expandX();
-        container.setActor(optionsTable);
+        optionContainer.setActor(optionsTable);
         mainTable.getTable().add(optionContainer).left().expand();
         mainTable.getTable().add(container).expand();
 
@@ -247,6 +247,10 @@ public class MainInterface extends CylindricalWindowUiContainer {
 
     public interface UiEventListener {
         void onAddClicked(String key);
+
+        void onRemoveClicked();
+
+        void onCopyClicked();
 
         void onColorChanged(Color color);
 

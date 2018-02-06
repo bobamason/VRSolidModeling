@@ -115,6 +115,16 @@ public class ModelingObject extends Transformable {
         return modelInstance;
     }
 
+    public ModelingObject copy() {
+        final ModelingObject modelingObject = new ModelingObject(this.primitive);
+        modelingObject.ambientColor.set(this.ambientColor);
+        modelingObject.diffuseColor.set(this.diffuseColor);
+        modelingObject.specularColor.set(this.specularColor);
+        modelingObject.shininess = this.shininess;
+        modelingObject.setTransform(this.transform);
+        return modelingObject;
+    }
+
     public interface OnTransformChangedListener {
         void transformChanged();
     }

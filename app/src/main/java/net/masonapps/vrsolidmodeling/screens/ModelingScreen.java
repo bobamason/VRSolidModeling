@@ -41,6 +41,7 @@ import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.Style;
 import net.masonapps.vrsolidmodeling.actions.AddAction;
 import net.masonapps.vrsolidmodeling.actions.ColorAction;
+import net.masonapps.vrsolidmodeling.actions.RemoveAction;
 import net.masonapps.vrsolidmodeling.actions.TransformAction;
 import net.masonapps.vrsolidmodeling.actions.UndoRedoCache;
 import net.masonapps.vrsolidmodeling.math.Animator;
@@ -92,6 +93,9 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private final Animator rotationAnimator;
     private final Animator positionAnimator;
     private final Entity gridEntity;
+    private final TranslateWidget translateWidget;
+    private final RotateWidget rotateWidget;
+    private final ScaleWidget scaleWidget;
     private TransformWidget3D transformUI;
     private boolean isTouchPadClicked = false;
     private Quaternion rotation = new Quaternion();
@@ -126,11 +130,13 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
         final ModelBuilder modelBuilder = new ModelBuilder();
 
-        final TranslateWidget translateWidget = new TranslateWidget(modelBuilder);
+        translateWidget = new TranslateWidget(modelBuilder);
         translateWidget.setVisible(false);
-        final RotateWidget rotateWidget = new RotateWidget(modelBuilder);
+
+        rotateWidget = new RotateWidget(modelBuilder);
         rotateWidget.setVisible(false);
-        final ScaleWidget scaleWidget = new ScaleWidget(modelBuilder);
+
+        scaleWidget = new ScaleWidget(modelBuilder);
         scaleWidget.setVisible(false);
 
         final TransformWidget3D.OnTransformActionListener transformActionListener = new TransformWidget3D.OnTransformActionListener() {
@@ -202,6 +208,26 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 modelingProject.add(entity);
                 setSelectedEntity(entity);
                 undoRedoCache.save(new AddAction(entity, modelingProject));
+                setEditMode(EditModeTable.EditMode.TRANSLATE);
+            }
+
+            @Override
+            public void onRemoveClicked() {
+                if (selectedEntity != null) {
+                    modelingProject.remove(selectedEntity);
+                    undoRedoCache.save(new RemoveAction(selectedEntity, modelingProject));
+                }
+            }
+
+            @Override
+            public void onCopyClicked() {
+                if (selectedEntity != null) {
+                    final ModelingEntity entity = selectedEntity.copy();
+                    modelingProject.add(entity);
+                    setSelectedEntity(entity);
+                    undoRedoCache.save(new AddAction(entity, modelingProject));
+                    setEditMode(EditModeTable.EditMode.TRANSLATE);
+                }
             }
 
             @Override
@@ -215,30 +241,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void onEditModeChanged(EditModeTable.EditMode mode) {
-                switch (mode) {
-                    case TRANSLATE:
-                        transformUI = translateWidget;
-                        rotateWidget.setVisible(false);
-                        scaleWidget.setVisible(false);
-                        transformUI.setVisible(true);
-                        break;
-                    case ROTATE:
-                        transformUI = rotateWidget;
-                        translateWidget.setVisible(false);
-                        scaleWidget.setVisible(false);
-                        transformUI.setVisible(true);
-                        break;
-                    case SCALE:
-                        transformUI = scaleWidget;
-                        translateWidget.setVisible(false);
-                        rotateWidget.setVisible(false);
-                        transformUI.setVisible(true);
-                        break;
-                    default:
-                        transformUI.setVisible(false);
-                        break;
-                }
-                transformUI.setEntity(selectedEntity);
+                setEditMode(mode);
             }
 
             @Override
@@ -341,6 +344,33 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private static void drawBounds(ShapeRenderer shapeRenderer, BoundingBox bounds) {
         shapeRenderer.box(bounds.min.x, bounds.min.y, bounds.max.z,
                 bounds.getWidth(), bounds.getHeight(), bounds.getDepth());
+    }
+
+    protected void setEditMode(EditModeTable.EditMode mode) {
+        switch (mode) {
+            case TRANSLATE:
+                transformUI = translateWidget;
+                rotateWidget.setVisible(false);
+                scaleWidget.setVisible(false);
+                transformUI.setVisible(selectedEntity != null);
+                break;
+            case ROTATE:
+                transformUI = rotateWidget;
+                translateWidget.setVisible(false);
+                scaleWidget.setVisible(false);
+                transformUI.setVisible(selectedEntity != null);
+                break;
+            case SCALE:
+                transformUI = scaleWidget;
+                translateWidget.setVisible(false);
+                rotateWidget.setVisible(false);
+                transformUI.setVisible(selectedEntity != null);
+                break;
+            default:
+                transformUI.setVisible(false);
+                break;
+        }
+        transformUI.setEntity(selectedEntity);
     }
 
     private SolidModelingGame getSolidModelingGame() {

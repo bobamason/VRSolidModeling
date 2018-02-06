@@ -61,6 +61,7 @@ public abstract class VrScreen implements Disposable, DaydreamControllerInputLis
     }
 
     public void render(Camera camera, int whichEye) {
+
     }
 
     public Vector3 getForwardVector() {

@@ -1,7 +1,7 @@
 package net.masonapps.vrsolidmodeling.actions;
 
-import net.masonapps.vrsolidmodeling.modeling.AABBTree;
 import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
+import net.masonapps.vrsolidmodeling.modeling.ModelingProject;
 
 /**
  * Created by Bob Mason on 2/1/2018.
@@ -9,20 +9,20 @@ import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
 
 public class RemoveAction extends Action {
 
-    private final AABBTree tree;
+    private final ModelingProject project;
 
-    public RemoveAction(ModelingEntity entity, AABBTree tree) {
+    public RemoveAction(ModelingEntity entity, ModelingProject project) {
         super(entity);
-        this.tree = tree;
+        this.project = project;
     }
 
     @Override
     public void redoAction() {
-        tree.remove(getEntity());
+        project.remove(getEntity());
     }
 
     @Override
     public void undoAction() {
-        tree.insert(getEntity());
+        project.add(getEntity());
     }
 }
