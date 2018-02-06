@@ -216,6 +216,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 if (selectedEntity != null) {
                     modelingProject.remove(selectedEntity);
                     undoRedoCache.save(new RemoveAction(selectedEntity, modelingProject));
+                    setSelectedEntity(null);
                 }
             }
 

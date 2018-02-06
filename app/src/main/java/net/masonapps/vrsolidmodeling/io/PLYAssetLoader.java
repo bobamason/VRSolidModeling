@@ -299,7 +299,7 @@ public class PLYAssetLoader {
                 tokens = line.split("\\s+");
                 final int n = Integer.parseInt(tokens[0]);
                 for (int i = 0; i < n; i++) {
-                    tempVerts.add(vertices.get(Integer.parseInt(tokens[i])));
+                    tempVerts.add(vertices.get(Integer.parseInt(tokens[i + 1])));
                 }
                 final Face face = new Face(tempVerts);
                 face.update();

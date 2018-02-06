@@ -372,6 +372,12 @@ public class ModelSelectionUI<T> extends VrUiContainer {
         itemCount = list.size();
         currentIndex = MathUtils.clamp(currentIndex, 0, itemCount);
         if (itemCount > 0) {
+            destroyModelItem(previousItem);
+            previousItem = null;
+            destroyModelItem(currentItem);
+            currentItem = null;
+            destroyModelItem(nextItem);
+            nextItem = null;
             showItem(currentIndex);
         } else {
             emptyLabel.setVisible(true);
@@ -492,6 +498,7 @@ public class ModelSelectionUI<T> extends VrUiContainer {
             if (modelingObjects != null) {
                 runOnGLThread(() -> {
                     modelItem.project = new PreviewModelingProject(modelingObjects, getSolidModelingGame().getPrimitiveModelMap());
+                    modelItem.project.update();
                     projects.add(modelItem.project);
                     modelItem.loadModelFuture = null;
                 });

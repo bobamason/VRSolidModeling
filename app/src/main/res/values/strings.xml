@@ -40,4 +40,5 @@
     <string name="title_transform">Transform</string>
     <string name="translate">move</string>
     <string name="scale">scale</string>
+    <string name="add">add</string>
 </resources>

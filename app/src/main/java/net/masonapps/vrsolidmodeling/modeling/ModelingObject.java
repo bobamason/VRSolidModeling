@@ -121,7 +121,9 @@ public class ModelingObject extends Transformable {
         modelingObject.diffuseColor.set(this.diffuseColor);
         modelingObject.specularColor.set(this.specularColor);
         modelingObject.shininess = this.shininess;
-        modelingObject.setTransform(this.transform);
+        modelingObject.setPosition(this.getPosition());
+        modelingObject.setRotation(this.getRotation());
+        modelingObject.setScale(this.getScaleX(), this.getScaleY(), this.getScaleZ());
         return modelingObject;
     }
 

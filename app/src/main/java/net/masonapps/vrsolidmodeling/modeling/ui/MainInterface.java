@@ -76,15 +76,6 @@ public class MainInterface extends CylindricalWindowUiContainer {
     private void initMainTable() {
         final Table buttonBarTable = new Table(skin);
 
-        final VerticalImageTextButton addBtn = new VerticalImageTextButton("add", Style.createImageTextButtonStyle(skin, Style.Drawables.ic_add));
-        addBtn.addListener(new ClickListener() {
-            @Override
-            public void clicked(InputEvent event, float x, float y) {
-                showShapeSelector((item) -> eventListener.onAddClicked(item.primitiveKey));
-            }
-        });
-        buttonBarTable.add(addBtn).padTop(PADDING).padLeft(PADDING).padBottom(PADDING).padRight(PADDING);
-
         final VerticalImageTextButton undoBtn = new VerticalImageTextButton(Style.getStringResource(R.string.undo, "undo"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_undo));
         undoBtn.addListener(new ClickListener() {
             @Override
@@ -92,7 +83,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
                 eventListener.onUndoClicked();
             }
         });
-        buttonBarTable.add(undoBtn).padTop(PADDING).padBottom(PADDING).padRight(PADDING);
+        buttonBarTable.add(undoBtn).padTop(PADDING).padLeft(PADDING).padBottom(PADDING).padRight(PADDING);
 
         final VerticalImageTextButton redoBtn = new VerticalImageTextButton(Style.getStringResource(R.string.redo, "redo"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_redo));
         redoBtn.addListener(new ClickListener() {
@@ -119,7 +110,34 @@ public class MainInterface extends CylindricalWindowUiContainer {
                 eventListener.onExportClicked();
             }
         });
-        buttonBarTable.add(exportBtn).padTop(PADDING).padBottom(PADDING).padRight(PADDING);
+        buttonBarTable.add(exportBtn).padTop(PADDING).padBottom(PADDING).padRight(PADDING).row();
+
+        final VerticalImageTextButton addBtn = new VerticalImageTextButton(Style.getStringResource(R.string.add, "add"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_add));
+        addBtn.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                showShapeSelector((item) -> eventListener.onAddClicked(item.primitiveKey));
+            }
+        });
+        buttonBarTable.add(addBtn).padTop(PADDING).padLeft(PADDING).padBottom(PADDING).padRight(PADDING);
+
+        final VerticalImageTextButton copyBtn = new VerticalImageTextButton(Style.getStringResource(R.string.copy, "copy"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_copy));
+        copyBtn.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                eventListener.onCopyClicked();
+            }
+        });
+        buttonBarTable.add(copyBtn).padTop(PADDING).padLeft(PADDING).padBottom(PADDING).padRight(PADDING);
+
+        final VerticalImageTextButton deleteBtn = new VerticalImageTextButton(Style.getStringResource(R.string.delete, "delete"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_delete));
+        deleteBtn.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                eventListener.onRemoveClicked();
+            }
+        });
+        buttonBarTable.add(deleteBtn).padTop(PADDING).padLeft(PADDING).padBottom(PADDING).padRight(PADDING);
 
         final Container<Table> optionContainer = new Container<>();
         final Table optionsTable = new Table(skin);

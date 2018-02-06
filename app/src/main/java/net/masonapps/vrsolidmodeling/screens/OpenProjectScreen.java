@@ -84,7 +84,8 @@ public class OpenProjectScreen extends ModelSelectionScreen<File> {
             try {
                 copy.createNewFile();
                 FileUtils.copyFile(file, copy);
-                ui.setList(((SolidModelingGame) game).getProjectFileList());
+                final List<File> projectFileList = ((SolidModelingGame) game).getProjectFileList();
+                runOnGLThread(() -> ui.setList(projectFileList));
                 Log.d(OpenProjectScreen.class.getSimpleName(), "file copied to " + copy.getName());
             } catch (IOException e) {
                 e.printStackTrace();
@@ -98,7 +99,8 @@ public class OpenProjectScreen extends ModelSelectionScreen<File> {
             final String fileName = file.getName();
             final boolean deleted = file.delete();
             if (deleted) {
-                ui.setList(((SolidModelingGame) game).getProjectFileList());
+                final List<File> projectFileList = ((SolidModelingGame) game).getProjectFileList();
+                runOnGLThread(() -> ui.setList(projectFileList));
                 Log.d(OpenProjectScreen.class.getSimpleName(), "file " + fileName + " deleted");
             }
         });
