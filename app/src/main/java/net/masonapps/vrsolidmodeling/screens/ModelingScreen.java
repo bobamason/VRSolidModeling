@@ -371,6 +371,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 break;
         }
         transformUI.setEntity(selectedEntity);
+        mainInterface.setEditMode(mode);
     }
 
     private SolidModelingGame getSolidModelingGame() {

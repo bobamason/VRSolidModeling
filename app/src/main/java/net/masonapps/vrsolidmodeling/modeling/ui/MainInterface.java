@@ -138,6 +138,11 @@ public class MainInterface extends CylindricalWindowUiContainer {
     }
 
     private void editModeChanged(EditModeTable.EditMode editMode) {
+        setEditMode(editMode);
+        eventListener.onEditModeChanged(editMode);
+    }
+
+    public void setEditMode(EditModeTable.EditMode editMode) {
         currentEditMode = editMode;
         switch (currentEditMode) {
             case NONE:
@@ -157,7 +162,6 @@ public class MainInterface extends CylindricalWindowUiContainer {
                 break;
         }
         mainTable.resizeToFitTable();
-        eventListener.onEditModeChanged(editMode);
     }
 
     public EditModeTable.EditMode getCurrentEditMode() {
