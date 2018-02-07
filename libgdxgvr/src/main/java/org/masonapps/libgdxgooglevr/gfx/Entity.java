@@ -22,6 +22,7 @@ public class Entity extends Transformable implements Disposable {
     private final Vector3 dimensions = new Vector3();
     private final Vector3 center = new Vector3();
     private final float radius;
+    @Nullable
     public ModelInstance modelInstance;
     @Nullable
     protected BaseShader shader = null;
@@ -29,13 +30,15 @@ public class Entity extends Transformable implements Disposable {
     private boolean visible = true;
     private boolean lightingEnabled = true;
 
-    public Entity(ModelInstance modelInstance) {
+    public Entity(@Nullable ModelInstance modelInstance) {
         this.modelInstance = modelInstance;
+        if (modelInstance != null) {
             setTransform(modelInstance.transform);
             bounds.inf();
             for (Node node : modelInstance.nodes) {
                 node.extendBoundingBox(bounds, false);
             }
+        }
         bounds.getDimensions(dimensions);
         bounds.getCenter(center);
         radius = dimensions.len() / 2f;
@@ -52,7 +55,7 @@ public class Entity extends Transformable implements Disposable {
     }
 
     public boolean isInCameraFrustum(Camera camera) {
-        if (!visible) return false;
+        if (!visible || modelInstance == null) return false;
         if (!updated) recalculateTransform();
         final Vector3 pos = Pools.obtain(Vector3.class);
         final Vector3 s = Pools.obtain(Vector3.class);

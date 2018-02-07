@@ -114,7 +114,6 @@ public class ViewControls extends WindowTableVR {
 
     public interface ViewControlListener {
         void onViewSelected(Side side);
-
         void onZoomChanged(float value);
     }
 }

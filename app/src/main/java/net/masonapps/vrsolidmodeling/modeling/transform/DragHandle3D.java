@@ -48,6 +48,7 @@ public abstract class DragHandle3D extends Entity {
 
     public void render(ModelBatch batch) {
         if (!updated) recalculateTransform();
+        if (modelInstance != null)
             batch.render(modelInstance);
     }
 
@@ -78,7 +79,8 @@ public abstract class DragHandle3D extends Entity {
 
     public void setParentTransform(Matrix4 parentTransform) {
         this.parentTransform.set(parentTransform);
-        getTransform(modelInstance.transform).mulLeft(parentTransform);
+        if (modelInstance != null)
+            getTransform(modelInstance.transform).mulLeft(parentTransform);
     }
 
     protected void setToClosestUnitVector(Vector3 v) {
