@@ -144,6 +144,7 @@ public class Style {
         public static final String drag_bar = "drag_bar";
         public static final String ic_open = "ic_open";
         public static final String ic_copy = "ic_copy";
+        public static final String ic_duplicate = "ic_duplicate";
         public static final String ic_delete = "ic_delete";
         public static final String ic_dropper = "ic_dropper";
     }

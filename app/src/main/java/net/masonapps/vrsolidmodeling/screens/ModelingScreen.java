@@ -85,6 +85,8 @@ import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.ViewAction.RO
 
 public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.OnControllerBackPressedListener {
 
+    public static final float MIN_Z = 2f;
+    public static final float MAX_Z = 20f;
     private static final String TAG = ModelingScreen.class.getSimpleName();
     private static final float UI_ALPHA = 0.25f;
     private final MainInterface mainInterface;
@@ -101,7 +103,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private Quaternion rotation = new Quaternion();
     private Quaternion lastRotation = new Quaternion();
     private Quaternion snappedRotation = new Quaternion();
-    private Vector3 projectPosition = new Vector3(0, 0, -3);
+    private Vector3 projectPosition = new Vector3(0, 0, -4);
     private Vector3 position = new Vector3(projectPosition);
     private Vector3 snappedPosition = new Vector3(projectPosition);
     private Vector3 center = new Vector3();
@@ -212,7 +214,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             }
 
             @Override
-            public void onRemoveClicked() {
+            public void onDeleteClicked() {
                 if (selectedEntity != null) {
                     modelingProject.remove(selectedEntity);
                     undoRedoCache.save(new RemoveAction(selectedEntity, modelingProject));
@@ -221,7 +223,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             }
 
             @Override
-            public void onCopyClicked() {
+            public void onDuplicateClicked() {
                 if (selectedEntity != null) {
                     final ModelingEntity entity = selectedEntity.copy();
                     modelingProject.add(entity);
@@ -265,7 +267,9 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         mainInterface.loadWindowPositions(PreferenceManager.getDefaultSharedPreferences(GdxVr.app.getContext()));
 
 
-        mainInterface.setViewControlsListener(new ViewControls.ViewControlListener() {
+        final float sliderVal = 1f - (float) Math.sqrt((-projectPosition.z - MIN_Z) / (MAX_Z - MIN_Z));
+        mainInterface.getViewControls().getZoomSlider().setValue(sliderVal);
+        mainInterface.getViewControls().setListener(new ViewControls.ViewControlListener() {
             @Override
             public void onViewSelected(Side side) {
                 RotationUtil.rotateToViewSide(snappedRotation, side);
@@ -276,6 +280,20 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 Pools.free(rotDiff);
                 rotationAnimator.setDuration(duration);
                 rotationAnimator.start();
+            }
+
+            @Override
+            public void onZoomChanged(float value) {
+                final float z = -MathUtils.lerp(MIN_Z, MAX_Z, (1f - value) * (1f - value));
+                projectPosition.set(0, 0, z);
+                if (selectedEntity != null) {
+                    center.set(selectedEntity.modelingObject.getPosition());
+                } else {
+                    center.set(0, 0, 0);
+                }
+                snappedPosition.set(center).scl(-1).mul(rotation).add(projectPosition);
+                position.set(snappedPosition);
+                modelingProject.setPosition(position);
             }
         });
 
@@ -460,20 +478,16 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
         if (selectedEntity != null) {
             center.set(selectedEntity.modelingObject.getPosition());
-            snappedPosition.set(center).scl(-1).mul(rotation).add(projectPosition);
-            positionAnimator.setDuration(0.5f);
-            positionAnimator.start();
 
             final Color diffuseColor = selectedEntity.getDiffuseColor();
             if (diffuseColor != null)
                 mainInterface.getColorPicker().setColor(diffuseColor);
         } else {
             transformUI.setVisible(false);
-            center.set(0, 0, 0);
-            snappedPosition.set(center).scl(-1).mul(rotation).add(projectPosition);
-            positionAnimator.setDuration(0.5f);
-            positionAnimator.start();
         }
+        snappedPosition.set(center).scl(-1).mul(rotation).add(projectPosition);
+        positionAnimator.setDuration(0.5f);
+        positionAnimator.start();
     }
 
     @Override

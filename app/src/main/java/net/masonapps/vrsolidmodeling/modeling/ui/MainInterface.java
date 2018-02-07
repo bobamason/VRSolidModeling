@@ -121,20 +121,20 @@ public class MainInterface extends CylindricalWindowUiContainer {
         });
         buttonBarTable.add(addBtn).padTop(PADDING).padLeft(PADDING).padBottom(PADDING).padRight(PADDING);
 
-        final VerticalImageTextButton copyBtn = new VerticalImageTextButton(Style.getStringResource(R.string.copy, "copy"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_copy));
-        copyBtn.addListener(new ClickListener() {
+        final VerticalImageTextButton dupBtn = new VerticalImageTextButton(Style.getStringResource(R.string.duplicate, "duplicate"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_duplicate));
+        dupBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                eventListener.onCopyClicked();
+                eventListener.onDuplicateClicked();
             }
         });
-        buttonBarTable.add(copyBtn).padTop(PADDING).padLeft(PADDING).padBottom(PADDING).padRight(PADDING);
+        buttonBarTable.add(dupBtn).padTop(PADDING).padLeft(PADDING).padBottom(PADDING).padRight(PADDING);
 
         final VerticalImageTextButton deleteBtn = new VerticalImageTextButton(Style.getStringResource(R.string.delete, "delete"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_delete));
         deleteBtn.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                eventListener.onRemoveClicked();
+                eventListener.onDeleteClicked();
             }
         });
         buttonBarTable.add(deleteBtn).padTop(PADDING).padLeft(PADDING).padBottom(PADDING).padRight(PADDING);
@@ -255,8 +255,8 @@ public class MainInterface extends CylindricalWindowUiContainer {
         return false;
     }
 
-    public void setViewControlsListener(ViewControls.ViewControlListener listener) {
-        viewControls.setListener(listener);
+    public ViewControls getViewControls() {
+        return viewControls;
     }
 
     public void setEntity(@Nullable ModelingEntity entity) {
@@ -270,9 +270,9 @@ public class MainInterface extends CylindricalWindowUiContainer {
     public interface UiEventListener {
         void onAddClicked(String key);
 
-        void onRemoveClicked();
+        void onDeleteClicked();
 
-        void onCopyClicked();
+        void onDuplicateClicked();
 
         void onColorChanged(Color color);
 

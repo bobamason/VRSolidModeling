@@ -1,9 +1,12 @@
 package net.masonapps.vrsolidmodeling.modeling.ui;
 
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Slider;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 import net.masonapps.vrsolidmodeling.R;
@@ -16,6 +19,7 @@ public class ViewControls extends WindowTableVR {
 
 
     private ViewControlListener listener;
+    private Slider zoomSlider;
 
     public ViewControls(Batch batch, Skin skin, WindowVrStyle windowStyle) {
         super(batch, skin, 200, 100, Style.getStringResource(R.string.view, "View"), windowStyle);
@@ -29,6 +33,19 @@ public class ViewControls extends WindowTableVR {
 
     protected void initViewSideButtons(Skin skin) {
         final float pad = 8f;
+
+        table.add(Style.getStringResource(R.string.zoom, "zoom")).padTop(pad).padLeft(pad * 2f).padRight(pad).colspan(3).left().expandX().row();
+
+        zoomSlider = new Slider(0f, 1f, 0.01f, false, skin);
+        zoomSlider.setValue(0.5f);
+        zoomSlider.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                if (listener != null)
+                    listener.onZoomChanged(zoomSlider.getValue());
+            }
+        });
+        table.add(zoomSlider).padTop(pad * 0.5f).padLeft(pad).padRight(pad).colspan(3).fillX().row();
 
         final TextButton frontBtn = new TextButton("front", skin);
         frontBtn.addListener(new ClickListener() {
@@ -91,7 +108,13 @@ public class ViewControls extends WindowTableVR {
         table.add(bottomBtn).padTop(pad).padRight(pad).row();
     }
 
+    public Slider getZoomSlider() {
+        return zoomSlider;
+    }
+
     public interface ViewControlListener {
         void onViewSelected(Side side);
+
+        void onZoomChanged(float value);
     }
 }
