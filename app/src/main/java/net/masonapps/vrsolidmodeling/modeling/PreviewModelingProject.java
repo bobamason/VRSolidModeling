@@ -18,11 +18,12 @@ import java.util.List;
 
 public class PreviewModelingProject extends BaseModelingProject {
 
+    private final BoundingBox bounds;
     private float radius;
 
     public PreviewModelingProject(List<ModelingObject> modelingObjects, HashMap<String, Model> modelMap) {
         super();
-        final BoundingBox bounds = new BoundingBox();
+        bounds = new BoundingBox();
         if (modelingObjects.isEmpty()) {
             bounds.set(new Vector3(-1f, -1f, -1f), new Vector3(1f, 1f, 1f));
         } else {
@@ -50,5 +51,9 @@ public class PreviewModelingProject extends BaseModelingProject {
 
     public float getRadius() {
         return radius;
+    }
+
+    public BoundingBox getBounds() {
+        return bounds;
     }
 }

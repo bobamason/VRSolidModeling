@@ -16,4 +16,5 @@ public class Constants {
     public static final String FILE_TYPE_PROJECT = "proj";
     public static final String KEY_EXTERNAL = "external";
     public static final String EXTERNAL_DIRECTORY = "SolidStudio";
+    public static final String DAYDREAM_KEYBOARD_PACKAGE = "com.google.android.vr.inputmethod";
 }

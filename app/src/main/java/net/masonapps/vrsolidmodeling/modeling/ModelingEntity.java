@@ -125,12 +125,11 @@ public class ModelingEntity implements AABBTree.AABBObject {
     }
 
     public void setParentTransform(Matrix4 parentTransform) {
-        this.parentTransform.set(parentTransform);
-        modelingObject.getTransform(modelInstance.transform).mulLeft(parentTransform);
+        this.parentTransform = parentTransform;
     }
 
     public void update() {
-        modelingObject.validate();
+        modelingObject.getTransform(modelInstance.transform).mulLeft(parentTransform);
     }
 
     public BoundingBox getBounds() {

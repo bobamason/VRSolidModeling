@@ -5,7 +5,6 @@ import android.support.annotation.Nullable;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelCache;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Disposable;
@@ -28,19 +27,6 @@ public abstract class BaseModelingProject extends Transformable implements Dispo
         modelCache = new ModelCache();
     }
 
-    @Override
-    public void recalculateTransform() {
-        super.recalculateTransform();
-        entities.forEach(entity -> entity.setParentTransform(this.transform));
-    }
-
-    @Override
-    public Transformable setTransform(Matrix4 transform) {
-        super.setTransform(transform);
-        entities.forEach(entity -> entity.setParentTransform(this.transform));
-        return this;
-    }
-
     public void add(ModelingEntity entity) {
         entities.add(entity);
         entity.setParentTransform(this.transform);
@@ -51,8 +37,7 @@ public abstract class BaseModelingProject extends Transformable implements Dispo
     }
 
     public void update() {
-        if (!updated)
-            recalculateTransform();
+        validate();
         modelCache.begin();
         for (ModelingEntity entity : entities) {
             entity.update();
@@ -62,8 +47,7 @@ public abstract class BaseModelingProject extends Transformable implements Dispo
     }
 
     public void render(ModelBatch batch, Environment environment) {
-        if (!updated)
-            recalculateTransform();
+        validate();
         batch.render(modelCache, environment);
     }
 

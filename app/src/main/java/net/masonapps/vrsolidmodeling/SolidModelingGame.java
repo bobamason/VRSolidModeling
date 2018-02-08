@@ -49,7 +49,7 @@ import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.screens.ExportScreen;
 import net.masonapps.vrsolidmodeling.screens.LoadingScreen;
 import net.masonapps.vrsolidmodeling.screens.ModelingScreen;
-import net.masonapps.vrsolidmodeling.screens.OpenProjectScreen;
+import net.masonapps.vrsolidmodeling.screens.OpenProjectListScreen;
 import net.masonapps.vrsolidmodeling.screens.ProgressLoadingScreen;
 import net.masonapps.vrsolidmodeling.screens.StartupScreen;
 import net.masonapps.vrsolidmodeling.service.ExportService;
@@ -254,7 +254,7 @@ public class SolidModelingGame extends VrGame {
     }
 
     private void switchToOpenProjectScreen() {
-        setScreen(new OpenProjectScreen(this, getProjectFileList(), this::openProject));
+        setScreen(new OpenProjectListScreen(this, getProjectFileList(), this::openProject));
         resetProgressLoadingScreen();
     }
 
