@@ -23,6 +23,7 @@ import org.json.JSONException;
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.input.DaydreamTouchEvent;
 import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
+import org.masonapps.libgdxgooglevr.utils.Logger;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -118,6 +119,7 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
             final int endIndex = getEndIndex();
             for (int i = 0; i < visibleItems.size(); i++) {
                 final int key = visibleItems.keyAt(i);
+                if (key < 0) continue;
                 if (key < startIndex || key >= endIndex)
                     recycle(visibleItems.get(key));
             }
@@ -130,6 +132,7 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
                     if (project != null) {
                         project.setPosition((i - startIndex) * ITEM_WIDTH - scrollX * (startIndex * ITEM_WIDTH), 0f, -3f);
                         project.setScale(ITEM_WIDTH / project.getRadius());
+                        Logger.d("project " + i + " position = " + project.getPosition());
                     }
                 }
             }
@@ -182,6 +185,7 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
     }
 
     private void init(final T t, final int index) {
+        Logger.d("init " + index);
         final ProjectItem projectItem = itemPool.obtain();
         projectItem.key = index;
         projectItem.isRecycled = false;
@@ -216,6 +220,7 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
     protected abstract void onLoadFailed(T t, Throwable e);
 
     private void recycle(ProjectItem projectItem) {
+        Logger.d("recycle " + projectItem.key);
         visibleItems.remove(projectItem.key);
         aabbTree.remove(projectItem);
         itemPool.free(projectItem);
