@@ -13,6 +13,7 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.TextureLoader;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -92,7 +93,7 @@ public class SolidModelingGame extends VrGame {
     private ModelInstance roomInstance = null;
     private boolean loadingFailed = false;
     private boolean appButtonDown = false;
-    private HashMap<String, Model> modelMap = new HashMap<>();
+    private HashMap<String, Mesh> meshMap = new HashMap<>();
 
     @SuppressLint("SimpleDateFormat")
     private static String generateNewProjectName() {
@@ -191,7 +192,7 @@ public class SolidModelingGame extends VrGame {
                         }))
                 .thenRun(() -> GdxVr.app.postRunnable(() -> {
                     Primitives.getMap().values()
-                            .forEach(primitive -> modelMap.put(primitive.getName(), primitive.createModel()));
+                            .forEach(primitive -> meshMap.put(primitive.getName(), primitive.createMesh()));
                     switchToStartupScreen();
                 }));
     }
@@ -536,16 +537,16 @@ public class SolidModelingGame extends VrGame {
             ((ExportScreen) screen).onExportComplete();
     }
 
-    public Model getPrimitiveModel(String name) {
-        return modelMap.get(name);
+    public Mesh getPrimitiveMesh(String name) {
+        return meshMap.get(name);
     }
 
     public HashMap<String, Primitive> getPrimitiveMap() {
         return Primitives.getMap();
     }
 
-    public HashMap<String, Model> getPrimitiveModelMap() {
-        return modelMap;
+    public HashMap<String, Mesh> getPrimitiveMeshMap() {
+        return meshMap;
     }
 
     public interface OnControllerBackPressedListener {

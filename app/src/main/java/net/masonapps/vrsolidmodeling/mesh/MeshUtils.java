@@ -3,6 +3,7 @@ package net.masonapps.vrsolidmodeling.mesh;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.VertexAttribute;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.model.data.ModelData;
 import com.badlogic.gdx.graphics.g3d.model.data.ModelMaterial;
 import com.badlogic.gdx.graphics.g3d.model.data.ModelMesh;
@@ -56,26 +57,36 @@ public class MeshUtils {
         return data;
     }
 
-    public static ModelData createModelData(Vertex[] vertexArray, Triangle[] triangles) {
+    public static ModelData createModelData(Vertex[] vertexArray, Triangle[] triangles, long usage) {
+        return createModelData(toVertices(vertexArray, usage), toIndices(triangles), VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0));
+    }
+
+    public static float[] toVertices(Vertex[] vertexArray, long usage) {
         final FloatArray vertices = new FloatArray();
-        final ShortArray indices = new ShortArray();
         for (Vertex vertex : vertexArray) {
             vertices.add(vertex.position.x);
             vertices.add(vertex.position.y);
             vertices.add(vertex.position.z);
-
-            vertices.add(vertex.normal.x);
-            vertices.add(vertex.normal.y);
-            vertices.add(vertex.normal.z);
-
-            vertices.add(vertex.uv.x);
-            vertices.add(vertex.uv.y);
+            if ((usage & VertexAttributes.Usage.Normal) == VertexAttributes.Usage.Normal) {
+                vertices.add(vertex.normal.x);
+                vertices.add(vertex.normal.y);
+                vertices.add(vertex.normal.z);
+            }
+            if ((usage & VertexAttributes.Usage.TextureCoordinates) == VertexAttributes.Usage.TextureCoordinates) {
+                vertices.add(vertex.uv.x);
+                vertices.add(vertex.uv.y);
+            }
         }
+        return vertices.toArray();
+    }
+
+    public static short[] toIndices(Triangle[] triangles) {
+        final ShortArray indices = new ShortArray();
         for (Triangle triangle : triangles) {
             indices.add(triangle.v1.index);
             indices.add(triangle.v2.index);
             indices.add(triangle.v3.index);
         }
-        return createModelData(vertices.toArray(), indices.toArray(), VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0));
+        return indices.toArray();
     }
 }

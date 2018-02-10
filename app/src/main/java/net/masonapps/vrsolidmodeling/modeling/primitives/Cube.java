@@ -3,9 +3,9 @@ package net.masonapps.vrsolidmodeling.modeling.primitives;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Intersector;
@@ -42,9 +42,9 @@ public class Cube extends Primitive {
     }
 
     @Override
-    public Model createModel() {
+    public Mesh createMesh() {
 //        return new Model(modelData);
-        return new ModelBuilder().createBox(boundingBox.getWidth(), boundingBox.getHeight(), boundingBox.getDepth(), new Material(ColorAttribute.createDiffuse(Color.WHITE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+        return new ModelBuilder().createBox(boundingBox.getWidth(), boundingBox.getHeight(), boundingBox.getDepth(), new Material(ColorAttribute.createDiffuse(Color.WHITE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal).meshes.get(0);
     }
 
     @Override

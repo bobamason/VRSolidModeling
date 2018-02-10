@@ -49,9 +49,11 @@ import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
 import net.masonapps.vrsolidmodeling.modeling.AABBTree;
 import net.masonapps.vrsolidmodeling.modeling.BaseModelingProject;
+import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
 import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProject;
+import net.masonapps.vrsolidmodeling.modeling.ModelingProject2;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.modeling.transform.RotateWidget;
 import net.masonapps.vrsolidmodeling.modeling.transform.ScaleWidget;
@@ -117,6 +119,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private ModelingEntity selectedEntity = null;
     private ModelingProject modelingProject;
     private Vector3 hitPoint = new Vector3();
+    private ModelingProject2 project2;
 
     public ModelingScreen(VrGame game, String projectName) {
         this(game, projectName, new ArrayList<>());
@@ -205,12 +208,13 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void onAddClicked(String key) {
-                final ModelingObject modelingObject = new ModelingObject(Primitives.getPrimitive(key));
-                final ModelingEntity entity = new ModelingEntity(modelingObject, modelingObject.createModelInstance(getSolidModelingGame().getPrimitiveModelMap()));
-                modelingProject.add(entity);
-                setSelectedEntity(entity);
-                undoRedoCache.save(new AddAction(entity, modelingProject));
-                setEditMode(EditModeTable.EditMode.TRANSLATE);
+                // FIXME: 2/10/2018 
+//                final ModelingObject modelingObject = new ModelingObject(Primitives.getPrimitive(key));
+//                final ModelingEntity entity = new ModelingEntity(modelingObject, modelingObject.createModelInstance(getSolidModelingGame().getPrimitiveMeshMap()));
+//                modelingProject.add(entity);
+//                setSelectedEntity(entity);
+//                undoRedoCache.save(new AddAction(entity, modelingProject));
+//                setEditMode(EditModeTable.EditMode.TRANSLATE);
             }
 
             @Override
@@ -303,9 +307,15 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         gridEntity.setLightingEnabled(false);
         getWorld().add(gridEntity).setTransform(modelingProject.getTransform());
 
-        for (ModelingObject object : objects) {
-            modelingProject.add(new ModelingEntity(object, object.createModelInstance(getSolidModelingGame().getPrimitiveModelMap())));
-        }
+        // FIXME: 2/10/2018
+//        for (ModelingObject object : objects) {
+//            modelingProject.add(new ModelingEntity(object, object.createModelInstance(getSolidModelingGame().getPrimitiveMeshMap())));
+//        }
+        // TODO: 2/10/2018 remove test 
+        final ArrayList<EditableNode> nodes = new ArrayList<>();
+        nodes.add(new EditableNode(getSolidModelingGame().getPrimitiveMesh(Primitives.KEY_CUBE), new Material(ColorAttribute.createDiffuse(Color.GRAY))));
+        project2 = new ModelingProject2(nodes);
+        getWorld().add(project2);
     }
 
     private static Model createGrid(ModelBuilder builder, Skin skin, float radius) {
@@ -404,14 +414,18 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             @Override
             public void update() {
                 super.update();
-                modelingProject.update();
+//                modelingProject.update();
                 transformUI.update();
+                // TODO: 2/10/2018 remove test 
+                project2.setPosition(position);
+                project2.setRotation(rotation);
+                project2.update();
             }
 
             @Override
             public void render(ModelBatch batch, Environment environment) {
                 super.render(batch, environment);
-                modelingProject.render(batch, environment);
+//                modelingProject.render(batch, environment);
                 transformUI.render(batch);
             }
         };

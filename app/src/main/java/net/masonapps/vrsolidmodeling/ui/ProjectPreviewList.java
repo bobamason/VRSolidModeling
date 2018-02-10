@@ -3,8 +3,8 @@ package net.masonapps.vrsolidmodeling.ui;
 import android.support.annotation.Nullable;
 import android.util.SparseArray;
 
+import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.MathUtils;
@@ -56,16 +56,16 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
     private float scrollX = 0f;
     private boolean isCursorOver = false;
     private SparseArray<ProjectItem> visibleItems = new SparseArray<>();
-    private HashMap<String, Model> primitiveModelMap;
+    private HashMap<String, Mesh> primitiveMeshMap;
     private float maxScroll = 0f;
     private boolean needsLayout = true;
     private float SPEED = 2f;
 
-    public ProjectPreviewList(List<T> list, HashMap<String, Model> primitiveModelMap, OnProjectSelectedListener listener) {
+    public ProjectPreviewList(List<T> list, HashMap<String, Mesh> primitiveMeshMap, OnProjectSelectedListener listener) {
         this.list = list;
         maxScroll = list.size() * ITEM_WIDTH;
         this.listener = listener;
-        this.primitiveModelMap = primitiveModelMap;
+        this.primitiveMeshMap = primitiveMeshMap;
         final GestureDetector.GestureAdapter gestureAdapter = new GestureDetector.GestureAdapter() {
 
             public float startX = 0f;
@@ -202,12 +202,13 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
         }).thenAccept(modelingObjects -> {
             if (modelingObjects != null) {
                 GdxVr.app.postRunnable(() -> {
-                    if (!projectItem.isRecycled) {
-                        projectItem.project = new PreviewModelingProject(modelingObjects, primitiveModelMap);
-                        projectItem.project.update();
-                        projectItem.loadModelFuture = null;
-                        aabbTree.insert(projectItem);
-                    }
+                    // FIXME: 2/10/2018 
+//                    if (!projectItem.isRecycled) {
+//                        projectItem.project = new PreviewModelingProject(modelingObjects, primitiveMeshMap);
+//                        projectItem.project.update();
+//                        projectItem.loadModelFuture = null;
+//                        aabbTree.insert(projectItem);
+//                    }
                 });
             }
         });

@@ -2,7 +2,9 @@ package net.masonapps.vrsolidmodeling.modeling.primitives;
 
 import android.support.annotation.Nullable;
 
-import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.Mesh;
+import com.badlogic.gdx.graphics.VertexAttribute;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -31,12 +33,12 @@ import java.util.List;
 public class AssetPrimitive extends Primitive {
     private final String name;
     private final String asset;
-    private com.badlogic.gdx.graphics.g3d.model.data.ModelData modelData;
     private BVH bvh;
     private BVH.IntersectionInfo intersectionInfo;
     private boolean isInitialized = false;
     private List<Face> faceList = new ArrayList<>();
     private List<Vertex> vertexList = new ArrayList<>();
+    private Triangle[] triangles;
 
     public AssetPrimitive(String name, String asset) {
         this.name = name;
@@ -48,8 +50,7 @@ public class AssetPrimitive extends Primitive {
     public void initialize(InputStream inputStream) {
         try {
             PLYAssetLoader.parseFaceList(inputStream, false, vertexList, faceList);
-            final Triangle[] triangles = MeshData.fromFaces(faceList);
-            modelData = MeshUtils.createModelData(vertexList.toArray(new Vertex[vertexList.size()]), triangles);
+            triangles = MeshData.fromFaces(faceList);
             final BVH.Node root = new BVHBuilder().build(triangles);
             bvh = new BVH(root);
             isInitialized = true;
@@ -59,9 +60,12 @@ public class AssetPrimitive extends Primitive {
     }
 
     @Override
-    public Model createModel() {
+    public Mesh createMesh() {
         throwErrorIfNotInitialized();
-        return new Model(modelData);
+        final Mesh mesh = new Mesh(true, vertexList.size(), triangles.length * 3, VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0));
+        mesh.setVertices(MeshUtils.toVertices(vertexList.toArray(new Vertex[vertexList.size()]), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal | VertexAttributes.Usage.TextureCoordinates));
+        mesh.setIndices(MeshUtils.toIndices(triangles));
+        return mesh;
     }
 
     @Override

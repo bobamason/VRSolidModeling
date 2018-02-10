@@ -2,7 +2,7 @@ package net.masonapps.vrsolidmodeling.modeling.primitives;
 
 import android.support.annotation.Nullable;
 
-import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -24,7 +24,7 @@ public abstract class Primitive implements Disposable {
 
     public abstract void initialize(InputStream inputStream);
 
-    public abstract Model createModel();
+    public abstract Mesh createMesh();
 
     public abstract String getName();
 

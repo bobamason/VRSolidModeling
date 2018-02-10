@@ -497,10 +497,11 @@ public class ModelSelectionUI<T> extends VrUiContainer {
         }).thenAccept(modelingObjects -> {
             if (modelingObjects != null) {
                 runOnGLThread(() -> {
-                    modelItem.project = new PreviewModelingProject(modelingObjects, getSolidModelingGame().getPrimitiveModelMap());
-                    modelItem.project.update();
-                    projects.add(modelItem.project);
-                    modelItem.loadModelFuture = null;
+                    // FIXME: 2/10/2018  
+//                    modelItem.project = new PreviewModelingProject(modelingObjects, getSolidModelingGame().getPrimitiveMeshMap());
+//                    modelItem.project.update();
+//                    projects.add(modelItem.project);
+//                    modelItem.loadModelFuture = null;
                 });
             }
         });
