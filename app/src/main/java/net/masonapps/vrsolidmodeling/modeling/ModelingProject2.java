@@ -2,6 +2,7 @@ package net.masonapps.vrsolidmodeling.modeling;
 
 import android.support.annotation.Nullable;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.Node;
@@ -75,6 +76,11 @@ public class ModelingProject2 extends Entity {
             if (node instanceof EditableNode)
                 ((EditableNode) node).validate();
         }
+    }
+
+    @Override
+    public boolean isInCameraFrustum(Camera camera) {
+        return true;
     }
 
     @Nullable

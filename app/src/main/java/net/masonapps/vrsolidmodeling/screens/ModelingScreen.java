@@ -312,10 +312,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 //            modelingProject.add(new ModelingEntity(object, object.createModelInstance(getSolidModelingGame().getPrimitiveMeshMap())));
 //        }
         // TODO: 2/10/2018 remove test 
-        final ArrayList<EditableNode> nodes = new ArrayList<>();
-        nodes.add(new EditableNode(getSolidModelingGame().getPrimitiveMesh(Primitives.KEY_CUBE), new Material(ColorAttribute.createDiffuse(Color.GRAY))));
-        project2 = new ModelingProject2(nodes);
-        getWorld().add(project2);
+        createNodeTest();
     }
 
     private static Model createGrid(ModelBuilder builder, Skin skin, float radius) {
@@ -373,6 +370,21 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private static void drawBounds(ShapeRenderer shapeRenderer, BoundingBox bounds) {
         shapeRenderer.box(bounds.min.x, bounds.min.y, bounds.max.z,
                 bounds.getWidth(), bounds.getHeight(), bounds.getDepth());
+    }
+
+    private void createNodeTest() {
+        final ArrayList<EditableNode> nodes = new ArrayList<>();
+
+        final EditableNode n1 = new EditableNode(Primitives.getPrimitiveMesh(Primitives.KEY_CUBE), new Material(ColorAttribute.createDiffuse(Color.GRAY)));
+        n1.setPosition(-0.5f, -1f, 0f);
+
+        final EditableNode n2 = new EditableNode(Primitives.getPrimitiveMesh(Primitives.KEY_CYLINDER), new Material(ColorAttribute.createDiffuse(Color.GRAY)));
+        n2.setPosition(1.5f, 1f, 0f);
+
+        nodes.add(n1);
+        nodes.add(n2);
+        project2 = new ModelingProject2(nodes);
+        getWorld().add(project2);
     }
 
     protected void setEditMode(EditModeTable.EditMode mode) {

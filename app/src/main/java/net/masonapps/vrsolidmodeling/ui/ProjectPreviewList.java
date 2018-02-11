@@ -61,7 +61,7 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
     private boolean needsLayout = true;
     private float SPEED = 2f;
 
-    public ProjectPreviewList(List<T> list, HashMap<String, Mesh> primitiveMeshMap, OnProjectSelectedListener listener) {
+    public ProjectPreviewList(List<T> list, OnProjectSelectedListener listener) {
         this.list = list;
         maxScroll = list.size() * ITEM_WIDTH;
         this.listener = listener;

@@ -13,7 +13,6 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.TextureLoader;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -45,7 +44,6 @@ import net.masonapps.vrsolidmodeling.environment.SkyDomeBuilder;
 import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
 import net.masonapps.vrsolidmodeling.modeling.BaseModelingProject;
 import net.masonapps.vrsolidmodeling.modeling.primitives.AssetPrimitive;
-import net.masonapps.vrsolidmodeling.modeling.primitives.Primitive;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.screens.ExportScreen;
 import net.masonapps.vrsolidmodeling.screens.LoadingScreen;
@@ -68,7 +66,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -93,7 +90,6 @@ public class SolidModelingGame extends VrGame {
     private ModelInstance roomInstance = null;
     private boolean loadingFailed = false;
     private boolean appButtonDown = false;
-    private HashMap<String, Mesh> meshMap = new HashMap<>();
 
     @SuppressLint("SimpleDateFormat")
     private static String generateNewProjectName() {
@@ -190,11 +186,7 @@ public class SolidModelingGame extends VrGame {
                                 primitive.initialize(null);
                             }
                         }))
-                .thenRun(() -> GdxVr.app.postRunnable(() -> {
-                    Primitives.getMap().values()
-                            .forEach(primitive -> meshMap.put(primitive.getName(), primitive.createMesh()));
-                    switchToStartupScreen();
-                }));
+                .thenRun(() -> GdxVr.app.postRunnable(this::switchToStartupScreen));
     }
 
     @Override
@@ -535,18 +527,6 @@ public class SolidModelingGame extends VrGame {
         final VrScreen screen = getScreen();
         if (screen instanceof ExportScreen)
             ((ExportScreen) screen).onExportComplete();
-    }
-
-    public Mesh getPrimitiveMesh(String name) {
-        return meshMap.get(name);
-    }
-
-    public HashMap<String, Primitive> getPrimitiveMap() {
-        return Primitives.getMap();
-    }
-
-    public HashMap<String, Mesh> getPrimitiveMeshMap() {
-        return meshMap;
     }
 
     public interface OnControllerBackPressedListener {

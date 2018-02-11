@@ -48,7 +48,7 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectPreviewL
 
         final SpriteBatch spriteBatch = new SpriteBatch();
         manageDisposable(spriteBatch);
-        ui = new ProjectPreviewList<File>(list, game.getPrimitiveMeshMap(), this) {
+        ui = new ProjectPreviewList<File>(list, this) {
             @Override
             protected List<ModelingObject> loadProject(File file) throws IOException, JSONException {
                 return ProjectFileIO.loadFile(file, game.getPrimitiveMap());

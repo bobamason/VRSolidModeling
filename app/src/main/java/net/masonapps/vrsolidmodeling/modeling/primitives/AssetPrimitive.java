@@ -31,11 +31,11 @@ import java.util.List;
  */
 
 public class AssetPrimitive extends Primitive {
-    private final String name;
-    private final String asset;
-    private BVH bvh;
+    protected final String name;
+    protected final String asset;
+    protected BVH bvh;
+    protected boolean isInitialized = false;
     private BVH.IntersectionInfo intersectionInfo;
-    private boolean isInitialized = false;
     private List<Face> faceList = new ArrayList<>();
     private List<Vertex> vertexList = new ArrayList<>();
     private Triangle[] triangles;

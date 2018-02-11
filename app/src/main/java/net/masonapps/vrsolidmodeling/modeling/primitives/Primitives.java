@@ -1,5 +1,7 @@
 package net.masonapps.vrsolidmodeling.modeling.primitives;
 
+import com.badlogic.gdx.graphics.Mesh;
+
 import net.masonapps.vrsolidmodeling.Assets;
 import net.masonapps.vrsolidmodeling.Style;
 import net.masonapps.vrsolidmodeling.ui.PrimitiveSelector;
@@ -16,22 +18,29 @@ public class Primitives {
     public static final String KEY_CUBE = "cube";
     public static final String KEY_SPHERE = "sphere";
     public static final String KEY_CYLINDER = "cylinder";
+    public static final String KEY_CONE = "cone";
+    public static final String KEY_TORUS = "torus";
     private static final HashMap<String, Primitive> map = new HashMap<>();
 
     static {
-        final Cube cube = new Cube();
-        map.put(cube.getName(), cube);
-        final Sphere sphere = new Sphere();
-        map.put(sphere.getName(), sphere);
-        final AssetPrimitive cylinder = new AssetPrimitive(KEY_CYLINDER, Assets.SHAPE_CYLINDER);
-        map.put(cylinder.getName(), cylinder);
+        addToMap(new Cube());
+        addToMap(new Sphere());
+        addToMap(new AssetPrimitive(KEY_CYLINDER, Assets.SHAPE_CYLINDER));
+        addToMap(new AssetPrimitive(KEY_CONE, Assets.SHAPE_CONE));
+        addToMap(new AssetPrimitive(KEY_TORUS, Assets.SHAPE_TORUS));
+    }
+
+    private static void addToMap(AssetPrimitive primitive) {
+        map.put(primitive.getName(), primitive);
     }
 
     public static List<PrimitiveSelector.PrimitiveItem> createListItems() {
         return Arrays.asList(
                 new PrimitiveSelector.PrimitiveItem(Primitives.KEY_CUBE, "Cube", Style.Drawables.ic_shape_cube),
                 new PrimitiveSelector.PrimitiveItem(Primitives.KEY_SPHERE, "Sphere", Style.Drawables.ic_shape_sphere),
-                new PrimitiveSelector.PrimitiveItem(Primitives.KEY_CYLINDER, "Cylinder", Style.Drawables.ic_shape_cylinder));
+                new PrimitiveSelector.PrimitiveItem(Primitives.KEY_CYLINDER, "Cylinder", Style.Drawables.ic_shape_cylinder),
+                new PrimitiveSelector.PrimitiveItem(Primitives.KEY_CONE, "Cone", Style.Drawables.ic_shape_cube),
+                new PrimitiveSelector.PrimitiveItem(Primitives.KEY_TORUS, "Torus", Style.Drawables.ic_shape_cube));
     }
 
     public static HashMap<String, Primitive> getMap() {
@@ -40,5 +49,9 @@ public class Primitives {
 
     public static Primitive getPrimitive(String key) {
         return map.get(key);
+    }
+
+    public static Mesh getPrimitiveMesh(String key) {
+        return map.get(key).createMesh();
     }
 }
