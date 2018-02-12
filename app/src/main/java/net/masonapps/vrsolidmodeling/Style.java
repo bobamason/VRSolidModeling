@@ -113,6 +113,8 @@ public class Style {
         public static final String ic_shape_cube = "ic_shape_cube";
         public static final String ic_shape_sphere = "ic_shape_sphere";
         public static final String ic_shape_cylinder = "ic_shape_cylinder";
+        public static final String ic_shape_cone = "ic_shape_cone";
+        public static final String ic_shape_torus = "ic_shape_torus";
         public static final String ic_export = "ic_export";
         public static final String ic_folder = "ic_folder";
         public static final String ic_pan = "ic_pan";

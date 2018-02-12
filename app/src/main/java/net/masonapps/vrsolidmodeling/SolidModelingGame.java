@@ -61,7 +61,6 @@ import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
 import org.masonapps.libgdxgooglevr.utils.Logger;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -179,8 +178,8 @@ public class SolidModelingGame extends VrGame {
                                 final android.content.res.AssetManager assets = GdxVr.app.getActivityWeakReference().get().getAssets();
                                 try {
                                     primitive.initialize(assets.open(((AssetPrimitive) primitive).getAsset()));
-                                } catch (IOException e) {
-                                    throw new RuntimeException("unable to load primitive " + primitive.getName(), e);
+                                } catch (Exception e) {
+                                    Logger.e("unable to load primitive " + primitive.getName(), e);
                                 }
                             } else {
                                 primitive.initialize(null);

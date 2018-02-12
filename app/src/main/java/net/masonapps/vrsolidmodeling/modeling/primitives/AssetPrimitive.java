@@ -11,7 +11,6 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 
 import net.masonapps.vrsolidmodeling.bvh.BVH;
-import net.masonapps.vrsolidmodeling.bvh.BVHBuilder;
 import net.masonapps.vrsolidmodeling.io.PLYAssetLoader;
 import net.masonapps.vrsolidmodeling.mesh.Face;
 import net.masonapps.vrsolidmodeling.mesh.MeshData;
@@ -51,7 +50,8 @@ public class AssetPrimitive extends Primitive {
         try {
             PLYAssetLoader.parseFaceList(inputStream, false, vertexList, faceList);
             triangles = MeshData.fromFaces(faceList);
-            final BVH.Node root = new BVHBuilder().build(triangles);
+//            final BVH.Node root = new BVHBuilder().build(triangles);
+            final BVH.Node root = new BVH.Group();
             bvh = new BVH(root);
             isInitialized = true;
         } catch (Exception e) {

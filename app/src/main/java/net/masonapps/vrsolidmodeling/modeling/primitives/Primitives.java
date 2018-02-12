@@ -23,8 +23,8 @@ public class Primitives {
     private static final HashMap<String, Primitive> map = new HashMap<>();
 
     static {
-        addToMap(new Cube());
-        addToMap(new Sphere());
+        addToMap(new AssetPrimitive(KEY_CUBE, Assets.SHAPE_CUBE));
+        addToMap(new AssetPrimitive(KEY_SPHERE, Assets.SHAPE_SPHERE));
         addToMap(new AssetPrimitive(KEY_CYLINDER, Assets.SHAPE_CYLINDER));
         addToMap(new AssetPrimitive(KEY_CONE, Assets.SHAPE_CONE));
         addToMap(new AssetPrimitive(KEY_TORUS, Assets.SHAPE_TORUS));

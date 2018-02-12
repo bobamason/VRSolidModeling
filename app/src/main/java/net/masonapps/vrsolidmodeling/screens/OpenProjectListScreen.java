@@ -14,6 +14,7 @@ import com.google.vr.sdk.controller.Controller;
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
 import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
+import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.ui.ProjectPreviewList;
 
 import org.json.JSONException;
@@ -51,7 +52,7 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectPreviewL
         ui = new ProjectPreviewList<File>(list, this) {
             @Override
             protected List<ModelingObject> loadProject(File file) throws IOException, JSONException {
-                return ProjectFileIO.loadFile(file, game.getPrimitiveMap());
+                return ProjectFileIO.loadFile(file, Primitives.getMap());
             }
 
             @Override

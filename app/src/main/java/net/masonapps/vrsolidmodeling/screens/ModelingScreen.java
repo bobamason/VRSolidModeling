@@ -378,11 +378,23 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         final EditableNode n1 = new EditableNode(Primitives.getPrimitiveMesh(Primitives.KEY_CUBE), new Material(ColorAttribute.createDiffuse(Color.GRAY)));
         n1.setPosition(-0.5f, -1f, 0f);
 
-        final EditableNode n2 = new EditableNode(Primitives.getPrimitiveMesh(Primitives.KEY_CYLINDER), new Material(ColorAttribute.createDiffuse(Color.GRAY)));
-        n2.setPosition(1.5f, 1f, 0f);
+        final EditableNode n2 = new EditableNode(Primitives.getPrimitiveMesh(Primitives.KEY_SPHERE), new Material(ColorAttribute.createDiffuse(Color.GRAY)));
+        n2.setPosition(0f, 0f, 0f);
+
+        final EditableNode n3 = new EditableNode(Primitives.getPrimitiveMesh(Primitives.KEY_CYLINDER), new Material(ColorAttribute.createDiffuse(Color.GRAY)));
+        n3.setPosition(1.5f, 1f, 0f);
+
+        final EditableNode n4 = new EditableNode(Primitives.getPrimitiveMesh(Primitives.KEY_CONE), new Material(ColorAttribute.createDiffuse(Color.GRAY)));
+        n4.setPosition(0f, 0f, 1.5f);
+
+        final EditableNode n5 = new EditableNode(Primitives.getPrimitiveMesh(Primitives.KEY_TORUS), new Material(ColorAttribute.createDiffuse(Color.GRAY)));
+        n5.setPosition(0.5f, -0.5f, -1.5f);
 
         nodes.add(n1);
         nodes.add(n2);
+        nodes.add(n3);
+        nodes.add(n4);
+        nodes.add(n5);
         project2 = new ModelingProject2(nodes);
         getWorld().add(project2);
     }
