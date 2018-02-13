@@ -15,7 +15,7 @@ import com.badlogic.gdx.utils.Pools;
 
 import net.masonapps.vrsolidmodeling.R;
 import net.masonapps.vrsolidmodeling.Style;
-import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
+import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.ui.ColorPickerSimple;
 import net.masonapps.vrsolidmodeling.ui.ConfirmDialog;
@@ -48,7 +48,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
     private final Table emptyTable;
     private EditModeTable editModeTable;
     @Nullable
-    private ModelingEntity entity = null;
+    private EditableNode entity = null;
     private EditModeTable.EditMode currentEditMode = EditModeTable.EditMode.NONE;
 
     public MainInterface(Batch spriteBatch, Skin skin, UiEventListener listener) {
@@ -259,7 +259,7 @@ public class MainInterface extends CylindricalWindowUiContainer {
         return viewControls;
     }
 
-    public void setEntity(@Nullable ModelingEntity entity) {
+    public void setEntity(@Nullable EditableNode entity) {
         this.entity = entity;
         if (entity == null)
             editModeChanged(EditModeTable.EditMode.NONE);

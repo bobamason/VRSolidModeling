@@ -18,8 +18,8 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Pools;
 
 import net.masonapps.vrsolidmodeling.math.SnapUtil;
+import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 
-import org.masonapps.libgdxgooglevr.gfx.Transformable;
 import org.masonapps.libgdxgooglevr.math.PlaneUtils;
 import org.masonapps.libgdxgooglevr.utils.Logger;
 
@@ -207,7 +207,7 @@ public class RotateHandle3D extends DragHandle3D {
     }
 
     @Override
-    public void setTransformable(@Nullable Transformable transformable) {
+    public void setTransformable(@Nullable EditableNode transformable) {
         super.setTransformable(transformable);
         if (transformable != null) {
             setPosition(transformable.getPosition());

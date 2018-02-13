@@ -21,7 +21,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Pools;
 
-import org.masonapps.libgdxgooglevr.gfx.Transformable;
+import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 
 /**
  * Created by Bob Mason on 1/18/2018.
@@ -134,7 +134,7 @@ public class ScaleHandle3D extends DragHandle3D {
     }
 
     @Override
-    public void setTransformable(@Nullable Transformable transformable) {
+    public void setTransformable(@Nullable EditableNode transformable) {
         super.setTransformable(transformable);
         if (transformable != null) {
             final Vector3 s = transformable.getScale();

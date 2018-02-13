@@ -12,6 +12,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 
+import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
 
 import org.masonapps.libgdxgooglevr.gfx.Transformable;
@@ -29,7 +30,7 @@ public class PlanarTransformWidget extends Transformable implements VrInputProce
     protected List<DragHandle3D> processors;
     protected BoundingBox bounds = new BoundingBox();
     @Nullable
-    protected ModelingEntity entity = null;
+    protected EditableNode entity = null;
     private boolean isCursorOver = false;
     private Vector3 hitPoint = new Vector3();
     @Nullable
@@ -190,11 +191,11 @@ public class PlanarTransformWidget extends Transformable implements VrInputProce
     }
 
     @CallSuper
-    public void setEntity(@Nullable ModelingEntity entity) {
+    public void setEntity(@Nullable EditableNode entity, Transformable transformable) {
         this.entity = entity;
-        processors.forEach(processor -> processor.setTransformable(entity == null ? null : entity.modelingObject));
+        processors.forEach(processor -> processor.setTransformable(entity));
         if (this.entity != null) {
-            setTransform(this.entity.getParentTransform());
+            setTransform(transformable.getTransform());
         }
     }
 

@@ -9,16 +9,23 @@ import com.badlogic.gdx.math.collision.Ray;
 
 import net.masonapps.vrsolidmodeling.Assets;
 
+import java.io.InputStream;
+
 /**
  * Created by Bob on 1/2/2018.
  */
 public class Cube extends AssetPrimitive {
 
-    private final BoundingBox boundingBox;
+    private final BoundingBox boundingBox = new BoundingBox();
 
     public Cube() {
         super(Primitives.KEY_CUBE, Assets.SHAPE_CUBE);
-        boundingBox = createBounds();
+    }
+
+    @Override
+    public void initialize(InputStream inputStream) {
+        super.initialize(inputStream);
+        boundingBox.set(createBounds());
     }
 
     @Override

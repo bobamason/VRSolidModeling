@@ -28,7 +28,6 @@ import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -48,10 +47,7 @@ import net.masonapps.vrsolidmodeling.math.Animator;
 import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
 import net.masonapps.vrsolidmodeling.modeling.AABBTree;
-import net.masonapps.vrsolidmodeling.modeling.BaseModelingProject;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
-import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
-import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProject;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProject2;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
@@ -114,23 +110,23 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private InputMode currentInputMode = InputMode.VIEW;
     private State currentState = STATE_NONE;
     @Nullable
-    private ModelingEntity focusedEntity = null;
+    private EditableNode focusedEntity = null;
     @Nullable
-    private ModelingEntity selectedEntity = null;
-    private ModelingProject modelingProject;
+    private EditableNode selectedEntity = null;
+    private ModelingProject2 modelingProject;
     private Vector3 hitPoint = new Vector3();
-    private ModelingProject2 project2;
+    private AABBTree.IntersectionInfo intersectionInfo = new AABBTree.IntersectionInfo();
 
     public ModelingScreen(VrGame game, String projectName) {
         this(game, projectName, new ArrayList<>());
     }
 
-    public ModelingScreen(VrGame game, String projectName, List<ModelingObject> objects) {
+    public ModelingScreen(VrGame game, String projectName, List<EditableNode> nodeList) {
         super(game);
         this.projectName = projectName;
 
         setBackgroundColor(Color.SKY);
-        modelingProject = new ModelingProject();
+        modelingProject = new ModelingProject2();
         undoRedoCache = new UndoRedoCache();
 
         final ModelBuilder modelBuilder = new ModelBuilder();
@@ -146,16 +142,16 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
         final TransformWidget3D.OnTransformActionListener transformActionListener = new TransformWidget3D.OnTransformActionListener() {
 
-            Matrix4 oldTransform;
+            TransformAction.Transform oldTransform;
 
             @Override
-            public void onTransformStarted(@NonNull ModelingEntity entity) {
-                oldTransform = entity.modelingObject.getTransform(new Matrix4());
+            public void onTransformStarted(@NonNull EditableNode entity) {
+                oldTransform = entity.getTransform(new TransformAction.Transform());
             }
 
             @Override
-            public void onTransformFinished(@NonNull ModelingEntity entity) {
-                undoRedoCache.save(new TransformAction(entity, oldTransform, entity.modelingObject.getTransform(new Matrix4())));
+            public void onTransformFinished(@NonNull EditableNode entity) {
+                undoRedoCache.save(new TransformAction(entity, oldTransform, entity.getTransform(new TransformAction.Transform())));
             }
         };
         translateWidget.setListener(transformActionListener);
@@ -208,13 +204,11 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void onAddClicked(String key) {
-                // FIXME: 2/10/2018 
-//                final ModelingObject modelingObject = new ModelingObject(Primitives.getPrimitive(key));
-//                final ModelingEntity entity = new ModelingEntity(modelingObject, modelingObject.createModelInstance(getSolidModelingGame().getPrimitiveMeshMap()));
-//                modelingProject.add(entity);
-//                setSelectedEntity(entity);
-//                undoRedoCache.save(new AddAction(entity, modelingProject));
-//                setEditMode(EditModeTable.EditMode.TRANSLATE);
+                final EditableNode entity = new EditableNode(Primitives.getPrimitiveMesh(key));
+                modelingProject.add(entity);
+                setSelectedEntity(entity);
+                undoRedoCache.save(new AddAction(entity, modelingProject));
+                setEditMode(EditModeTable.EditMode.TRANSLATE);
             }
 
             @Override
@@ -229,7 +223,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             @Override
             public void onDuplicateClicked() {
                 if (selectedEntity != null) {
-                    final ModelingEntity entity = selectedEntity.copy();
+                    final EditableNode entity = selectedEntity.copy();
                     modelingProject.add(entity);
                     setSelectedEntity(entity);
                     undoRedoCache.save(new AddAction(entity, modelingProject));
@@ -291,7 +285,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 final float z = -MathUtils.lerp(MIN_Z, MAX_Z, (1f - value) * (1f - value));
                 projectPosition.set(0, 0, z);
                 if (selectedEntity != null) {
-                    center.set(selectedEntity.modelingObject.getPosition());
+                    center.set(selectedEntity.getPosition());
                 } else {
                     center.set(0, 0, 0);
                 }
@@ -301,18 +295,15 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             }
         });
 
-        getWorld().add(Style.newGradientBackground(getVrCamera().far - 1f));
-
         gridEntity = new Entity(new ModelInstance(createGrid(modelBuilder, skin, 1f)));
         gridEntity.setLightingEnabled(false);
         getWorld().add(gridEntity).setTransform(modelingProject.getTransform());
 
-        // FIXME: 2/10/2018
-//        for (ModelingObject object : objects) {
-//            modelingProject.add(new ModelingEntity(object, object.createModelInstance(getSolidModelingGame().getPrimitiveMeshMap())));
-//        }
-        // TODO: 2/10/2018 remove test 
-        createNodeTest();
+        getWorld().add(modelingProject);
+
+        for (EditableNode node : nodeList) {
+            modelingProject.add(node);
+        }
     }
 
     private static Model createGrid(ModelBuilder builder, Skin skin, float radius) {
@@ -341,10 +332,10 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         return builder.end();
     }
 
-    protected static void drawEntityBounds(ShapeRenderer shapeRenderer, ModelingEntity entity, Color color) {
+    protected static void drawEntityBounds(ShapeRenderer shapeRenderer, EditableNode entity, Color color) {
         shapeRenderer.setColor(color);
-        shapeRenderer.setTransformMatrix(entity.modelInstance.transform);
-        final BoundingBox bounds = entity.getBounds();
+        shapeRenderer.setTransformMatrix(entity.getTransform());
+        final BoundingBox bounds = entity.getAABB();
         drawBounds(shapeRenderer, bounds);
     }
 
@@ -372,33 +363,6 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 bounds.getWidth(), bounds.getHeight(), bounds.getDepth());
     }
 
-    private void createNodeTest() {
-        final ArrayList<EditableNode> nodes = new ArrayList<>();
-
-        final EditableNode n1 = new EditableNode(Primitives.getPrimitiveMesh(Primitives.KEY_CUBE), new Material(ColorAttribute.createDiffuse(Color.GRAY)));
-        n1.setPosition(-0.5f, -1f, 0f);
-
-        final EditableNode n2 = new EditableNode(Primitives.getPrimitiveMesh(Primitives.KEY_SPHERE), new Material(ColorAttribute.createDiffuse(Color.GRAY)));
-        n2.setPosition(0f, 0f, 0f);
-
-        final EditableNode n3 = new EditableNode(Primitives.getPrimitiveMesh(Primitives.KEY_CYLINDER), new Material(ColorAttribute.createDiffuse(Color.GRAY)));
-        n3.setPosition(1.5f, 1f, 0f);
-
-        final EditableNode n4 = new EditableNode(Primitives.getPrimitiveMesh(Primitives.KEY_CONE), new Material(ColorAttribute.createDiffuse(Color.GRAY)));
-        n4.setPosition(0f, 0f, 1.5f);
-
-        final EditableNode n5 = new EditableNode(Primitives.getPrimitiveMesh(Primitives.KEY_TORUS), new Material(ColorAttribute.createDiffuse(Color.GRAY)));
-        n5.setPosition(0.5f, -0.5f, -1.5f);
-
-        nodes.add(n1);
-        nodes.add(n2);
-        nodes.add(n3);
-        nodes.add(n4);
-        nodes.add(n5);
-        project2 = new ModelingProject2(nodes);
-        getWorld().add(project2);
-    }
-
     protected void setEditMode(EditModeTable.EditMode mode) {
         switch (mode) {
             case TRANSLATE:
@@ -423,7 +387,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 transformUI.setVisible(false);
                 break;
         }
-        transformUI.setEntity(selectedEntity);
+        transformUI.setEntity(selectedEntity, modelingProject);
         mainInterface.setEditMode(mode);
     }
 
@@ -438,18 +402,16 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             @Override
             public void update() {
                 super.update();
-//                modelingProject.update();
+                modelingProject.update();
                 transformUI.update();
-                // TODO: 2/10/2018 remove test 
-                project2.setPosition(position);
-                project2.setRotation(rotation);
-                project2.update();
             }
 
             @Override
             public void render(ModelBatch batch, Environment environment) {
+                final ModelInstance roomInstance = getSolidModelingGame().getRoomInstance();
+                if (roomInstance != null)
+                    batch.render(roomInstance);
                 super.render(batch, environment);
-//                modelingProject.render(batch, environment);
                 transformUI.render(batch);
             }
         };
@@ -506,16 +468,16 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     }
 
     @Nullable
-    public ModelingEntity getSelectedEntity() {
+    public EditableNode getSelectedEntity() {
         return selectedEntity;
     }
 
-    private void setSelectedEntity(@Nullable ModelingEntity entity) {
+    private void setSelectedEntity(@Nullable EditableNode entity) {
         selectedEntity = entity;
         mainInterface.setEntity(selectedEntity);
 
         if (selectedEntity != null) {
-            center.set(selectedEntity.modelingObject.getPosition());
+            center.set(selectedEntity.getPosition());
 
             final Color diffuseColor = selectedEntity.getDiffuseColor();
             if (diffuseColor != null)
@@ -698,9 +660,11 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                     currentInputMode = InputMode.UI;
                 else if (transformUI.performRayTest(getControllerRay()))
                     currentInputMode = InputMode.EDIT;
-                else if ((focusedEntity = modelingProject.rayTest(getControllerRay(), hitPoint)) != null)
+                else if (modelingProject.rayTest(getControllerRay(), intersectionInfo)) {
+                    hitPoint.set(intersectionInfo.hitPoint);
+                    focusedEntity = (EditableNode) intersectionInfo.object;
                     currentInputMode = InputMode.SELECT;
-                else
+                } else
                     currentInputMode = InputMode.VIEW;
                 break;
             case STATE_VIEW_TRANSFORM:
@@ -709,7 +673,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         }
     }
 
-    public BaseModelingProject getModelingProject() {
+    public ModelingProject2 getModelingProject() {
         return modelingProject;
     }
 

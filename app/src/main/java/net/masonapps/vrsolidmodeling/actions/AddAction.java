@@ -1,7 +1,7 @@
 package net.masonapps.vrsolidmodeling.actions;
 
-import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
-import net.masonapps.vrsolidmodeling.modeling.ModelingProject;
+import net.masonapps.vrsolidmodeling.modeling.EditableNode;
+import net.masonapps.vrsolidmodeling.modeling.ModelingProject2;
 
 /**
  * Created by Bob Mason on 2/1/2018.
@@ -9,20 +9,20 @@ import net.masonapps.vrsolidmodeling.modeling.ModelingProject;
 
 public class AddAction extends Action {
 
-    private final ModelingProject project;
+    private final ModelingProject2 project;
 
-    public AddAction(ModelingEntity entity, ModelingProject project) {
+    public AddAction(EditableNode entity, ModelingProject2 project) {
         super(entity);
         this.project = project;
     }
 
     @Override
     public void redoAction() {
-        project.add(getEntity());
+        project.add(getNode());
     }
 
     @Override
     public void undoAction() {
-        project.remove(getEntity());
+        project.remove(getNode());
     }
 }

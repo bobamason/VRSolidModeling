@@ -2,9 +2,12 @@ package net.masonapps.vrsolidmodeling.modeling;
 
 import android.support.annotation.Nullable;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.Material;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
@@ -15,6 +18,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Pools;
+
+import net.masonapps.vrsolidmodeling.actions.TransformAction;
 
 /**
  * Created by Bob Mason on 2/9/2018.
@@ -29,7 +34,7 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     private BoundingBox bounds = new BoundingBox();
     private BoundingBox aabb = new BoundingBox();
 
-    public EditableNode(final Mesh mesh, final Material material) {
+    public EditableNode(final Mesh mesh) {
         super();
         final MeshPart meshPart = new MeshPart();
         meshPart.id = "part";
@@ -37,9 +42,16 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         meshPart.mesh = mesh;
         meshPart.offset = 0;
         meshPart.size = mesh.getNumIndices();
-        parts.add(new NodePart(meshPart, material));
+        parts.add(new NodePart(meshPart, createDefaultMaterial()));
         bounds.inf();
         extendBoundingBox(bounds, false);
+    }
+
+    public static Material createDefaultMaterial() {
+        return new Material(ColorAttribute.createAmbient(Color.BLACK),
+                ColorAttribute.createDiffuse(Color.GRAY),
+                ColorAttribute.createSpecular(Color.DARK_GRAY),
+                FloatAttribute.createShininess(8f));
     }
 
     @Nullable
@@ -86,6 +98,49 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         updated = true;
     }
 
+    @Override
+    public EditableNode copy() {
+        final NodePart nodePart = parts.get(0);
+        final EditableNode node = new EditableNode(nodePart.meshPart.mesh);
+        node.setDiffuseColor(getDiffuseColor());
+        return node;
+    }
+
+
+    public Color getDiffuseColor() {
+        final Material material = parts.get(0).material;
+        final ColorAttribute diffuse = (ColorAttribute) material.get(ColorAttribute.Diffuse);
+        return diffuse.color;
+    }
+
+    public void setDiffuseColor(Color color) {
+        final Material material = parts.get(0).material;
+        final ColorAttribute diffuse = (ColorAttribute) material.get(ColorAttribute.Diffuse);
+        if (diffuse != null)
+            diffuse.color.set(color);
+    }
+
+    public void setAmbientColor(Color color) {
+        final Material material = parts.get(0).material;
+        final ColorAttribute ambient = (ColorAttribute) material.get(ColorAttribute.Ambient);
+        if (ambient != null)
+            ambient.color.set(color);
+    }
+
+    public void setSpecularColor(Color color) {
+        final Material material = parts.get(0).material;
+        final ColorAttribute specular = (ColorAttribute) material.get(ColorAttribute.Specular);
+        if (specular != null)
+            specular.color.set(color);
+    }
+
+    public void setShininess(float value) {
+        final Material material = parts.get(0).material;
+        final FloatAttribute shininess = (FloatAttribute) material.get(FloatAttribute.Shininess);
+        if (shininess != null)
+            shininess.value = value;
+    }
+
     /**
      * Methods needed to make it compatible with other code written earlier
      * |
@@ -103,9 +158,24 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         return out.set(localTransform);
     }
 
+    public TransformAction.Transform getTransform(TransformAction.Transform out) {
+        validate();
+        out.position.set(getPosition());
+        out.rotation.set(getRotation());
+        out.scale.set(getScale());
+        return out;
+    }
+
     public Matrix4 getTransform() {
         validate();
         return localTransform;
+    }
+
+    public void setTransform(TransformAction.Transform transform) {
+        setPosition(transform.position);
+        setRotation(transform.rotation);
+        final Vector3 s = transform.scale;
+        setScale(s.x, s.y, s.z);
     }
 
     public EditableNode setScale(float x, float y, float z) {

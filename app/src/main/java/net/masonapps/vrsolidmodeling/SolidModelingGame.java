@@ -10,23 +10,11 @@ import android.util.Log;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
-import com.badlogic.gdx.assets.loaders.TextureLoader;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
-import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
@@ -40,7 +28,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.google.vr.sdk.audio.GvrAudioEngine;
 import com.google.vr.sdk.controller.Controller;
 
-import net.masonapps.vrsolidmodeling.environment.SkyDomeBuilder;
 import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
 import net.masonapps.vrsolidmodeling.modeling.BaseModelingProject;
 import net.masonapps.vrsolidmodeling.modeling.primitives.AssetPrimitive;
@@ -96,38 +83,6 @@ public class SolidModelingGame extends VrGame {
 //        return "sculpt_" + MathUtils.random(5000);
     }
 
-    private static Model createSkySphere(ModelBuilder builder, Texture texture, float radius) {
-        builder.begin();
-        final MeshPartBuilder part = builder.part("s", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.TextureCoordinates, new Material(TextureAttribute.createDiffuse(texture), IntAttribute.createCullFace(GL20.GL_FRONT)));
-        final float diameter = radius * 2f;
-        SkyDomeBuilder.build(part, diameter * 0.5f, 64, 16);
-        part.setVertexTransform(new Matrix4().setToTranslation(0, -2.0f, 0));
-
-        final MeshPartBuilder g1 = builder.part("g1", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal, new Material(ColorAttribute.createDiffuse(Color.DARK_GRAY)));
-        final int hsize = 16;
-        final float r2 = 12f * 12f;
-        for (int z = -hsize; z < hsize; z++) {
-            for (int x = -hsize; x < hsize; x++) {
-                if (Math.abs(x) % 2 == Math.abs(z) % 2) continue;
-                float y = -2.6f;
-                if (x * x + z * z > r2)
-                    y += MathUtils.random(4) * 0.25f + 0.25f;
-                BoxShapeBuilder.build(g1, x + 0.5f, y, z - 0.5f, 1f, 1f, 1f);
-            }
-        }
-        final MeshPartBuilder g2 = builder.part("g2", GL20.GL_TRIANGLES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal, new Material(ColorAttribute.createDiffuse(Color.GRAY)));
-        for (int z = -hsize; z < hsize; z++) {
-            for (int x = -hsize; x < hsize; x++) {
-                if (Math.abs(x) % 2 != Math.abs(z) % 2) continue;
-                float y = -2.6f;
-                if (x * x + z * z > r2)
-                    y += MathUtils.random(4) * 0.25f + 0.25f;
-                BoxShapeBuilder.build(g2, x + 0.5f, y, z - 0.5f, 1f, 1f, 1f);
-            }
-        }
-        return builder.end();
-    }
-
     @Override
     public void create() {
         super.create();
@@ -137,10 +92,10 @@ public class SolidModelingGame extends VrGame {
         setScreen(loadingScreen);
         skin = new Skin();
         loadAsset(Style.ATLAS_FILE, TextureAtlas.class);
-        final TextureLoader.TextureParameter textureParameter = new TextureLoader.TextureParameter();
-        textureParameter.minFilter = Texture.TextureFilter.Linear;
-        textureParameter.magFilter = Texture.TextureFilter.Linear;
-        loadAsset(Assets.SKY_TEXTURE, Texture.class, textureParameter);
+//        final TextureLoader.TextureParameter textureParameter = new TextureLoader.TextureParameter();
+//        textureParameter.minFilter = Texture.TextureFilter.Linear;
+//        textureParameter.magFilter = Texture.TextureFilter.Linear;
+        loadAsset(Assets.ROOM_MODEL, Model.class);
     }
 
     @Override
@@ -152,9 +107,7 @@ public class SolidModelingGame extends VrGame {
     @Override
     protected void doneLoading(AssetManager assets) {
         if (!isAtlasLoaded) {
-            final Texture skyTexture = assets.get(Assets.SKY_TEXTURE, Texture.class);
-            final Model skySphere = createSkySphere(new ModelBuilder(), skyTexture, getVrCamera().far - 10f);
-            roomInstance = new ModelInstance(skySphere, new Matrix4().rotate(Vector3.Y, 180));
+            roomInstance = new ModelInstance(assets.get(Assets.ROOM_MODEL, Model.class));
 
             final TextureAtlas atlas = assets.get(Style.ATLAS_FILE, TextureAtlas.class);
             getSkin().addRegions(atlas);
@@ -278,7 +231,8 @@ public class SolidModelingGame extends VrGame {
             if (modelingObjects != null) {
                 final int endIndex = fileName.lastIndexOf('.');
                 final String projectName = endIndex == -1 ? fileName : fileName.substring(0, endIndex);
-                GdxVr.app.postRunnable(() -> setScreen(new ModelingScreen(SolidModelingGame.this, projectName, modelingObjects)));
+                // FIXME: 2/12/2018 
+//                GdxVr.app.postRunnable(() -> setScreen(new ModelingScreen(SolidModelingGame.this, projectName, modelingObjects)));
             } else {
                 loadingFailed = true;
                 showError("unable to open project");
@@ -293,8 +247,9 @@ public class SolidModelingGame extends VrGame {
     }
 
     public void saveCurrentProject() {
-        if (modelingScreen != null)
-            saveCurrentProject(modelingScreen.getModelingProject(), modelingScreen.getProjectName());
+        // FIXME: 2/12/2018 
+//        if (modelingScreen != null)
+//            saveCurrentProject(modelingScreen.getModelingProject(), modelingScreen.getProjectName());
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -396,7 +351,8 @@ public class SolidModelingGame extends VrGame {
     public void closeModelingScreen() {
         if (modelingScreen == null) return;
         modelingScreen.hide();
-        saveCurrentProject(modelingScreen.getModelingProject(), modelingScreen.getProjectName());
+        // FIXME: 2/12/2018 
+//        saveCurrentProject(modelingScreen.getModelingProject(), modelingScreen.getProjectName());
         modelingScreen.dispose();
         modelingScreen = null;
     }

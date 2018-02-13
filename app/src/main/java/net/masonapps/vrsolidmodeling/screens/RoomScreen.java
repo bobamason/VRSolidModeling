@@ -46,7 +46,7 @@ public abstract class RoomScreen extends VrWorldScreen implements SolidModelingG
             public void render(ModelBatch batch, Environment environment) {
                 final ModelInstance roomInstance = solidModelingGame.getRoomInstance();
                 if (roomInstance != null)
-                    batch.render(roomInstance, getEnvironment());
+                    batch.render(roomInstance);
                 super.render(batch, environment);
             }
         };

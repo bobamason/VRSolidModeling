@@ -1,6 +1,6 @@
 package net.masonapps.vrsolidmodeling.actions;
 
-import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
+import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 
 /**
  * Created by Bob Mason on 2/1/2018.
@@ -8,17 +8,17 @@ import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
 
 public abstract class Action {
 
-    private final ModelingEntity entity;
+    private final EditableNode node;
 
-    public Action(ModelingEntity entity) {
-        this.entity = entity;
+    public Action(EditableNode node) {
+        this.node = node;
     }
 
     public abstract void redoAction();
 
     public abstract void undoAction();
 
-    public ModelingEntity getEntity() {
-        return entity;
+    public EditableNode getNode() {
+        return node;
     }
 }
