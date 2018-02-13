@@ -23,6 +23,7 @@ public abstract class RoomScreen extends VrWorldScreen implements SolidModelingG
         if (!(game instanceof SolidModelingGame))
             throw new IllegalArgumentException("game must be SculptingVrGame");
         solidModelingGame = (SolidModelingGame) game;
+        setBackgroundColor(Color.SKY);
     }
 
     @Override

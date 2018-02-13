@@ -662,11 +662,11 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
         api.initializeGl();
         checkGlError(TAG, "initializeGl");
 
-//        api.getScreenTargetSize(targetSize);
+        api.getScreenTargetSize(targetSize);
 //        Log.d(TAG, "getScreenTargetSize -> " + targetSize.toString());
-        api.getMaximumEffectiveRenderTargetSize(targetSize);
-        targetSize.x = (7 * targetSize.x) / 10;
-        targetSize.y = (7 * targetSize.y) / 10;
+//        api.getMaximumEffectiveRenderTargetSize(targetSize);
+//        targetSize.x = (7 * targetSize.x) / 10;
+//        targetSize.y = (7 * targetSize.y) / 10;
 //        Log.d(TAG, "getMaximumEffectiveRenderTargetSize -> " + targetSize.toString());
 
         BufferSpec[] specList = new BufferSpec[1];
@@ -674,7 +674,7 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
         bufferSpec.setColorFormat(BufferSpec.ColorFormat.RGBA_8888);
         bufferSpec.setDepthStencilFormat(BufferSpec.DepthStencilFormat.DEPTH_16);
         bufferSpec.setSize(targetSize);
-        bufferSpec.setSamples(2);
+        bufferSpec.setSamples(4);
         specList[INDEX_SCENE_BUFFER] = bufferSpec;
 
         swapChain = api.createSwapChain(specList);

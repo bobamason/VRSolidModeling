@@ -91,11 +91,11 @@ public class SolidModelingGame extends VrGame {
         loadingScreen = new LoadingScreen(this);
         setScreen(loadingScreen);
         skin = new Skin();
+        loadAsset(Assets.ROOM_MODEL, Model.class);
         loadAsset(Style.ATLAS_FILE, TextureAtlas.class);
 //        final TextureLoader.TextureParameter textureParameter = new TextureLoader.TextureParameter();
 //        textureParameter.minFilter = Texture.TextureFilter.Linear;
 //        textureParameter.magFilter = Texture.TextureFilter.Linear;
-        loadAsset(Assets.ROOM_MODEL, Model.class);
     }
 
     @Override
@@ -108,6 +108,7 @@ public class SolidModelingGame extends VrGame {
     protected void doneLoading(AssetManager assets) {
         if (!isAtlasLoaded) {
             roomInstance = new ModelInstance(assets.get(Assets.ROOM_MODEL, Model.class));
+            roomInstance.transform.idt().translate(0, 0, -4).scale(0.05f, 0.05f, 0.05f);
 
             final TextureAtlas atlas = assets.get(Style.ATLAS_FILE, TextureAtlas.class);
             getSkin().addRegions(atlas);

@@ -332,13 +332,6 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         return builder.end();
     }
 
-    protected static void drawEntityBounds(ShapeRenderer shapeRenderer, EditableNode entity, Color color) {
-        shapeRenderer.setColor(color);
-        shapeRenderer.setTransformMatrix(entity.getTransform());
-        final BoundingBox bounds = entity.getAABB();
-        drawBounds(shapeRenderer, bounds);
-    }
-
     protected static void debugAABBTree(ShapeRenderer shapeRenderer, ModelingProject modelingProject, Color color) {
         shapeRenderer.setColor(color);
         shapeRenderer.setTransformMatrix(modelingProject.getTransform());
@@ -361,6 +354,13 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private static void drawBounds(ShapeRenderer shapeRenderer, BoundingBox bounds) {
         shapeRenderer.box(bounds.min.x, bounds.min.y, bounds.max.z,
                 bounds.getWidth(), bounds.getHeight(), bounds.getDepth());
+    }
+
+    protected void drawEntityBounds(ShapeRenderer shapeRenderer, EditableNode entity, Color color) {
+        shapeRenderer.setColor(color);
+        shapeRenderer.setTransformMatrix(modelingProject.getTransform());
+        final BoundingBox bounds = entity.getAABB();
+        drawBounds(shapeRenderer, bounds);
     }
 
     protected void setEditMode(EditModeTable.EditMode mode) {
