@@ -658,9 +658,10 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             case STATE_NONE:
                 if (mainInterface.isCursorOver())
                     currentInputMode = InputMode.UI;
-                else if (transformUI.performRayTest(getControllerRay()))
+                else if (transformUI.performRayTest(getControllerRay())) {
+                    hitPoint.set(transformUI.getHitPoint3D());
                     currentInputMode = InputMode.EDIT;
-                else if (modelingProject.rayTest(getControllerRay(), intersectionInfo)) {
+                } else if (modelingProject.rayTest(getControllerRay(), intersectionInfo)) {
                     hitPoint.set(intersectionInfo.hitPoint);
                     focusedEntity = (EditableNode) intersectionInfo.object;
                     currentInputMode = InputMode.SELECT;

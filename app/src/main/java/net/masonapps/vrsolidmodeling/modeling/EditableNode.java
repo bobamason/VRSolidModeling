@@ -100,8 +100,14 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
 
     @Override
     public EditableNode copy() {
+        validate();
         final NodePart nodePart = parts.get(0);
         final EditableNode node = new EditableNode(nodePart.meshPart.mesh);
+        node.translation.set(translation);
+        node.rotation.set(rotation);
+        node.scale.set(scale);
+        node.localTransform.set(localTransform);
+        node.globalTransform.set(globalTransform);
         node.setDiffuseColor(getDiffuseColor());
         return node;
     }

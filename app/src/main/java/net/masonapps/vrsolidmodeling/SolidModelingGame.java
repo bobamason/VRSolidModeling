@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
@@ -96,6 +97,8 @@ public class SolidModelingGame extends VrGame {
 //        final TextureLoader.TextureParameter textureParameter = new TextureLoader.TextureParameter();
 //        textureParameter.minFilter = Texture.TextureFilter.Linear;
 //        textureParameter.magFilter = Texture.TextureFilter.Linear;
+
+        GdxVr.graphics.setPostProcessingShader(new ShaderProgram(Gdx.files.internal("shaders/post.vertex.glsl"), Gdx.files.internal("shaders/post.fragment.glsl")));
     }
 
     @Override

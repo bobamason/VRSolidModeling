@@ -24,6 +24,7 @@ import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.TextureArray;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.FrameBuffer;
 import com.badlogic.gdx.graphics.glutils.GLVersion;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
@@ -118,6 +119,10 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
     private float ppcX = 0;
     private float ppcY = 0;
     private float density = 1;
+    private ShaderProgram postProcessingShader = null;
+    private SpriteBatch spriteBatch;
+    private FrameBuffer fbo;
+    private Matrix4 postProjection = new Matrix4();
 
     public VrGraphics(VrActivity.VrApplication application, WeakReference<GLSurfaceView> surfaceViewRef, GvrApi api, GvrAudioEngine gvrAudioEngine) {
         this.app = application;
@@ -206,16 +211,16 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
      * {@inheritDoc}
      */
     @Override
-    public int getHeight() {
-        return targetSize.y;
+    public int getWidth() {
+        return targetSize.x;
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public int getWidth() {
-        return targetSize.x;
+    public int getHeight() {
+        return targetSize.y;
     }
 
     @Override
@@ -299,6 +304,15 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
         }
         app.getApplicationListener().dispose();
         clearManagedCaches();
+        if (spriteBatch != null) {
+            spriteBatch.dispose();
+            spriteBatch = null;
+        }
+        if (fbo != null) {
+            fbo.dispose();
+            fbo = null;
+        }
+        shutdown();
     }
 
     /**
@@ -652,15 +666,12 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                GdxVr.app.getVrApplicationAdapter().preloadSoundFiles(gvrAudioEngine);
-            }
-        }).start();
+        new Thread(() -> GdxVr.app.getVrApplicationAdapter().preloadSoundFiles(gvrAudioEngine)).start();
         
         api.initializeGl();
         checkGlError(TAG, "initializeGl");
+
+        spriteBatch = new SpriteBatch(1);
 
         api.getScreenTargetSize(targetSize);
 //        Log.d(TAG, "getScreenTargetSize -> " + targetSize.toString());
@@ -674,7 +685,8 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
         bufferSpec.setColorFormat(BufferSpec.ColorFormat.RGBA_8888);
         bufferSpec.setDepthStencilFormat(BufferSpec.DepthStencilFormat.DEPTH_16);
         bufferSpec.setSize(targetSize);
-        bufferSpec.setSamples(4);
+        bufferSpec.setSamples(1);
+        fbo = new FrameBuffer(Pixmap.Format.RGB565, targetSize.x, targetSize.y, true);
         specList[INDEX_SCENE_BUFFER] = bufferSpec;
 
         swapChain = api.createSwapChain(specList);
@@ -731,20 +743,34 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
         // describes how the video Surface frame should be transformed and rendered in eye space.
         api.getRecommendedBufferViewports(recommendedList);
 
-        setEye(0, leftEye);
-        setEye(1, rightEye);
+        final Texture colorBufferTexture = fbo.getColorBufferTexture();
+        setEye(0, leftEye, colorBufferTexture.getWidth(), colorBufferTexture.getHeight());
+        setEye(1, rightEye, colorBufferTexture.getWidth(), colorBufferTexture.getHeight());
 
-        frame.bindBuffer(INDEX_SCENE_BUFFER);
+        fbo.begin();
 
         onDrawFrame();
         checkGlError(TAG, "new frame");
 
+        fbo.end(0, 0, targetSize.x, targetSize.y);
+
+        frame.bindBuffer(INDEX_SCENE_BUFFER);
+
+        spriteBatch.begin();
+        final int w = targetSize.x;
+        final int h = targetSize.y;
+        postProjection.setToOrtho2D(0, 0, w, h);
+        spriteBatch.setProjectionMatrix(postProjection);
+        spriteBatch.setShader(postProcessingShader);
+        spriteBatch.draw(colorBufferTexture, w, h);
+        spriteBatch.end();
+        
         frame.unbind();
         frame.submit(viewportList, headTransform.getHeadView());
         checkGlError(TAG, "submit frame");
     }
 
-    private void setEye(int i, Eye eye) {
+    private void setEye(int i, Eye eye, int w, int h) {
         recommendedList.get(i, scratchViewport);
         scratchViewport.setReprojection(BufferViewport.Reprojection.FULL);
         scratchViewport.setSourceBufferIndex(INDEX_SCENE_BUFFER);
@@ -755,10 +781,14 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
 
         eye.getFov().setAngles(eyeFov.left, eyeFov.right, eyeFov.bottom, eyeFov.top);
 
-        eye.getViewport().x = (int) (eyeUv.left * targetSize.x);
-        eye.getViewport().y = (int) (eyeUv.bottom * targetSize.y);
-        eye.getViewport().width = (int) (eyeUv.width() * targetSize.x);
-        eye.getViewport().height = (int) (-eyeUv.height() * targetSize.y);
+        eye.getViewport().x = (int) (eyeUv.left * w);
+        eye.getViewport().y = (int) (eyeUv.bottom * h);
+        eye.getViewport().width = (int) (eyeUv.width() * w);
+        eye.getViewport().height = (int) (-eyeUv.height() * h);
+    }
+
+    public void setPostProcessingShader(ShaderProgram postProcessingShader) {
+        this.postProcessingShader = postProcessingShader;
     }
 
     public GvrAudioEngine getGvrAudioEngine() {
