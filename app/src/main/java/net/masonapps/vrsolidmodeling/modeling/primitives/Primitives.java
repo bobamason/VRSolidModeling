@@ -39,8 +39,8 @@ public class Primitives {
                 new PrimitiveSelector.PrimitiveItem(Primitives.KEY_CUBE, "Cube", Style.Drawables.ic_shape_cube),
                 new PrimitiveSelector.PrimitiveItem(Primitives.KEY_SPHERE, "Sphere", Style.Drawables.ic_shape_sphere),
                 new PrimitiveSelector.PrimitiveItem(Primitives.KEY_CYLINDER, "Cylinder", Style.Drawables.ic_shape_cylinder),
-                new PrimitiveSelector.PrimitiveItem(Primitives.KEY_CONE, "Cone", Style.Drawables.ic_shape_cube),
-                new PrimitiveSelector.PrimitiveItem(Primitives.KEY_TORUS, "Torus", Style.Drawables.ic_shape_cube));
+                new PrimitiveSelector.PrimitiveItem(Primitives.KEY_CONE, "Cone", Style.Drawables.ic_shape_cone),
+                new PrimitiveSelector.PrimitiveItem(Primitives.KEY_TORUS, "Torus", Style.Drawables.ic_shape_torus));
     }
 
     public static HashMap<String, Primitive> getMap() {
