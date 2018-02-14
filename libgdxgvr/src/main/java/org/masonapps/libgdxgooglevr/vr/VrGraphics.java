@@ -119,6 +119,7 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
     private float ppcX = 0;
     private float ppcY = 0;
     private float density = 1;
+    @Nullable
     private ShaderProgram postProcessingShader = null;
     private SpriteBatch spriteBatch;
     private FrameBuffer fbo;
@@ -312,7 +313,7 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
             fbo.dispose();
             fbo = null;
         }
-        shutdown();
+//        shutdown();
     }
 
     /**
@@ -667,7 +668,18 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
     @Override
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         new Thread(() -> GdxVr.app.getVrApplicationAdapter().preloadSoundFiles(gvrAudioEngine)).start();
-        
+
+//        eglContext = ((EGL10) EGLContext.getEGL()).eglGetCurrentContext();
+        gl20 = new AndroidGL20();
+        Gdx.gl = gl20;
+        GdxVr.gl = gl20;
+        Gdx.gl20 = gl20;
+        GdxVr.gl20 = gl20;
+        String versionString = Gdx.gl.glGetString(GL10.GL_VERSION);
+        String vendorString = Gdx.gl.glGetString(GL10.GL_VENDOR);
+        String rendererString = Gdx.gl.glGetString(GL10.GL_RENDERER);
+        glVersion = new GLVersion(Application.ApplicationType.Android, versionString, vendorString, rendererString);
+
         api.initializeGl();
         checkGlError(TAG, "initializeGl");
 
@@ -694,16 +706,6 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
             spec.shutdown();
         }
 
-//        eglContext = ((EGL10) EGLContext.getEGL()).eglGetCurrentContext();
-        gl20 = new AndroidGL20();
-        Gdx.gl = gl20;
-        GdxVr.gl = gl20;
-        Gdx.gl20 = gl20;
-        GdxVr.gl20 = gl20;
-        String versionString = Gdx.gl.glGetString(GL10.GL_VERSION);
-        String vendorString = Gdx.gl.glGetString(GL10.GL_VENDOR);
-        String rendererString = Gdx.gl.glGetString(GL10.GL_RENDERER);
-        glVersion = new GLVersion(Application.ApplicationType.Android, versionString, vendorString, rendererString);
         updatePpi();
 
         Mesh.invalidateAllMeshes(app);
@@ -738,14 +740,14 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
         Matrix.multiplyMM(leftEye.getEyeView(), 0, tempMatrix, 0, headTransform.getHeadView(), 0);
         api.getEyeFromHeadMatrix(1, tempMatrix);
         Matrix.multiplyMM(rightEye.getEyeView(), 0, tempMatrix, 0, headTransform.getHeadView(), 0);
-        // Populate the BufferViewportList to describe to the GvrApi how the color buffer
-        // and video frame ExternalSurface buffer should be rendered. The eyeFromQuad matrix
-        // describes how the video Surface frame should be transformed and rendered in eye space.
+
         api.getRecommendedBufferViewports(recommendedList);
 
         final Texture colorBufferTexture = fbo.getColorBufferTexture();
-        setEye(0, leftEye, colorBufferTexture.getWidth(), colorBufferTexture.getHeight());
-        setEye(1, rightEye, colorBufferTexture.getWidth(), colorBufferTexture.getHeight());
+        final int textureWidth = colorBufferTexture.getWidth();
+        final int textureHeight = colorBufferTexture.getHeight();
+        setEye(0, leftEye, textureWidth, textureHeight);
+        setEye(1, rightEye, textureWidth, textureHeight);
 
         fbo.begin();
 
@@ -755,16 +757,24 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
         fbo.end(0, 0, targetSize.x, targetSize.y);
 
         frame.bindBuffer(INDEX_SCENE_BUFFER);
+        Gdx.gl.glClearColor(0f, 0.1f, 0.2f, 1f);
+        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
         spriteBatch.begin();
         final int w = targetSize.x;
         final int h = targetSize.y;
         postProjection.setToOrtho2D(0, 0, w, h);
         spriteBatch.setProjectionMatrix(postProjection);
-        spriteBatch.setShader(postProcessingShader);
-        spriteBatch.draw(colorBufferTexture, w, h);
+        try {
+            if (postProcessingShader != null) {
+                postProcessingShader.setUniformf("resolution", textureWidth, textureHeight);
+            }
+        } catch (Exception e) {
+            Logger.e("shader error", e);
+        }
+        spriteBatch.draw(colorBufferTexture, 0, 0, w, h, 0, 0, textureWidth, textureHeight, false, true);
         spriteBatch.end();
-        
+
         frame.unbind();
         frame.submit(viewportList, headTransform.getHeadView());
         checkGlError(TAG, "submit frame");
@@ -788,7 +798,13 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
     }
 
     public void setPostProcessingShader(ShaderProgram postProcessingShader) {
-        this.postProcessingShader = postProcessingShader;
+        if (postProcessingShader.isCompiled()) {
+            Logger.d("post processing shader program log:\n" + postProcessingShader.getLog());
+            this.postProcessingShader = postProcessingShader;
+            spriteBatch.setShader(postProcessingShader);
+        } else {
+            Logger.e("post processing shader program failed to compile:\n" + postProcessingShader.getLog());
+        }
     }
 
     public GvrAudioEngine getGvrAudioEngine() {

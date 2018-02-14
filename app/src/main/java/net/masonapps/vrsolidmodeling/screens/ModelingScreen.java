@@ -48,7 +48,6 @@ import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
 import net.masonapps.vrsolidmodeling.modeling.AABBTree;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
-import net.masonapps.vrsolidmodeling.modeling.ModelingProject;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProject2;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.modeling.transform.RotateWidget;
@@ -152,6 +151,10 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             @Override
             public void onTransformFinished(@NonNull EditableNode entity) {
                 undoRedoCache.save(new TransformAction(entity, oldTransform, entity.getTransform(new TransformAction.Transform())));
+                final AABBTree.LeafNode leafNode = entity.getNode();
+                if (leafNode != null)
+                    leafNode.refit();
+                setSelectedEntity(entity);
             }
         };
         translateWidget.setListener(transformActionListener);
@@ -332,7 +335,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         return builder.end();
     }
 
-    protected static void debugAABBTree(ShapeRenderer shapeRenderer, ModelingProject modelingProject, Color color) {
+    protected static void debugAABBTree(ShapeRenderer shapeRenderer, ModelingProject2 modelingProject, Color color) {
         shapeRenderer.setColor(color);
         shapeRenderer.setTransformMatrix(modelingProject.getTransform());
         Queue<AABBTree.Node> queue = new LinkedList<>();
@@ -516,7 +519,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             drawEntityBounds(shapeRenderer, selectedEntity, Color.WHITE);
         }
         shapeRenderer.end();
-        
+
         mainInterface.draw(camera);
     }
 

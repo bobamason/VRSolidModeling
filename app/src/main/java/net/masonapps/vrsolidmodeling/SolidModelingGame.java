@@ -98,7 +98,12 @@ public class SolidModelingGame extends VrGame {
 //        textureParameter.minFilter = Texture.TextureFilter.Linear;
 //        textureParameter.magFilter = Texture.TextureFilter.Linear;
 
-        GdxVr.graphics.setPostProcessingShader(new ShaderProgram(Gdx.files.internal("shaders/post.vertex.glsl"), Gdx.files.internal("shaders/post.fragment.glsl")));
+        final String vertexShader = Gdx.files.internal("shaders/fxaa.vertex.glsl").readString();
+        final String fragmentShader = Gdx.files.internal("shaders/fxaa.fragment.glsl").readString();
+        Logger.d("post processing vertex shader:\n" + vertexShader);
+        Logger.d("post processing fragment shader:\n" + fragmentShader);
+        final ShaderProgram postProcessingShader = new ShaderProgram(vertexShader, fragmentShader);
+        GdxVr.graphics.setPostProcessingShader(postProcessingShader);
     }
 
     @Override

@@ -13,7 +13,7 @@ precision highp float;
 #define FXAA_REDUCE_MUL   (1.0 / 8.0)
 #define FXAA_SPAN_MAX 8.0
 
-uniform vec2 u_texture0;
+uniform sampler2D u_texture;
 
 varying vec2 v_rgbNW;
 varying vec2 v_rgbNE;
@@ -22,15 +22,17 @@ varying vec2 v_rgbSE;
 varying vec2 v_rgbM;
 varying vec2 v_tc;
 
+uniform vec2 resolution;
+
 void main(){
-    vec2 fragCoord = v_tc * iResolution;
+    vec2 fragCoord = v_tc * resolution;
     vec4 color;
     vec2 inverseVP = vec2(1.0 / resolution.x, 1.0 / resolution.y);
-    vec3 rgbNW = texture2D(u_texture0, v_rgbNW).xyz;
-    vec3 rgbNE = texture2D(u_texture0, v_rgbNE).xyz;
-    vec3 rgbSW = texture2D(u_texture0, v_rgbSW).xyz;
-    vec3 rgbSE = texture2D(u_texture0, v_rgbSE).xyz;
-    vec4 texColor = texture2D(u_texture0, v_rgbM);
+    vec3 rgbNW = texture2D(u_texture, v_rgbNW).xyz;
+    vec3 rgbNE = texture2D(u_texture, v_rgbNE).xyz;
+    vec3 rgbSW = texture2D(u_texture, v_rgbSW).xyz;
+    vec3 rgbSE = texture2D(u_texture, v_rgbSE).xyz;
+    vec4 texColor = texture2D(u_texture, v_rgbM);
     vec3 rgbM  = texColor.xyz;
     vec3 luma = vec3(0.299, 0.587, 0.114);
     float lumaNW = dot(rgbNW, luma);
@@ -54,9 +56,9 @@ void main(){
               dir * rcpDirMin)) * inverseVP;
     
     vec3 rgbA = 0.5 * (
-        texture2D(u_texture0, fragCoord * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +
-        texture2D(u_texture0, fragCoord * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);
-    vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(u_texture0, fragCoord * inverseVP + dir * -0.5).xyz + texture2D(u_texture0, fragCoord * inverseVP + dir * 0.5).xyz);
+        texture2D(u_texture, fragCoord * inverseVP + dir * (1.0 / 3.0 - 0.5)).xyz +
+        texture2D(u_texture, fragCoord * inverseVP + dir * (2.0 / 3.0 - 0.5)).xyz);
+    vec3 rgbB = rgbA * 0.5 + 0.25 * (texture2D(u_texture, fragCoord * inverseVP + dir * -0.5).xyz + texture2D(u_texture, fragCoord * inverseVP + dir * 0.5).xyz);
 
     float lumaB = dot(rgbB, luma);
     if ((lumaB < lumaMin) || (lumaB > lumaMax))

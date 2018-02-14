@@ -108,4 +108,8 @@ public class ModelingProject2 extends Entity {
             modelInstance = null;
         }
     }
+
+    public AABBTree getAABBTree() {
+        return aabbTree;
+    }
 }

@@ -14,8 +14,7 @@ uniform vec2 resolution;
 void main() {
 	gl_Position = u_projTrans * a_position;
 	
-	v_tc = (position.xy + vec2(1.0, 1.0)) * 0.5;
-    v_tc.y = 1.0 - v_tc.y;
+	v_tc = a_texCoord0;
     vec2 fragCoord = v_tc * resolution;
     vec2 inverseVP = vec2(1.0 / resolution.x, 1.0 / resolution.y);
     v_rgbNW = (fragCoord + vec2(-1.0, -1.0)) * inverseVP;

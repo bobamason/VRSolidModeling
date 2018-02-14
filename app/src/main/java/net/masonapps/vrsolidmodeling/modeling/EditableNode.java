@@ -67,6 +67,7 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
 
     @Override
     public BoundingBox getAABB() {
+        validate();
         return aabb;
     }
 
