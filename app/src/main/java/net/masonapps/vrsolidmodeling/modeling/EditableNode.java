@@ -5,6 +5,8 @@ import android.support.annotation.Nullable;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
+import com.badlogic.gdx.graphics.VertexAttribute;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
@@ -20,6 +22,12 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Pools;
 
 import net.masonapps.vrsolidmodeling.actions.TransformAction;
+import net.masonapps.vrsolidmodeling.io.Base64Utils;
+import net.masonapps.vrsolidmodeling.io.JsonUtils;
+import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Created by Bob Mason on 2/9/2018.
@@ -27,12 +35,31 @@ import net.masonapps.vrsolidmodeling.actions.TransformAction;
 
 public class EditableNode extends Node implements AABBTree.AABBObject {
 
+    public static final String KEY_PRIMITIVE = "primitive";
+    public static final String KEY_MESH = "mesh";
+    public static final String KEY_VERTEX_COUNT = "numVertices";
+    public static final String KEY_VERTICES = "vertices";
+    public static final String KEY_INDEX_COUNT = "numIndices";
+    public static final String KEY_INDICES = "indices";
+    public static final String KEY_POSITION = "position";
+    public static final String KEY_ROTATION = "rotation";
+    public static final String KEY_SCALE = "scale";
+    public static final String KEY_AMBIENT = "ambient";
+    public static final String KEY_DIFFUSE = "diffuse";
+    public static final String KEY_SPECULAR = "specular";
+    public static final String KEY_SHININESS = "shininess";
     protected final Matrix4 inverseTransform = new Matrix4();
     private boolean updated = false;
     @Nullable
     private AABBTree.LeafNode leafNode = null;
     private BoundingBox bounds = new BoundingBox();
     private BoundingBox aabb = new BoundingBox();
+    private String primitiveKey = KEY_MESH;
+
+    public EditableNode(String primitiveKey) {
+        this(Primitives.getPrimitiveMesh(primitiveKey));
+        this.primitiveKey = primitiveKey;
+    }
 
     public EditableNode(final Mesh mesh) {
         super();
@@ -52,6 +79,51 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
                 ColorAttribute.createDiffuse(Color.GRAY),
                 ColorAttribute.createSpecular(Color.DARK_GRAY),
                 FloatAttribute.createShininess(8f));
+    }
+
+    public static EditableNode fromJSONObject(JSONObject jsonObject) throws JSONException {
+        final String primitiveKey = jsonObject.optString(KEY_PRIMITIVE, KEY_MESH);
+        final EditableNode editableNode;
+        if (primitiveKey.equals(KEY_MESH)) {
+            if (jsonObject.has(KEY_MESH))
+                editableNode = new EditableNode(parseMesh(jsonObject.getJSONObject(KEY_MESH)));
+            else
+                editableNode = new EditableNode(Primitives.getPrimitiveMesh(Primitives.KEY_CUBE));
+        } else {
+            editableNode = new EditableNode(primitiveKey);
+        }
+        final Color ambient = Color.valueOf(jsonObject.optString(KEY_AMBIENT, "000000FF"));
+        final Color diffuse = Color.valueOf(jsonObject.optString(KEY_DIFFUSE, "7F7F7FFF"));
+        final Color specular = Color.valueOf(jsonObject.optString(KEY_SPECULAR, "000000FF"));
+        final float shininess = (float) jsonObject.optDouble(KEY_SHININESS, 8.);
+        editableNode.setAmbientColor(ambient);
+        editableNode.setDiffuseColor(diffuse);
+        editableNode.setSpecularColor(specular);
+        editableNode.setShininess(shininess);
+        editableNode.translation.fromString(jsonObject.optString(KEY_POSITION, "(0.0,0.0,0.0)"));
+        final String rotationString = jsonObject.optString(KEY_ROTATION, "(0.0,0.0,0.0,1.0)");
+        editableNode.rotation.set(JsonUtils.quaternionFromString(rotationString));
+        editableNode.scale.fromString(jsonObject.optString(KEY_SCALE, "(0.0,0.0,0.0)"));
+        editableNode.calculateTransforms(false);
+        return editableNode;
+    }
+
+    private static Mesh parseMesh(JSONObject jsonObject) throws JSONException {
+        final int numVertices = jsonObject.getInt(KEY_VERTEX_COUNT);
+        final int numIndices = jsonObject.getInt(KEY_INDEX_COUNT);
+        final VertexAttributes vertexAttributes = new VertexAttributes(VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0));
+        final Mesh mesh = new Mesh(true, true, numVertices, numIndices, vertexAttributes);
+
+        final String vertexString = jsonObject.getString(KEY_VERTICES);
+        final float[] vertices = new float[vertexAttributes.vertexSize / Float.BYTES * numVertices];
+        Base64Utils.decodeFloatArray(vertexString, vertices);
+        mesh.setVertices(vertices);
+
+        final String indexString = jsonObject.getString(KEY_INDICES);
+        final short[] indices = new short[numIndices];
+        Base64Utils.decodeShortArray(indexString, indices);
+        mesh.setIndices(indices);
+        return mesh;
     }
 
     @Nullable
@@ -103,7 +175,11 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     public EditableNode copy() {
         validate();
         final NodePart nodePart = parts.get(0);
-        final EditableNode node = new EditableNode(nodePart.meshPart.mesh);
+        final EditableNode node;
+        if (primitiveKey.equals(KEY_MESH))
+            node = new EditableNode(nodePart.meshPart.mesh);
+        else
+            node = new EditableNode(primitiveKey);
         node.translation.set(translation);
         node.rotation.set(rotation);
         node.scale.set(scale);
@@ -113,6 +189,18 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         return node;
     }
 
+    public Color getAmbientColor() {
+        final Material material = parts.get(0).material;
+        final ColorAttribute ambient = (ColorAttribute) material.get(ColorAttribute.Ambient);
+        return ambient.color;
+    }
+
+    public void setAmbientColor(Color color) {
+        final Material material = parts.get(0).material;
+        final ColorAttribute ambient = (ColorAttribute) material.get(ColorAttribute.Ambient);
+        if (ambient != null)
+            ambient.color.set(color);
+    }
 
     public Color getDiffuseColor() {
         final Material material = parts.get(0).material;
@@ -127,11 +215,10 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
             diffuse.color.set(color);
     }
 
-    public void setAmbientColor(Color color) {
+    public Color getSpecularColor() {
         final Material material = parts.get(0).material;
-        final ColorAttribute ambient = (ColorAttribute) material.get(ColorAttribute.Ambient);
-        if (ambient != null)
-            ambient.color.set(color);
+        final ColorAttribute specular = (ColorAttribute) material.get(ColorAttribute.Specular);
+        return specular.color;
     }
 
     public void setSpecularColor(Color color) {
@@ -141,11 +228,49 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
             specular.color.set(color);
     }
 
+    public float getShininess() {
+        final Material material = parts.get(0).material;
+        final FloatAttribute shininess = (FloatAttribute) material.get(FloatAttribute.Shininess);
+        return shininess.value;
+    }
+
     public void setShininess(float value) {
         final Material material = parts.get(0).material;
         final FloatAttribute shininess = (FloatAttribute) material.get(FloatAttribute.Shininess);
         if (shininess != null)
             shininess.value = value;
+    }
+
+    public JSONObject toJSONObject() throws JSONException {
+        validate();
+        final JSONObject jsonObject = new JSONObject();
+        jsonObject.put(KEY_PRIMITIVE, primitiveKey);
+        if (primitiveKey.equals(KEY_MESH)) {
+            jsonObject.put(KEY_MESH, meshToJsonObject(parts.get(0).meshPart.mesh));
+        }
+        jsonObject.put(KEY_AMBIENT, getAmbientColor().toString());
+        jsonObject.put(KEY_DIFFUSE, getDiffuseColor().toString());
+        jsonObject.put(KEY_SPECULAR, getSpecularColor().toString());
+        jsonObject.put(KEY_SHININESS, getShininess());
+        jsonObject.put(KEY_POSITION, translation.toString());
+        jsonObject.put(KEY_ROTATION, JsonUtils.quaternionToString(rotation));
+        jsonObject.put(KEY_SCALE, scale.toString());
+        return jsonObject;
+    }
+
+    private JSONObject meshToJsonObject(Mesh mesh) throws JSONException {
+        final JSONObject jsonObject = new JSONObject();
+        final int numVertices = mesh.getNumVertices();
+        final int numIndices = mesh.getNumIndices();
+        final float[] vertices = new float[mesh.getVertexSize() / Float.BYTES * numVertices];
+        mesh.getVertices(vertices);
+        final short[] indices = new short[numIndices];
+        mesh.getIndices(indices);
+        jsonObject.put(KEY_VERTEX_COUNT, numVertices);
+        jsonObject.put(KEY_INDEX_COUNT, numIndices);
+        jsonObject.put(KEY_VERTICES, Base64Utils.encode(vertices));
+        jsonObject.put(KEY_INDICES, Base64Utils.encode(indices));
+        return jsonObject;
     }
 
     /**

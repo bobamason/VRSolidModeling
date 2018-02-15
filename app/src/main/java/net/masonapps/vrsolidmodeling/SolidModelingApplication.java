@@ -5,7 +5,7 @@ import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.math.Matrix4;
 
-import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
+import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ public class SolidModelingApplication extends Application {
 
     private final Matrix4 transform = new Matrix4();
     @Nullable
-    private List<ModelingObject> modelingObjects = null;
+    private List<EditableNode> modelingObjects = null;
 
     @Override
     public void onCreate() {
@@ -31,11 +31,11 @@ public class SolidModelingApplication extends Application {
     }
 
     @Nullable
-    public List<ModelingObject> getModelingObjects() {
+    public List<EditableNode> getModelingObjects() {
         return modelingObjects;
     }
 
-    public void setModelingProject(@Nullable List<ModelingObject> objectList, Matrix4 transform) {
+    public void setModelingProject(@Nullable List<EditableNode> objectList, Matrix4 transform) {
         this.modelingObjects = objectList;
         this.transform.set(transform);
     }

@@ -1,5 +1,6 @@
 package net.masonapps.vrsolidmodeling.io;
 
+import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitive;
 
@@ -38,6 +39,14 @@ public class ProjectFileIO {
         return objects;
     }
 
+    public static List<EditableNode> fromJSONArray(JSONArray jsonArray) throws JSONException {
+        final ArrayList<EditableNode> objects = new ArrayList<>(jsonArray.length());
+        for (int i = 0; i < jsonArray.length(); i++) {
+            objects.add(EditableNode.fromJSONObject(jsonArray.getJSONObject(i)));
+        }
+        return objects;
+    }
+
     public static void saveFile(File file, List<ModelingObject> objects) throws IOException, JSONException {
         BufferedWriter writer = null;
         try {
@@ -50,9 +59,9 @@ public class ProjectFileIO {
         }
     }
 
-    public static List<ModelingObject> loadFile(File file, HashMap<String, Primitive> primitiveMap) throws IOException, JSONException {
+    public static List<EditableNode> loadFile(File file) throws IOException, JSONException {
         BufferedReader reader = null;
-        final ArrayList<ModelingObject> objects = new ArrayList<>();
+        final ArrayList<EditableNode> objects = new ArrayList<>();
         try {
             reader = new BufferedReader(new FileReader(file));
             final StringBuilder sb = new StringBuilder();
@@ -61,7 +70,7 @@ public class ProjectFileIO {
             while ((count = reader.read(buffer)) != -1) {
                 sb.append(buffer, 0, count);
             }
-            objects.addAll(fromJSONArray(new JSONArray(sb.toString()), primitiveMap));
+            objects.addAll(fromJSONArray(new JSONArray(sb.toString())));
         } finally {
             if (reader != null)
                 reader.close();

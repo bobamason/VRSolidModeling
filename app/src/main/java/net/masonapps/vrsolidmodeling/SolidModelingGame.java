@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
@@ -30,7 +31,8 @@ import com.google.vr.sdk.audio.GvrAudioEngine;
 import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
-import net.masonapps.vrsolidmodeling.modeling.BaseModelingProject;
+import net.masonapps.vrsolidmodeling.modeling.EditableNode;
+import net.masonapps.vrsolidmodeling.modeling.ModelingProject2;
 import net.masonapps.vrsolidmodeling.modeling.primitives.AssetPrimitive;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.screens.ExportScreen;
@@ -227,7 +229,7 @@ public class SolidModelingGame extends VrGame {
         CompletableFuture.supplyAsync(() -> {
             try {
                 setLoadingScreenMessage("loading project...");
-                return ProjectFileIO.loadFile(file, Primitives.getMap());
+                return ProjectFileIO.loadFile(file);
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new CompletionException(e);
@@ -240,8 +242,7 @@ public class SolidModelingGame extends VrGame {
             if (modelingObjects != null) {
                 final int endIndex = fileName.lastIndexOf('.');
                 final String projectName = endIndex == -1 ? fileName : fileName.substring(0, endIndex);
-                // FIXME: 2/12/2018 
-//                GdxVr.app.postRunnable(() -> setScreen(new ModelingScreen(SolidModelingGame.this, projectName, modelingObjects)));
+                GdxVr.app.postRunnable(() -> setScreen(new ModelingScreen(SolidModelingGame.this, projectName, modelingObjects)));
             } else {
                 loadingFailed = true;
                 showError("unable to open project");
@@ -256,17 +257,21 @@ public class SolidModelingGame extends VrGame {
     }
 
     public void saveCurrentProject() {
-        // FIXME: 2/12/2018 
-//        if (modelingScreen != null)
-//            saveCurrentProject(modelingScreen.getModelingProject(), modelingScreen.getProjectName());
+        if (modelingScreen != null)
+            saveCurrentProject(modelingScreen.getModelingProject(), modelingScreen.getProjectName());
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    private void saveCurrentProject(final BaseModelingProject modelingProject, final String projectName) {
+    @SuppressWarnings("ConstantConditions")
+    private void saveCurrentProject(final ModelingProject2 modelingProject, final String projectName) {
         Log.d(Constants.APP_NAME, "saving project " + projectName + "...");
         Activity activity = GdxVr.app.getActivityWeakReference().get();
         if (activity != null) {
-            ((SolidModelingApplication) activity.getApplication()).setModelingProject(new ArrayList<>(modelingProject.getModelingObjectList()), new Matrix4());
+            final ArrayList<EditableNode> list = new ArrayList<>();
+            for (Node node : modelingProject.modelInstance.nodes) {
+                if (node instanceof EditableNode)
+                    list.add((EditableNode) node);
+            }
+            ((SolidModelingApplication) activity.getApplication()).setModelingProject(list, new Matrix4());
             final File file = new File(activity.getFilesDir(), projectName + "." + Constants.FILE_TYPE_PROJECT);
             final Intent intent = new Intent(activity, ExportService.class);
             intent.putExtra(Constants.KEY_FILE_PATH, file.getAbsolutePath());
@@ -276,9 +281,9 @@ public class SolidModelingGame extends VrGame {
         }
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
+    @SuppressWarnings({"ResultOfMethodCallIgnored", "ConstantConditions"})
     @SuppressLint({"SetWorldReadable", "SetWorldWritable"})
-    private void exportFile(final BaseModelingProject modelingProject, final String projectName, final String fileType, Matrix4 transform) {
+    private void exportFile(final ModelingProject2 modelingProject, final String projectName, final String fileType, Matrix4 transform) {
         Activity activity = GdxVr.app.getActivityWeakReference().get();
         if (activity == null || modelingScreen == null) return;
         if (!((MainActivity) activity).areStoragePermissionsGranted()) {
@@ -288,7 +293,12 @@ public class SolidModelingGame extends VrGame {
                 }
             });
         } else {
-            ((SolidModelingApplication) activity.getApplication()).setModelingProject(new ArrayList<>(modelingProject.getModelingObjectList()), transform);
+            final ArrayList<EditableNode> list = new ArrayList<>();
+            for (Node node : modelingProject.modelInstance.nodes) {
+                if (node instanceof EditableNode)
+                    list.add((EditableNode) node);
+            }
+            ((SolidModelingApplication) activity.getApplication()).setModelingProject(list, transform);
             final File dir = new File(Environment.getExternalStorageDirectory(), Constants.EXTERNAL_DIRECTORY);
             dir.mkdirs();
             String extension;
@@ -360,8 +370,7 @@ public class SolidModelingGame extends VrGame {
     public void closeModelingScreen() {
         if (modelingScreen == null) return;
         modelingScreen.hide();
-        // FIXME: 2/12/2018 
-//        saveCurrentProject(modelingScreen.getModelingProject(), modelingScreen.getProjectName());
+        saveCurrentProject(modelingScreen.getModelingProject(), modelingScreen.getProjectName());
         modelingScreen.dispose();
         modelingScreen = null;
     }

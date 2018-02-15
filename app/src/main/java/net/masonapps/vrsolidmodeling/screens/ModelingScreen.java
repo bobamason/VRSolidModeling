@@ -49,7 +49,6 @@ import net.masonapps.vrsolidmodeling.math.Side;
 import net.masonapps.vrsolidmodeling.modeling.AABBTree;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProject2;
-import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.modeling.transform.RotateWidget;
 import net.masonapps.vrsolidmodeling.modeling.transform.ScaleWidget;
 import net.masonapps.vrsolidmodeling.modeling.transform.TransformWidget3D;
@@ -207,7 +206,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void onAddClicked(String key) {
-                final EditableNode entity = new EditableNode(Primitives.getPrimitiveMesh(key));
+                final EditableNode entity = new EditableNode(key);
                 modelingProject.add(entity);
                 setSelectedEntity(entity);
                 undoRedoCache.save(new AddAction(entity, modelingProject));
