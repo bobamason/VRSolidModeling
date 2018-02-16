@@ -494,6 +494,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
     @Override
     public void render(Camera camera, int whichEye) {
+        GdxVr.gl.glEnable(GL20.GL_DEPTH_TEST);
         shapeRenderer.begin();
         shapeRenderer.setProjectionMatrix(camera.combined);
         shapeRenderer.setTransformMatrix(modelingProject.getTransform());
@@ -504,6 +505,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         shapeRenderer.setColor(Color.BLUE);
         shapeRenderer.line(0, 0, 0, 0, 1, 0);
         shapeRenderer.end();
+        GdxVr.gl.glDisable(GL20.GL_DEPTH_TEST);
 
         super.render(camera, whichEye);
 
