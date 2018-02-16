@@ -31,7 +31,6 @@ public class ModelingProject2 extends Entity {
         super(new ModelInstance(new Model()));
         aabbTree = new AABBTree();
         if (nodes != null && !nodes.isEmpty()) {
-            getBounds().inf();
             for (EditableNode node : nodes)
                 add(node);
         }
@@ -52,7 +51,10 @@ public class ModelingProject2 extends Entity {
         modelInstance.materials.add(nodePart.material);
         modelInstance.model.materials.add(nodePart.material);
         aabbTree.insert(node);
-        getBounds().ext(node.getAABB());
+
+        getBounds().set(aabbTree.root.bb);
+        getBounds().getDimensions(dimensions);
+        radius = dimensions.len() / 2f;
     }
 
 
@@ -79,6 +81,7 @@ public class ModelingProject2 extends Entity {
             if (node instanceof EditableNode)
                 ((EditableNode) node).validate();
         }
+        validate();
     }
 
     @Override

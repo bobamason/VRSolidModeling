@@ -90,6 +90,7 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
             public boolean panStop(float x, float y, int pointer, int button) {
 //                if (animating) return false;
                 scrolling = false;
+                invalidate();
                 return true;
             }
 
@@ -119,17 +120,13 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
                     recycle(visibleItems.get(key));
             }
             for (int i = startIndex; i < endIndex; i++) {
-                final ProjectItem projectItem = visibleItems.get(i);
+                ProjectItem projectItem = visibleItems.get(i);
                 if (projectItem == null) {
-                    init(list.get(i), i);
-                } else {
-                    final PreviewModelingProject project = projectItem.project;
-                    if (project != null) {
-                        project.setPosition((i - startIndex) * ITEM_WIDTH - scrollX * (startIndex * ITEM_WIDTH), 0f, -3f);
-                        project.setScale(ITEM_WIDTH / project.getRadius());
-                        Logger.d("project " + i + " position = " + project.getPosition());
-                    }
+                    projectItem = init(list.get(i), i);
                 }
+                projectItem.position.set((i - startIndex) * ITEM_WIDTH - scrollX * (startIndex * ITEM_WIDTH), 0f, -3f);
+                projectItem.updateTransform();
+                Logger.d("project " + i + " position = " + projectItem.position);
             }
             needsLayout = false;
         }
@@ -165,6 +162,7 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
             final int key = visibleItems.keyAt(i);
             final PreviewModelingProject project = visibleItems.get(key).project;
             if (project != null) {
+                Logger.d("updating project");
                 project.update();
             }
         }
@@ -179,7 +177,7 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
         }
     }
 
-    private void init(final T t, final int index) {
+    private ProjectItem init(final T t, final int index) {
         Logger.d("init " + index);
         final ProjectItem projectItem = itemPool.obtain();
         visibleItems.put(projectItem.key, projectItem);
@@ -195,18 +193,20 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
         projectItem.loadModelFuture.exceptionally(e -> {
             GdxVr.app.postRunnable(() -> onLoadFailed(t, e));
             return null;
-        }).thenAccept(modelingObjects -> {
-            if (modelingObjects != null) {
+        }).thenAccept(editableNodes -> {
+            if (editableNodes != null) {
                 GdxVr.app.postRunnable(() -> {
                     if (!projectItem.isRecycled) {
-                        projectItem.project = new PreviewModelingProject(modelingObjects);
-                        projectItem.project.update();
+                        projectItem.project = new PreviewModelingProject(editableNodes);
+                        projectItem.updateTransform();
                         projectItem.loadModelFuture = null;
                         aabbTree.insert(projectItem);
+                        invalidate();
                     }
                 });
             }
         });
+        return projectItem;
     }
 
     protected abstract List<EditableNode> loadProject(T t) throws IOException, JSONException;
@@ -310,6 +310,7 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
         @Nullable
         private AABBTree.LeafNode node = null;
         private BoundingBox aabb = new BoundingBox();
+        private Vector3 position = new Vector3();
 //        public Animator animator = new Animator(new Animator.AnimationListener() {
 //            @Override
 //            public void apply(float value) {
@@ -333,6 +334,7 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
         @Override
         public void reset() {
             isRecycled = true;
+            position.set(0, 0, 0);
             key = -1;
             if (loadModelFuture != null) {
                 loadModelFuture.cancel(true);
@@ -370,6 +372,16 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
             if (rayTest)
                 intersection.object = this;
             return rayTest;
+        }
+
+        public void updateTransform() {
+            if (project != null) {
+                project.setPosition(position);
+                project.setScale(ITEM_WIDTH / project.getRadius());
+                project.validate();
+                Logger.d("project position = " + project.getPosition());
+                Logger.d("project scale = " + project.getScale().x);
+            }
         }
     }
 }

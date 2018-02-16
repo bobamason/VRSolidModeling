@@ -459,7 +459,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     @Override
     public void update() {
         super.update();
-        if (currentInputMode == InputMode.SELECT)
+        if (currentInputMode == InputMode.SELECT || currentInputMode == InputMode.EDIT)
             getSolidModelingGame().getCursor().position.set(hitPoint);
         mainInterface.act();
         rotationAnimator.update(GdxVr.graphics.getDeltaTime());

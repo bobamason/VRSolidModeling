@@ -14,13 +14,10 @@ import java.util.List;
 
 public class PreviewModelingProject extends ModelingProject2 {
 
-    private final float radius;
     private Ray tmpRay = new Ray();
 
     public PreviewModelingProject(List<EditableNode> nodes) {
         super(nodes);
-        Vector3 dimens = new Vector3();
-        radius = getBounds().getDimensions(dimens).len() / 2f;
     }
 
     @Nullable
@@ -29,7 +26,7 @@ public class PreviewModelingProject extends ModelingProject2 {
         validate();
         tmpRay.set(ray).mul(inverseTransform);
         ray.direction.nor();
-        final boolean intersects = Intersector.intersectRaySphere(ray, Vector3.Zero, radius, intersection.hitPoint);
+        final boolean intersects = Intersector.intersectRaySphere(ray, Vector3.Zero, getRadius(), intersection.hitPoint);
         if (intersects) {
             intersection.hitPoint.mul(transform);
             intersection.t = ray.origin.dst2(intersection.hitPoint);

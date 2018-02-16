@@ -19,11 +19,11 @@ import com.badlogic.gdx.utils.Pools;
  * Created by Bob on 8/10/2015.
  */
 public class Entity extends Transformable implements Disposable {
-    private final Vector3 dimensions = new Vector3();
-    private final Vector3 center = new Vector3();
-    private final float radius;
+    protected final Vector3 dimensions = new Vector3();
+    protected final Vector3 center = new Vector3();
     @Nullable
     public ModelInstance modelInstance;
+    protected float radius;
     @Nullable
     protected BaseShader shader = null;
     private BoundingBox bounds = new BoundingBox();
