@@ -13,8 +13,7 @@ import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
-import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
-import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
+import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.ui.ProjectPreviewList;
 
 import org.json.JSONException;
@@ -51,8 +50,8 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectPreviewL
         manageDisposable(spriteBatch);
         ui = new ProjectPreviewList<File>(list, this) {
             @Override
-            protected List<ModelingObject> loadProject(File file) throws IOException, JSONException {
-                return ProjectFileIO.loadFile(file, Primitives.getMap());
+            protected List<EditableNode> loadProject(File file) throws IOException, JSONException {
+                return ProjectFileIO.loadFile(file);
             }
 
             @Override
@@ -84,7 +83,7 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectPreviewL
             public void render(ModelBatch batch, Environment environment) {
                 final ModelInstance roomInstance = getSolidModelingGame().getRoomInstance();
                 if (roomInstance != null)
-                    batch.render(roomInstance, getEnvironment());
+                    batch.render(roomInstance);
                 super.render(batch, environment);
                 ui.render(batch, environment);
             }

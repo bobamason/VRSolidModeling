@@ -17,7 +17,7 @@ import net.masonapps.vrsolidmodeling.Constants;
 import net.masonapps.vrsolidmodeling.R;
 import net.masonapps.vrsolidmodeling.SolidModelingApplication;
 import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
-import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
+import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 
 import org.json.JSONException;
 import org.masonapps.libgdxgooglevr.utils.Logger;
@@ -48,7 +48,7 @@ public class ExportService extends IntentService {
 
         Logger.d("service started");
 
-        final List<ModelingObject> modelingObjects = ((SolidModelingApplication) getApplication()).getModelingObjects();
+        final List<EditableNode> modelingObjects = ((SolidModelingApplication) getApplication()).getModelingObjects();
         final Matrix4 transform = new Matrix4(((SolidModelingApplication) getApplication()).getTransform());
         Logger.d("export transform:\n" + transform);
         if (modelingObjects == null)

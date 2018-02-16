@@ -34,8 +34,9 @@ import com.google.vr.sdk.controller.Controller;
 import net.masonapps.vrsolidmodeling.R;
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.Style;
-import net.masonapps.vrsolidmodeling.modeling.BaseModelingProject;
-import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
+import net.masonapps.vrsolidmodeling.modeling.AABBTree;
+import net.masonapps.vrsolidmodeling.modeling.EditableNode;
+import net.masonapps.vrsolidmodeling.modeling.ModelingProject2;
 import net.masonapps.vrsolidmodeling.modeling.PreviewModelingProject;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
@@ -143,6 +144,7 @@ public class ModelSelectionUI<T> extends VrUiContainer {
     };
     private Interpolation interpolation = Interpolation.linear;
     private SolidModelingGame solidModelingGame;
+    private AABBTree.IntersectionInfo intersection = new AABBTree.IntersectionInfo();
 
     public ModelSelectionUI(SolidModelingGame game, SpriteBatch spriteBatch, Skin skin, List<T> list, ModelAdapter<T> adapter, FileButtonBar.OnFileButtonClicked<T> listener) {
         super();
@@ -241,7 +243,7 @@ public class ModelSelectionUI<T> extends VrUiContainer {
         if (modelItem == null) return false;
         final PreviewModelingProject entity = modelItem.project;
         modelItem.targetRotation.idt();
-        if (entity != null && entity.rayTest(ray, hitPoint3D) != null) {
+        if (entity != null && entity.rayTest(ray, intersection)) {
 
             final Vector3 dir = Pools.obtain(Vector3.class);
             final Vector3 tmp = Pools.obtain(Vector3.class);
@@ -334,7 +336,7 @@ public class ModelSelectionUI<T> extends VrUiContainer {
     }
 
     public void updateProjects() {
-        projects.forEach(BaseModelingProject::update);
+        projects.forEach(ModelingProject2::update);
     }
     
     public void renderProjects(ModelBatch batch, Environment environment) {
@@ -342,7 +344,7 @@ public class ModelSelectionUI<T> extends VrUiContainer {
             sphere.recalculateTransform();
         if (sphere.isVisible())
             batch.render(sphere.modelInstance, environment);
-        projects.forEach(project -> project.render(batch, environment));
+        projects.forEach(project -> batch.render(project.modelInstance, environment));
     }
 
     private void updateTransform(@Nullable ModelItem<T> modelItem, VirtualStage stage, Vector3 position, float scale) {
@@ -599,14 +601,14 @@ public class ModelSelectionUI<T> extends VrUiContainer {
 
     public interface ModelAdapter<T> {
 
-        List<ModelingObject> loadModelData(T t) throws Exception;
+        List<EditableNode> loadModelData(T t) throws Exception;
 
         void onLoadModelFailed(T t, Throwable e);
     }
 
     public static class ModelItem<T> {
         @Nullable
-        public CompletableFuture<List<ModelingObject>> loadModelFuture = null;
+        public CompletableFuture<List<EditableNode>> loadModelFuture = null;
         @Nullable
         public PreviewModelingProject project = null;
         public Quaternion targetRotation = new Quaternion();

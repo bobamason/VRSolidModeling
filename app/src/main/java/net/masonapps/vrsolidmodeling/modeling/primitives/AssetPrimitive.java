@@ -2,7 +2,6 @@ package net.masonapps.vrsolidmodeling.modeling.primitives;
 
 import android.support.annotation.Nullable;
 
-import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.math.Vector3;
@@ -14,6 +13,7 @@ import net.masonapps.vrsolidmodeling.bvh.BVHBuilder;
 import net.masonapps.vrsolidmodeling.io.PLYAssetLoader;
 import net.masonapps.vrsolidmodeling.mesh.Face;
 import net.masonapps.vrsolidmodeling.mesh.MeshData;
+import net.masonapps.vrsolidmodeling.mesh.MeshInfo;
 import net.masonapps.vrsolidmodeling.mesh.MeshUtils;
 import net.masonapps.vrsolidmodeling.mesh.Triangle;
 import net.masonapps.vrsolidmodeling.mesh.Vertex;
@@ -32,11 +32,8 @@ public class AssetPrimitive extends Primitive {
     protected BVH bvh;
     protected boolean isInitialized = false;
     private BVH.IntersectionInfo intersectionInfo;
-    private float[] vertices;
-    private short[] indices;
-    private int numVertices;
-    private int numIndices;
-    private VertexAttributes vertexAttributes;
+    private MeshInfo meshInfo = new MeshInfo();
+
 
     public AssetPrimitive(String name, String asset) {
         this.name = name;
@@ -51,14 +48,14 @@ public class AssetPrimitive extends Primitive {
             List<Vertex> vertexList = new ArrayList<>();
             PLYAssetLoader.parseFaceList(inputStream, false, vertexList, faceList);
 
-            vertexAttributes = new VertexAttributes(VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0));
+            meshInfo.vertexAttributes = new VertexAttributes(VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0));
 
             final Triangle[] triangles = MeshData.fromFaces(faceList);
 
-            vertices = MeshUtils.toVertices(vertexList.toArray(new Vertex[vertexList.size()]), vertexAttributes.getMask());
-            indices = MeshUtils.toIndices(triangles);
-            numVertices = vertexList.size();
-            numIndices = triangles.length * 3;
+            meshInfo.vertices = MeshUtils.toVertices(vertexList.toArray(new Vertex[vertexList.size()]), meshInfo.vertexAttributes.getMask());
+            meshInfo.indices = MeshUtils.toIndices(triangles);
+            meshInfo.numVertices = vertexList.size();
+            meshInfo.numIndices = triangles.length * 3;
             
             final BVH.Node root = new BVHBuilder().build(triangles);
             bvh = new BVH(root);
@@ -69,12 +66,13 @@ public class AssetPrimitive extends Primitive {
     }
 
     @Override
-    public Mesh createMesh() {
-        throwErrorIfNotInitialized();
-        final Mesh mesh = new Mesh(true, true, numVertices, numIndices, vertexAttributes);
-        mesh.setVertices(vertices);
-        mesh.setIndices(indices);
-        return mesh;
+    public MeshInfo getMeshInfo() {
+        return meshInfo;
+    }
+
+    @Override
+    public BVH getBVH() {
+        return bvh;
     }
 
     @Override

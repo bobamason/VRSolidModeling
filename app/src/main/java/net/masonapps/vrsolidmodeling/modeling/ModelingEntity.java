@@ -75,7 +75,7 @@ public class ModelingEntity implements AABBTree.AABBObject {
     }
 
     public PolyhedronsSet toPolyhedronsSet() {
-        return modelingObject.getPrimitive().toPolyhedronsSet(modelingObject.getTransform(new Matrix4()));
+        return null;
     }
 
     public Color getDiffuseColor() {

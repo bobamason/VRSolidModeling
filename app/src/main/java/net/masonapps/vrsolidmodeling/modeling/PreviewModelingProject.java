@@ -2,58 +2,38 @@ package net.masonapps.vrsolidmodeling.modeling;
 
 import android.support.annotation.Nullable;
 
-import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.utils.Pools;
 
-import java.util.HashMap;
 import java.util.List;
 
 /**
  * Created by Bob Mason on 1/16/2018.
  */
 
-public class PreviewModelingProject extends BaseModelingProject {
+public class PreviewModelingProject extends ModelingProject2 {
 
-    private final BoundingBox bounds;
-    private float radius;
+    private final float radius;
+    private Ray tmpRay = new Ray();
 
-    public PreviewModelingProject(List<ModelingObject> modelingObjects, HashMap<String, Model> modelMap) {
-        super();
-        bounds = new BoundingBox();
-        if (modelingObjects.isEmpty()) {
-            bounds.set(new Vector3(-1f, -1f, -1f), new Vector3(1f, 1f, 1f));
-        } else {
-            bounds.clr();
-            for (ModelingObject modelingObject : modelingObjects) {
-                final ModelingEntity modelingEntity = new ModelingEntity(modelingObject, modelingObject.createModelInstance(modelMap));
-                add(modelingEntity);
-                bounds.ext(modelingEntity.getAABB());
-            }
-        }
-        radius = (float) Math.sqrt(Math.max(bounds.min.len2(), bounds.max.len2()));
+    public PreviewModelingProject(List<EditableNode> nodes) {
+        super(nodes);
+        Vector3 dimens = new Vector3();
+        radius = getBounds().getDimensions(dimens).len() / 2f;
     }
 
     @Nullable
     @Override
-    public ModelingEntity rayTest(Ray ray, @Nullable Vector3 hitPoint) {
-        final Vector3 tmpV = Pools.obtain(Vector3.class);
-        ModelingEntity result = null;
-        if (Intersector.intersectRaySphere(ray, position, radius * Math.min(scale.x, Math.min(scale.y, scale.z)), hitPoint)) {
-            result = entities.isEmpty() ? null : entities.get(0);
+    public boolean rayTest(Ray ray, AABBTree.IntersectionInfo intersection) {
+        validate();
+        tmpRay.set(ray).mul(inverseTransform);
+        ray.direction.nor();
+        final boolean intersects = Intersector.intersectRaySphere(ray, Vector3.Zero, radius, intersection.hitPoint);
+        if (intersects) {
+            intersection.hitPoint.mul(transform);
+            intersection.t = ray.origin.dst2(intersection.hitPoint);
         }
-        Pools.free(tmpV);
-        return result;
-    }
-
-    public float getRadius() {
-        return radius;
-    }
-
-    public BoundingBox getBounds() {
-        return bounds;
+        return intersects;
     }
 }

@@ -23,9 +23,9 @@ import java.util.List;
 
 public class ProjectFileIO {
 
-    public static JSONArray toJSONArray(List<ModelingObject> objects) throws JSONException {
+    public static JSONArray toJSONArray(List<EditableNode> objects) throws JSONException {
         final JSONArray jsonArray = new JSONArray();
-        for (ModelingObject object : objects) {
+        for (EditableNode object : objects) {
             jsonArray.put(object.toJSONObject());
         }
         return jsonArray;
@@ -47,7 +47,7 @@ public class ProjectFileIO {
         return objects;
     }
 
-    public static void saveFile(File file, List<ModelingObject> objects) throws IOException, JSONException {
+    public static void saveFile(File file, List<EditableNode> objects) throws IOException, JSONException {
         BufferedWriter writer = null;
         try {
             final JSONArray jsonArray = toJSONArray(objects);

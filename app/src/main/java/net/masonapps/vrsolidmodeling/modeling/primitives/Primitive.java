@@ -2,11 +2,13 @@ package net.masonapps.vrsolidmodeling.modeling.primitives;
 
 import android.support.annotation.Nullable;
 
-import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Disposable;
+
+import net.masonapps.vrsolidmodeling.bvh.BVH;
+import net.masonapps.vrsolidmodeling.mesh.MeshInfo;
 
 import java.io.InputStream;
 
@@ -21,7 +23,9 @@ public abstract class Primitive implements Disposable {
 
     public abstract void initialize(InputStream inputStream);
 
-    public abstract Mesh createMesh();
+    public abstract MeshInfo getMeshInfo();
+
+    public abstract BVH getBVH();
 
     public abstract String getName();
 

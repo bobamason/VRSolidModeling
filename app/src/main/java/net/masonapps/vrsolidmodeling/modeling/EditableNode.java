@@ -13,7 +13,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
-import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
@@ -22,8 +21,13 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Pools;
 
 import net.masonapps.vrsolidmodeling.actions.TransformAction;
+import net.masonapps.vrsolidmodeling.bvh.BVH;
+import net.masonapps.vrsolidmodeling.bvh.BVHBuilder;
 import net.masonapps.vrsolidmodeling.io.Base64Utils;
 import net.masonapps.vrsolidmodeling.io.JsonUtils;
+import net.masonapps.vrsolidmodeling.mesh.MeshInfo;
+import net.masonapps.vrsolidmodeling.mesh.Triangle;
+import net.masonapps.vrsolidmodeling.mesh.Vertex;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 
 import org.json.JSONException;
@@ -49,29 +53,25 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     public static final String KEY_SPECULAR = "specular";
     public static final String KEY_SHININESS = "shininess";
     protected final Matrix4 inverseTransform = new Matrix4();
+    private final MeshInfo meshInfo;
+    private final BVH bvh;
     private boolean updated = false;
     @Nullable
     private AABBTree.LeafNode leafNode = null;
     private BoundingBox bounds = new BoundingBox();
     private BoundingBox aabb = new BoundingBox();
     private String primitiveKey = KEY_MESH;
+    private BVH.IntersectionInfo bvhIntersection = new BVH.IntersectionInfo();
 
     public EditableNode(String primitiveKey) {
-        this(Primitives.getPrimitiveMesh(primitiveKey));
+        this(Primitives.getPrimitiveMeshInfo(primitiveKey), Primitives.getPrimitiveBVH(primitiveKey));
         this.primitiveKey = primitiveKey;
     }
 
-    public EditableNode(final Mesh mesh) {
+    public EditableNode(MeshInfo meshInfo, BVH bvh) {
         super();
-        final MeshPart meshPart = new MeshPart();
-        meshPart.id = "part";
-        meshPart.primitiveType = GL20.GL_TRIANGLES;
-        meshPart.mesh = mesh;
-        meshPart.offset = 0;
-        meshPart.size = mesh.getNumIndices();
-        parts.add(new NodePart(meshPart, createDefaultMaterial()));
-        bounds.inf();
-        extendBoundingBox(bounds, false);
+        this.meshInfo = meshInfo;
+        this.bvh = bvh;
     }
 
     public static Material createDefaultMaterial() {
@@ -85,10 +85,12 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         final String primitiveKey = jsonObject.optString(KEY_PRIMITIVE, KEY_MESH);
         final EditableNode editableNode;
         if (primitiveKey.equals(KEY_MESH)) {
-            if (jsonObject.has(KEY_MESH))
-                editableNode = new EditableNode(parseMesh(jsonObject.getJSONObject(KEY_MESH)));
+            if (jsonObject.has(KEY_MESH)) {
+                final MeshInfo meshInfo = parseMesh(jsonObject.getJSONObject(KEY_MESH));
+                editableNode = new EditableNode(meshInfo, buildBVH(meshInfo));
+            }
             else
-                editableNode = new EditableNode(Primitives.getPrimitiveMesh(Primitives.KEY_CUBE));
+                editableNode = new EditableNode(Primitives.KEY_CUBE);
         } else {
             editableNode = new EditableNode(primitiveKey);
         }
@@ -108,22 +110,52 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         return editableNode;
     }
 
-    private static Mesh parseMesh(JSONObject jsonObject) throws JSONException {
-        final int numVertices = jsonObject.getInt(KEY_VERTEX_COUNT);
-        final int numIndices = jsonObject.getInt(KEY_INDEX_COUNT);
-        final VertexAttributes vertexAttributes = new VertexAttributes(VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0));
-        final Mesh mesh = new Mesh(true, true, numVertices, numIndices, vertexAttributes);
+    private static BVH buildBVH(MeshInfo meshInfo) {
+        final Triangle[] triangles = new Triangle[meshInfo.numIndices / 3];
+        final int vertexSize = meshInfo.vertexAttributes.vertexSize / Float.BYTES;
+        for (int i = 0; i < meshInfo.numIndices; i += 3) {
+            int i0 = meshInfo.indices[i] * vertexSize;
+            int i1 = meshInfo.indices[i + 1] * vertexSize;
+            int i2 = meshInfo.indices[i + 2] * vertexSize;
+            final Vertex v0 = new Vertex();
+            v0.position.set(meshInfo.vertices[i0], meshInfo.vertices[i0 + 1], meshInfo.vertices[i0 + 2]);
+            final Vertex v1 = new Vertex();
+            v0.position.set(meshInfo.vertices[i1], meshInfo.vertices[i1 + 1], meshInfo.vertices[i1 + 2]);
+            final Vertex v2 = new Vertex();
+            v0.position.set(meshInfo.vertices[i2], meshInfo.vertices[i2 + 1], meshInfo.vertices[i2 + 2]);
+            triangles[i / 3] = new Triangle(v0, v1, v2);
+        }
+        return new BVH(new BVHBuilder().build(triangles));
+    }
+
+    private static MeshInfo parseMesh(JSONObject jsonObject) throws JSONException {
+        final MeshInfo mesh = new MeshInfo();
+        mesh.numVertices = jsonObject.getInt(KEY_VERTEX_COUNT);
+        mesh.numIndices = jsonObject.getInt(KEY_INDEX_COUNT);
+        mesh.vertexAttributes = new VertexAttributes(VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0));
 
         final String vertexString = jsonObject.getString(KEY_VERTICES);
-        final float[] vertices = new float[vertexAttributes.vertexSize / Float.BYTES * numVertices];
-        Base64Utils.decodeFloatArray(vertexString, vertices);
-        mesh.setVertices(vertices);
+        mesh.vertices = new float[mesh.vertexAttributes.vertexSize / Float.BYTES * mesh.numVertices];
+        Base64Utils.decodeFloatArray(vertexString, mesh.vertices);
 
         final String indexString = jsonObject.getString(KEY_INDICES);
-        final short[] indices = new short[numIndices];
-        Base64Utils.decodeShortArray(indexString, indices);
-        mesh.setIndices(indices);
+        mesh.indices = new short[mesh.numIndices];
+        Base64Utils.decodeShortArray(indexString, mesh.indices);
         return mesh;
+    }
+
+    public void initMesh() {
+        if (parts.size > 0) return;
+        final Mesh mesh = meshInfo.createMesh();
+        final MeshPart meshPart = new MeshPart();
+        meshPart.id = "part";
+        meshPart.primitiveType = GL20.GL_TRIANGLES;
+        meshPart.mesh = mesh;
+        meshPart.offset = 0;
+        meshPart.size = mesh.getNumIndices();
+        parts.add(new NodePart(meshPart, createDefaultMaterial()));
+        bounds.inf();
+        extendBoundingBox(bounds, false);
     }
 
     @Nullable
@@ -146,8 +178,9 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     @Override
     public boolean rayTest(Ray ray, AABBTree.IntersectionInfo intersection) {
         validate();
-        final boolean intersectRayBounds = Intersector.intersectRayBounds(ray, getAABB(), intersection.hitPoint);
+        final boolean intersectRayBounds = bvh.closestIntersection(ray, bvhIntersection);
         if (intersectRayBounds) {
+            intersection.hitPoint.set(bvhIntersection.hitPoint);
             intersection.object = this;
             intersection.t = ray.origin.dst(intersection.hitPoint);
         }
@@ -174,10 +207,9 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     @Override
     public EditableNode copy() {
         validate();
-        final NodePart nodePart = parts.get(0);
         final EditableNode node;
         if (primitiveKey.equals(KEY_MESH))
-            node = new EditableNode(nodePart.meshPart.mesh);
+            node = new EditableNode(meshInfo, bvh);
         else
             node = new EditableNode(primitiveKey);
         node.translation.set(translation);

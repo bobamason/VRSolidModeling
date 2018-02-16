@@ -210,6 +210,10 @@ public class SolidModelingGame extends VrGame {
     }
 
     private void switchToOpenProjectScreen() {
+//        final List<File> fileList = getProjectFileList();
+//        if(fileList.size() > 0){
+//            openProject(fileList.get(0));
+//        }
         setScreen(new OpenProjectListScreen(this, getProjectFileList(), this::openProject));
         resetProgressLoadingScreen();
     }
@@ -238,11 +242,11 @@ public class SolidModelingGame extends VrGame {
             Logger.e("unable to open project " + fileName, e);
             setLoadingScreenMessage(e.getLocalizedMessage());
             return null;
-        }).thenAccept(modelingObjects -> {
-            if (modelingObjects != null) {
+        }).thenAccept(editableNodes -> {
+            if (editableNodes != null) {
                 final int endIndex = fileName.lastIndexOf('.');
                 final String projectName = endIndex == -1 ? fileName : fileName.substring(0, endIndex);
-                GdxVr.app.postRunnable(() -> setScreen(new ModelingScreen(SolidModelingGame.this, projectName, modelingObjects)));
+                GdxVr.app.postRunnable(() -> setScreen(new ModelingScreen(SolidModelingGame.this, projectName, editableNodes)));
             } else {
                 loadingFailed = true;
                 showError("unable to open project");

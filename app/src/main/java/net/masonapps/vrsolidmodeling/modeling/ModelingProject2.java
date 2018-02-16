@@ -30,7 +30,8 @@ public class ModelingProject2 extends Entity {
     public ModelingProject2(@Nullable List<EditableNode> nodes) {
         super(new ModelInstance(new Model()));
         aabbTree = new AABBTree();
-        if (nodes != null) {
+        if (nodes != null && !nodes.isEmpty()) {
+            getBounds().inf();
             for (EditableNode node : nodes)
                 add(node);
         }
@@ -39,6 +40,7 @@ public class ModelingProject2 extends Entity {
 
     public void add(EditableNode node) {
         if (modelInstance == null) return;
+        node.initMesh();
 
         modelInstance.nodes.add(node);
         modelInstance.model.nodes.add(node);
@@ -50,6 +52,7 @@ public class ModelingProject2 extends Entity {
         modelInstance.materials.add(nodePart.material);
         modelInstance.model.materials.add(nodePart.material);
         aabbTree.insert(node);
+        getBounds().ext(node.getAABB());
     }
 
 

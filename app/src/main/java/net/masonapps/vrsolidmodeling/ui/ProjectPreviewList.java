@@ -3,7 +3,6 @@ package net.masonapps.vrsolidmodeling.ui;
 import android.support.annotation.Nullable;
 import android.util.SparseArray;
 
-import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.input.GestureDetector;
@@ -15,8 +14,7 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Pool;
 
 import net.masonapps.vrsolidmodeling.modeling.AABBTree;
-import net.masonapps.vrsolidmodeling.modeling.ModelingEntity;
-import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
+import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.PreviewModelingProject;
 
 import org.json.JSONException;
@@ -26,7 +24,6 @@ import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
 import org.masonapps.libgdxgooglevr.utils.Logger;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -56,7 +53,6 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
     private float scrollX = 0f;
     private boolean isCursorOver = false;
     private SparseArray<ProjectItem> visibleItems = new SparseArray<>();
-    private HashMap<String, Mesh> primitiveMeshMap;
     private float maxScroll = 0f;
     private boolean needsLayout = true;
     private float SPEED = 2f;
@@ -65,7 +61,6 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
         this.list = list;
         maxScroll = list.size() * ITEM_WIDTH;
         this.listener = listener;
-        this.primitiveMeshMap = primitiveMeshMap;
         final GestureDetector.GestureAdapter gestureAdapter = new GestureDetector.GestureAdapter() {
 
             public float startX = 0f;
@@ -179,14 +174,15 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
         for (int i = 0; i < visibleItems.size(); i++) {
             final int key = visibleItems.keyAt(i);
             final PreviewModelingProject project = visibleItems.get(key).project;
-            if (project != null)
-                project.render(batch, environment);
+            if (project != null && project.modelInstance != null)
+                batch.render(project.modelInstance, environment);
         }
     }
 
     private void init(final T t, final int index) {
         Logger.d("init " + index);
         final ProjectItem projectItem = itemPool.obtain();
+        visibleItems.put(projectItem.key, projectItem);
         projectItem.key = index;
         projectItem.isRecycled = false;
         projectItem.loadModelFuture = CompletableFuture.supplyAsync(() -> {
@@ -202,21 +198,18 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
         }).thenAccept(modelingObjects -> {
             if (modelingObjects != null) {
                 GdxVr.app.postRunnable(() -> {
-                    // FIXME: 2/10/2018 
-//                    if (!projectItem.isRecycled) {
-//                        projectItem.project = new PreviewModelingProject(modelingObjects, primitiveMeshMap);
-//                        projectItem.project.update();
-//                        projectItem.loadModelFuture = null;
-//                        aabbTree.insert(projectItem);
-//                    }
+                    if (!projectItem.isRecycled) {
+                        projectItem.project = new PreviewModelingProject(modelingObjects);
+                        projectItem.project.update();
+                        projectItem.loadModelFuture = null;
+                        aabbTree.insert(projectItem);
+                    }
                 });
             }
         });
-        visibleItems.put(projectItem.key, projectItem);
-        itemPool.free(projectItem);
     }
 
-    protected abstract List<ModelingObject> loadProject(T t) throws IOException, JSONException;
+    protected abstract List<EditableNode> loadProject(T t) throws IOException, JSONException;
 
     protected abstract void onLoadFailed(T t, Throwable e);
 
@@ -310,7 +303,7 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
 
         public int key = -1;
         @Nullable
-        public CompletableFuture<List<ModelingObject>> loadModelFuture = null;
+        public CompletableFuture<List<EditableNode>> loadModelFuture = null;
         @Nullable
         public PreviewModelingProject project = null;
         public boolean isRecycled = false;
@@ -365,15 +358,15 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
         @Override
         public BoundingBox getAABB() {
             if (project != null)
-                aabb.set(project.getBounds()).mul(project.getTransform());
+                aabb.set(project.getAABBTree().root.bb);
             return aabb;
         }
 
         @Override
         public boolean rayTest(Ray ray, AABBTree.IntersectionInfo intersection) {
             if (project == null) return false;
-            final ModelingEntity entity = project.rayTest(ray, intersection.hitPoint);
-            final boolean rayTest = entity != null;
+            intersection.object = null;
+            final boolean rayTest = project.rayTest(ray, intersection);
             if (rayTest)
                 intersection.object = this;
             return rayTest;

@@ -1,9 +1,9 @@
 package net.masonapps.vrsolidmodeling.modeling.primitives;
 
-import com.badlogic.gdx.graphics.Mesh;
-
 import net.masonapps.vrsolidmodeling.Assets;
 import net.masonapps.vrsolidmodeling.Style;
+import net.masonapps.vrsolidmodeling.bvh.BVH;
+import net.masonapps.vrsolidmodeling.mesh.MeshInfo;
 import net.masonapps.vrsolidmodeling.ui.PrimitiveSelector;
 
 import java.util.Arrays;
@@ -51,7 +51,11 @@ public class Primitives {
         return map.get(key);
     }
 
-    public static Mesh getPrimitiveMesh(String key) {
-        return map.get(key).createMesh();
+    public static MeshInfo getPrimitiveMeshInfo(String key) {
+        return map.get(key).getMeshInfo();
+    }
+
+    public static BVH getPrimitiveBVH(String key) {
+        return map.get(key).getBVH();
     }
 }

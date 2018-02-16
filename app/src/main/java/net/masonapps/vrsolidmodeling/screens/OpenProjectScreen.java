@@ -7,8 +7,7 @@ import com.badlogic.gdx.graphics.Camera;
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.io.FileUtils;
 import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
-import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
-import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
+import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,8 +28,8 @@ public class OpenProjectScreen extends ModelSelectionScreen<File> {
     }
 
     @Override
-    public List<ModelingObject> loadModelData(File file) throws Exception {
-        return ProjectFileIO.loadFile(file, Primitives.getMap());
+    public List<EditableNode> loadModelData(File file) throws Exception {
+        return ProjectFileIO.loadFile(file);
     }
 
     @Override
