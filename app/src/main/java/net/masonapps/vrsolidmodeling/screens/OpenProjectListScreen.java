@@ -7,13 +7,13 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.model.data.ModelData;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
-import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.ui.ProjectPreviewList;
 
 import org.json.JSONException;
@@ -50,8 +50,8 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectPreviewL
         manageDisposable(spriteBatch);
         ui = new ProjectPreviewList<File>(list, this) {
             @Override
-            protected List<EditableNode> loadProject(File file) throws IOException, JSONException {
-                return ProjectFileIO.loadFile(file);
+            protected ModelData loadProject(File file) throws IOException, JSONException {
+                return ProjectFileIO.loadModelData(file);
             }
 
             @Override
