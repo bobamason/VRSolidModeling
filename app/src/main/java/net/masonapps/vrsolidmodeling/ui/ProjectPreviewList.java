@@ -13,12 +13,12 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Pool;
 
-import net.masonapps.vrsolidmodeling.modeling.AABBTree;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.PreviewModelingProject;
 
 import org.json.JSONException;
 import org.masonapps.libgdxgooglevr.GdxVr;
+import org.masonapps.libgdxgooglevr.gfx.AABBTree;
 import org.masonapps.libgdxgooglevr.input.DaydreamTouchEvent;
 import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
 import org.masonapps.libgdxgooglevr.utils.Logger;

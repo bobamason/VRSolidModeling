@@ -46,7 +46,6 @@ import net.masonapps.vrsolidmodeling.actions.UndoRedoCache;
 import net.masonapps.vrsolidmodeling.math.Animator;
 import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
-import net.masonapps.vrsolidmodeling.modeling.AABBTree;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProject2;
 import net.masonapps.vrsolidmodeling.modeling.transform.RotateWidget;
@@ -58,6 +57,7 @@ import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
 import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
+import org.masonapps.libgdxgooglevr.gfx.AABBTree;
 import org.masonapps.libgdxgooglevr.gfx.Entity;
 import org.masonapps.libgdxgooglevr.gfx.VrGame;
 import org.masonapps.libgdxgooglevr.gfx.VrWorldScreen;

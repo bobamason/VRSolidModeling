@@ -1,4 +1,4 @@
-package net.masonapps.vrsolidmodeling.modeling;
+package org.masonapps.libgdxgooglevr.gfx;
 
 import android.support.annotation.Nullable;
 

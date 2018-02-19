@@ -11,6 +11,7 @@ import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Pools;
 
+import org.masonapps.libgdxgooglevr.gfx.AABBTree;
 import org.masonapps.libgdxgooglevr.gfx.Entity;
 
 import java.util.List;

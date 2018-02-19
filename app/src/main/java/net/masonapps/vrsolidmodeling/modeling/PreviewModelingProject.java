@@ -6,6 +6,8 @@ import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 
+import org.masonapps.libgdxgooglevr.gfx.AABBTree;
+
 import java.util.List;
 
 /**

@@ -34,12 +34,12 @@ import com.google.vr.sdk.controller.Controller;
 import net.masonapps.vrsolidmodeling.R;
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.Style;
-import net.masonapps.vrsolidmodeling.modeling.AABBTree;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProject2;
 import net.masonapps.vrsolidmodeling.modeling.PreviewModelingProject;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
+import org.masonapps.libgdxgooglevr.gfx.AABBTree;
 import org.masonapps.libgdxgooglevr.gfx.Entity;
 import org.masonapps.libgdxgooglevr.gfx.Transformable;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;

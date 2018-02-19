@@ -32,6 +32,7 @@ import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.masonapps.libgdxgooglevr.gfx.AABBTree;
 
 /**
  * Created by Bob Mason on 2/9/2018.
@@ -105,7 +106,7 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         editableNode.translation.fromString(jsonObject.optString(KEY_POSITION, "(0.0,0.0,0.0)"));
         final String rotationString = jsonObject.optString(KEY_ROTATION, "(0.0,0.0,0.0,1.0)");
         editableNode.rotation.set(JsonUtils.quaternionFromString(rotationString));
-        editableNode.scale.fromString(jsonObject.optString(KEY_SCALE, "(0.0,0.0,0.0)"));
+        editableNode.scale.fromString(jsonObject.optString(KEY_SCALE, "(1.0,1.0,1.0)"));
         editableNode.calculateTransforms(false);
         return editableNode;
     }
