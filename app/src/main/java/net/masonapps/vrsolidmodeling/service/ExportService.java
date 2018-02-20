@@ -16,7 +16,11 @@ import com.badlogic.gdx.math.Matrix4;
 import net.masonapps.vrsolidmodeling.Constants;
 import net.masonapps.vrsolidmodeling.R;
 import net.masonapps.vrsolidmodeling.SolidModelingApplication;
+import net.masonapps.vrsolidmodeling.io.FileUtils;
+import net.masonapps.vrsolidmodeling.io.OBJWriter;
+import net.masonapps.vrsolidmodeling.io.PLYWriter;
 import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
+import net.masonapps.vrsolidmodeling.io.STLWriter;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 
 import org.json.JSONException;
@@ -48,10 +52,10 @@ public class ExportService extends IntentService {
 
         Logger.d("service started");
 
-        final List<EditableNode> modelingObjects = ((SolidModelingApplication) getApplication()).getModelingObjects();
+        final List<EditableNode> nodes = ((SolidModelingApplication) getApplication()).getModelingObjects();
         final Matrix4 transform = new Matrix4(((SolidModelingApplication) getApplication()).getTransform());
         Logger.d("export transform:\n" + transform);
-        if (modelingObjects == null)
+        if (nodes == null)
             return;
 
         if (intent == null) return;
@@ -121,22 +125,21 @@ public class ExportService extends IntentService {
             
             switch (fileType) {
                 case Constants.FILE_TYPE_OBJ:
-//                    final String name = FileUtils.nameWithoutExtension(file);
-//                    final File folder = new File(file.getParentFile(), name);
-//                    folder.mkdirs();
-//                    final File objFile = new File(folder, name + ".obj");
-//                    final File mtlFile = new File(folder, name + ".mtl");
-//                    final File textureFile = new File(folder, name + ".png");
-//                    OBJWriter.writeToFiles(objFile, mtlFile, textureFile, vertices, indices, 9, false, transform);
+                    final String name = FileUtils.nameWithoutExtension(file);
+                    final File folder = new File(file.getParentFile(), name);
+                    folder.mkdirs();
+                    final File objFile = new File(folder, name + ".obj");
+                    final File mtlFile = new File(folder, name + ".mtl");
+                    OBJWriter.writeToFiles(objFile, mtlFile, nodes, transform);
                     break;
                 case Constants.FILE_TYPE_PLY:
-//                    PLYWriter.writeToFile(file, vertices, indices, 9, transform);
+                    PLYWriter.writeToFile(file, nodes, transform);
                     break;
                 case Constants.FILE_TYPE_STL:
-//                    STLWriter.writeToFile(file, meshData, transform);
+                    STLWriter.writeToFile(file, nodes, transform);
                     break;
                 case Constants.FILE_TYPE_PROJECT:
-                    ProjectFileIO.saveFile(file, modelingObjects);
+                    ProjectFileIO.saveFile(file, nodes);
                     break;
             }
 

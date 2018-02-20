@@ -480,7 +480,8 @@ public class SolidModelingGame extends VrGame {
 
     public void switchToExportScreen() {
         if (modelingScreen != null) {
-//            setScreen(new ExportScreen(this, csg, modelingScreen.getProjectName(), (projectName, fileType, transform) -> exportFile(csg, projectName, fileType, transform)));
+            final ModelingProject2 modelingProject = modelingScreen.getModelingProject();
+            setScreen(new ExportScreen(this, modelingProject, modelingScreen.getProjectName(), (projectName, fileType, transform) -> exportFile(modelingProject, projectName, fileType, transform)));
         }
     }
 
