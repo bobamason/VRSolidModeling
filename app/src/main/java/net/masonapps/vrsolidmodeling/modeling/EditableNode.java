@@ -56,6 +56,7 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     protected final Matrix4 inverseTransform = new Matrix4();
     private final MeshInfo meshInfo;
     private final BVH bvh;
+    private final Ray transformedRay = new Ray();
     private boolean updated = false;
     @Nullable
     private AABBTree.LeafNode leafNode = null;
@@ -179,13 +180,14 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     @Override
     public boolean rayTest(Ray ray, AABBTree.IntersectionInfo intersection) {
         validate();
-        final boolean intersectRayBounds = bvh.closestIntersection(ray, bvhIntersection);
-        if (intersectRayBounds) {
-            intersection.hitPoint.set(bvhIntersection.hitPoint);
+        transformedRay.set(ray).mul(inverseTransform);
+        final boolean rayTest = bvh.closestIntersection(transformedRay, bvhIntersection);
+        if (rayTest) {
+            intersection.hitPoint.set(bvhIntersection.hitPoint).mul(getTransform());
             intersection.object = this;
             intersection.t = ray.origin.dst(intersection.hitPoint);
         }
-        return intersectRayBounds;
+        return rayTest;
     }
 
     public void validate() {
@@ -201,6 +203,10 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     @Override
     public void calculateTransforms(boolean recursive) {
         super.calculateTransforms(recursive);
+        try {
+            inverseTransform.set(localTransform).inv();
+        } catch (Exception ignored) {
+        }
         aabb.set(bounds).mul(localTransform);
         updated = true;
     }
