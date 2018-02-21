@@ -44,7 +44,7 @@ import net.masonapps.vrsolidmodeling.R;
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.Style;
 import net.masonapps.vrsolidmodeling.math.UnitConversion;
-import net.masonapps.vrsolidmodeling.modeling.ModelingProject2;
+import net.masonapps.vrsolidmodeling.modeling.ModelingProjectEntity;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.Entity;
@@ -75,7 +75,7 @@ public class ExportScreen extends RoomScreen {
     private final LabelVR xLabel;
     private final LabelVR yLabel;
     private final LabelVR zLabel;
-    private final ModelingProject2 modelingProject;
+    private final ModelingProjectEntity modelingProject;
     private final String projectName;
     private final ExportListener listener;
     private final Entity solidEntity;
@@ -98,7 +98,7 @@ public class ExportScreen extends RoomScreen {
     private float offsetLabels = 0.1f;
     private Slider sizeSlider;
 
-    public ExportScreen(SolidModelingGame game, ModelingProject2 modelingProject, String projectName, ExportListener listener) {
+    public ExportScreen(SolidModelingGame game, ModelingProjectEntity modelingProject, String projectName, ExportListener listener) {
         super(game);
         this.modelingProject = modelingProject;
         this.projectName = projectName;

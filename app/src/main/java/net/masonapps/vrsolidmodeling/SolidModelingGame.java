@@ -32,7 +32,7 @@ import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
-import net.masonapps.vrsolidmodeling.modeling.ModelingProject2;
+import net.masonapps.vrsolidmodeling.modeling.ModelingProjectEntity;
 import net.masonapps.vrsolidmodeling.modeling.primitives.AssetPrimitive;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.screens.ExportScreen;
@@ -266,7 +266,7 @@ public class SolidModelingGame extends VrGame {
     }
 
     @SuppressWarnings("ConstantConditions")
-    private void saveCurrentProject(final ModelingProject2 modelingProject, final String projectName) {
+    private void saveCurrentProject(final ModelingProjectEntity modelingProject, final String projectName) {
         Log.d(Constants.APP_NAME, "saving project " + projectName + "...");
         Activity activity = GdxVr.app.getActivityWeakReference().get();
         if (activity != null) {
@@ -287,7 +287,7 @@ public class SolidModelingGame extends VrGame {
 
     @SuppressWarnings({"ResultOfMethodCallIgnored", "ConstantConditions"})
     @SuppressLint({"SetWorldReadable", "SetWorldWritable"})
-    private void exportFile(final ModelingProject2 modelingProject, final String projectName, final String fileType, Matrix4 transform) {
+    private void exportFile(final ModelingProjectEntity modelingProject, final String projectName, final String fileType, Matrix4 transform) {
         Activity activity = GdxVr.app.getActivityWeakReference().get();
         if (activity == null || modelingScreen == null) return;
         if (!((MainActivity) activity).areStoragePermissionsGranted()) {
@@ -480,7 +480,7 @@ public class SolidModelingGame extends VrGame {
 
     public void switchToExportScreen() {
         if (modelingScreen != null) {
-            final ModelingProject2 modelingProject = modelingScreen.getModelingProject();
+            final ModelingProjectEntity modelingProject = modelingScreen.getModelingProject();
             setScreen(new ExportScreen(this, modelingProject, modelingScreen.getProjectName(), (projectName, fileType, transform) -> exportFile(modelingProject, projectName, fileType, transform)));
         }
     }

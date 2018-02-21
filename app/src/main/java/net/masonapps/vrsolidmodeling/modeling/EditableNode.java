@@ -191,9 +191,8 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     }
 
     public void validate() {
-        if (!updated) {
+        if (!updated)
             calculateTransforms(false);
-        }
     }
 
     public void invalidate() {

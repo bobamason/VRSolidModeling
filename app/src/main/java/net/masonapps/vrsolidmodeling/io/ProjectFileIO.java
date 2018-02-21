@@ -15,8 +15,6 @@ import com.badlogic.gdx.math.Vector3;
 
 import net.masonapps.vrsolidmodeling.mesh.MeshInfo;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
-import net.masonapps.vrsolidmodeling.modeling.ModelingObject;
-import net.masonapps.vrsolidmodeling.modeling.primitives.Primitive;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 
 import org.json.JSONArray;
@@ -30,7 +28,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -45,14 +42,6 @@ public class ProjectFileIO {
             jsonArray.put(object.toJSONObject());
         }
         return jsonArray;
-    }
-
-    public static List<ModelingObject> fromJSONArray(JSONArray jsonArray, HashMap<String, Primitive> primitiveMap) throws JSONException {
-        final ArrayList<ModelingObject> objects = new ArrayList<>(jsonArray.length());
-        for (int i = 0; i < jsonArray.length(); i++) {
-            objects.add(ModelingObject.fromJSONObject(primitiveMap, jsonArray.getJSONObject(i)));
-        }
-        return objects;
     }
 
     public static List<EditableNode> fromJSONArray(JSONArray jsonArray) throws JSONException {

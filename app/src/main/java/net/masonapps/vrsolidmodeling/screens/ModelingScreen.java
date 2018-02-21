@@ -47,7 +47,7 @@ import net.masonapps.vrsolidmodeling.math.Animator;
 import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
-import net.masonapps.vrsolidmodeling.modeling.ModelingProject2;
+import net.masonapps.vrsolidmodeling.modeling.ModelingProjectEntity;
 import net.masonapps.vrsolidmodeling.modeling.transform.RotateWidget;
 import net.masonapps.vrsolidmodeling.modeling.transform.ScaleWidget;
 import net.masonapps.vrsolidmodeling.modeling.transform.SimpleGrabControls;
@@ -112,7 +112,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private EditableNode focusedEntity = null;
     @Nullable
     private EditableNode selectedEntity = null;
-    private ModelingProject2 modelingProject;
+    private ModelingProjectEntity modelingProject;
     private Vector3 hitPoint = new Vector3();
     private AABBTree.IntersectionInfo intersectionInfo = new AABBTree.IntersectionInfo();
     private SimpleGrabControls grabControls = new SimpleGrabControls();
@@ -126,7 +126,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         this.projectName = projectName;
 
         setBackgroundColor(Color.SKY);
-        modelingProject = new ModelingProject2();
+        modelingProject = new ModelingProjectEntity();
         undoRedoCache = new UndoRedoCache();
 
         final ModelBuilder modelBuilder = new ModelBuilder();
@@ -339,7 +339,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         return builder.end();
     }
 
-    protected static void debugAABBTree(ShapeRenderer shapeRenderer, ModelingProject2 modelingProject, Color color) {
+    protected static void debugAABBTree(ShapeRenderer shapeRenderer, ModelingProjectEntity modelingProject, Color color) {
         shapeRenderer.setColor(color);
         shapeRenderer.setTransformMatrix(modelingProject.getTransform());
         Queue<AABBTree.Node> queue = new LinkedList<>();
@@ -699,7 +699,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         }
     }
 
-    public ModelingProject2 getModelingProject() {
+    public ModelingProjectEntity getModelingProject() {
         return modelingProject;
     }
 
