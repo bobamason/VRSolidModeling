@@ -12,7 +12,6 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Pools;
 
-import org.apache.commons.math3.geometry.euclidean.threed.PolyhedronsSet;
 import org.masonapps.libgdxgooglevr.gfx.AABBTree;
 
 /**
@@ -74,11 +73,7 @@ public class ModelingEntity implements AABBTree.AABBObject {
         Pools.free(tmpRay);
         return rayTest;
     }
-
-    public PolyhedronsSet toPolyhedronsSet() {
-        return null;
-    }
-
+    
     public Color getDiffuseColor() {
         return modelingObject.diffuseColor;
     }

@@ -50,6 +50,7 @@ import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProject2;
 import net.masonapps.vrsolidmodeling.modeling.transform.RotateWidget;
 import net.masonapps.vrsolidmodeling.modeling.transform.ScaleWidget;
+import net.masonapps.vrsolidmodeling.modeling.transform.SimpleGrabControls;
 import net.masonapps.vrsolidmodeling.modeling.transform.TransformWidget3D;
 import net.masonapps.vrsolidmodeling.modeling.transform.TranslateWidget;
 import net.masonapps.vrsolidmodeling.modeling.ui.EditModeTable;
@@ -114,6 +115,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private ModelingProject2 modelingProject;
     private Vector3 hitPoint = new Vector3();
     private AABBTree.IntersectionInfo intersectionInfo = new AABBTree.IntersectionInfo();
+    private SimpleGrabControls grabControls = new SimpleGrabControls();
 
     public ModelingScreen(VrGame game, String projectName) {
         this(game, projectName, new ArrayList<>());
@@ -159,6 +161,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         translateWidget.setListener(transformActionListener);
         rotateWidget.setListener(transformActionListener);
         scaleWidget.setListener(transformActionListener);
+        grabControls.setListener(transformActionListener);
 
         transformUI = translateWidget;
 
@@ -297,9 +300,10 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             }
         });
 
-        gridEntity = new Entity(new ModelInstance(createGrid(modelBuilder, skin, 1f)));
+        gridEntity = new Entity(new ModelInstance(createGrid(modelBuilder, skin, 3f)));
         gridEntity.setLightingEnabled(false);
         getWorld().add(gridEntity).setTransform(modelingProject.getTransform());
+        gridEntity.setVisible(false);
 
         getWorld().add(modelingProject);
 
@@ -309,12 +313,13 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     }
 
     private static Model createGrid(ModelBuilder builder, Skin skin, float radius) {
-        final Material material = new Material(TextureAttribute.createDiffuse(skin.getRegion(Style.Drawables.grid)), FloatAttribute.createAlphaTest(0.5f), IntAttribute.createCullFace(0), new BlendingAttribute(true, 1f));
+//        final Material material = new Material(TextureAttribute.createDiffuse(skin.getRegion(Style.Drawables.grid)), ColorAttribute.createDiffuse(Color.WHITE), FloatAttribute.createAlphaTest(0.25f), IntAttribute.createCullFace(0), new BlendingAttribute(true, 0.5f));
+        final Material material = new Material(ColorAttribute.createDiffuse(Color.GOLDENROD), IntAttribute.createCullFace(0), new BlendingAttribute(true, 0.25f));
         return builder.createRect(
-                -radius, 0f, radius,
-                radius, 0f, radius,
-                radius, 0f, -radius,
-                -radius, 0f, -radius,
+                -radius, -radius, 0f,
+                radius, -radius, 0f,
+                radius, radius, 0f,
+                -radius, radius, 0f,
                 0f, 1f, 0f,
                 material,
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.TextureCoordinates
@@ -459,13 +464,12 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     @Override
     public void update() {
         super.update();
+        grabControls.update(hitPoint, modelingProject);
         if (currentInputMode == InputMode.SELECT || currentInputMode == InputMode.EDIT)
             getSolidModelingGame().getCursor().position.set(hitPoint);
         mainInterface.act();
         rotationAnimator.update(GdxVr.graphics.getDeltaTime());
         positionAnimator.update(GdxVr.graphics.getDeltaTime());
-        gridEntity.setPosition(modelingProject.getPosition());
-        gridEntity.setRotation(modelingProject.getRotation());
 //        Logger.d(GdxVr.graphics.getFramesPerSecond() + "fps");
     }
 
@@ -511,13 +515,14 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
         shapeRenderer.begin();
         shapeRenderer.setProjectionMatrix(camera.combined);
-//        debugAABBTree(shapeRenderer, modelingProject, Color.YELLOW);
+        debugAABBTree(shapeRenderer, modelingProject, Color.YELLOW);
         transformUI.drawShapes(shapeRenderer);
         if (focusedEntity != null) {
             drawEntityBounds(shapeRenderer, focusedEntity, Color.BLACK);
         }
         if (selectedEntity != null) {
             drawEntityBounds(shapeRenderer, selectedEntity, Color.WHITE);
+//            debugBVH(shapeRenderer, modelingProject, Color.YELLOW);
         }
         shapeRenderer.end();
 
@@ -606,8 +611,18 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 transformUI.touchDown();
                 break;
             case SELECT:
-                if (focusedEntity != null) {
+                if (focusedEntity != null && !grabControls.isTransforming()) {
+                    final Vector3 tmp = Pools.obtain(Vector3.class);
                     setSelectedEntity(focusedEntity);
+                    grabControls.begin(focusedEntity, hitPoint, modelingProject);
+                    final Vector3 position = focusedEntity.getPosition();
+                    gridEntity.setPosition(position);
+                    final Vector3 normal = grabControls.getPlane().getNormal();
+                    gridEntity.lookAt(tmp.set(position).add(normal), Math.abs(normal.dot(Vector3.Y)) > 0.99f ? Vector3.Z : Vector3.Y);
+                    gridEntity.getPosition().mul(modelingProject.getTransform());
+                    gridEntity.getRotation().mulLeft(modelingProject.getRotation());
+                    gridEntity.invalidate();
+                    gridEntity.setVisible(true);
                 }
                 break;
             case VIEW:
@@ -622,6 +637,12 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
     private void onTouchPadButtonUp() {
         switch (currentState) {
+            case STATE_NONE:
+                if (grabControls.isTransforming()) {
+                    grabControls.end();
+                    gridEntity.setVisible(false);
+                }
+                break;
             case STATE_EDITING:
                 transformUI.touchUp();
                 break;
@@ -665,7 +686,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 else if (transformUI.performRayTest(getControllerRay())) {
                     hitPoint.set(transformUI.getHitPoint3D());
                     currentInputMode = InputMode.EDIT;
-                } else if (modelingProject.rayTest(getControllerRay(), intersectionInfo)) {
+                } else if (!grabControls.isTransforming() && modelingProject.rayTest(getControllerRay(), intersectionInfo)) {
                     hitPoint.set(intersectionInfo.hitPoint);
                     focusedEntity = (EditableNode) intersectionInfo.object;
                     currentInputMode = InputMode.SELECT;
