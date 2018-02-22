@@ -1,19 +1,25 @@
 package net.masonapps.vrsolidmodeling.screens;
 
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Mesh;
+import com.badlogic.gdx.graphics.VertexAttribute;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.model.data.ModelData;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
-import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
+import net.masonapps.vrsolidmodeling.mesh.MeshUtils;
 import net.masonapps.vrsolidmodeling.ui.ProjectPreviewList;
 
 import org.json.JSONException;
@@ -51,7 +57,14 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectPreviewL
         ui = new ProjectPreviewList<File>(list, this) {
             @Override
             protected ModelData loadProject(File file) throws IOException, JSONException {
-                return ProjectFileIO.loadModelData(file);
+//                return ProjectFileIO.loadModelData(file);
+                final Mesh mesh = new ModelBuilder().createBox(1, 1, 1, new Material(ColorAttribute.createDiffuse(Color.BLUE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal).meshes.get(0);
+                final float[] vertices = new float[mesh.getNumVertices()];
+                mesh.getVertices(vertices);
+                final short[] indices = new short[mesh.getNumIndices()];
+                mesh.getIndices(indices);
+                final VertexAttribute[] attrArray = new VertexAttribute[]{VertexAttribute.Position(), VertexAttribute.Normal()};
+                return MeshUtils.createModelData(vertices, indices, attrArray);
             }
 
             @Override

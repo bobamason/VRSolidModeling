@@ -3,11 +3,15 @@ package net.masonapps.vrsolidmodeling.ui;
 import android.support.annotation.Nullable;
 import android.util.SparseArray;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.model.data.ModelData;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
@@ -127,7 +131,6 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
                 }
                 projectItem.position.set((i - startIndex) * ITEM_WIDTH - scrollX * (startIndex * ITEM_WIDTH), 0f, -3f);
                 projectItem.updateTransform();
-                Logger.d("project " + i + " position = " + projectItem.position);
             }
             needsLayout = false;
         }
@@ -196,7 +199,7 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
         }).thenAccept(modelData -> {
             if (modelData != null) {
                 GdxVr.app.postRunnable(() -> {
-                    projectItem.project = new Entity(new ModelInstance(new Model(modelData)));
+                    projectItem.project = new Entity(new ModelInstance(new ModelBuilder().createBox(1, 1, 1, new Material(ColorAttribute.createDiffuse(Color.BLUE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal)));
                         projectItem.updateTransform();
                         projectItem.loadModelFuture = null;
                         aabbTree.insert(projectItem);
@@ -374,8 +377,10 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
                 project.setScale(ITEM_WIDTH / project.getRadius());
                 project.validate();
                 aabb.set(project.getBounds()).mul(project.getTransform());
-                Logger.d("project position = " + project.getPosition());
-                Logger.d("project scale = " + project.getScale().x);
+                Logger.d("project " + key + " position = " + project.getPosition());
+                Logger.d("project " + key + " scale = " + project.getScale().x);
+            } else {
+                Logger.d("project " + key + " is null");
             }
         }
     }

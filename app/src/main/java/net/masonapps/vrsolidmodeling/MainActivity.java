@@ -20,7 +20,6 @@ import com.google.vr.sdk.base.AndroidCompat;
 import net.masonapps.vrsolidmodeling.service.ExportService;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
-import org.masonapps.libgdxgooglevr.utils.Logger;
 import org.masonapps.libgdxgooglevr.vr.VrActivity;
 
 import java.io.File;
@@ -69,7 +68,6 @@ public class MainActivity extends VrActivity {
     protected void initGvrLayout(GvrLayout layout) {
 //        layout.setStereoModeEnabled(false);
         if (layout.enableAsyncReprojectionProtected()) {
-            Logger.d("Async Reprojection Enabled");
             AndroidCompat.setSustainedPerformanceMode(this, true);
         }
     }
