@@ -613,7 +613,7 @@ public class VrAndroidInput implements Input, View.OnKeyListener {
 
     protected void updateInputRay() {
         if (isControllerConnected && controller != null) {
-            inputRay.origin.set(0, -0.002f, -0.053f).mul(armModel.pointerRotation).add(GdxVr.app.getVrApplicationAdapter().getVrCamera().position).add(armModel.pointerPosition);
+            inputRay.origin.set(0, -0.002f, -0.072f).mul(armModel.pointerRotation).add(GdxVr.app.getVrApplicationAdapter().getVrCamera().position).add(armModel.pointerPosition);
             inputRay.direction.set(ArmModel.WORLD_FORWARD).mul(armModel.pointerRotation);
         } else {
             inputRay.origin.set(GdxVr.app.getVrApplicationAdapter().getVrCamera().position);

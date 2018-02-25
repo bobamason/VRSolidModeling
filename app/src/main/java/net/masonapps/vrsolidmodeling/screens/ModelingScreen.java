@@ -678,6 +678,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         switch (currentState) {
             case STATE_EDITING:
                 transformUI.performRayTest(getControllerRay());
+                hitPoint.set(transformUI.getHitPoint3D());
                 currentInputMode = InputMode.EDIT;
                 break;
             case STATE_NONE:

@@ -122,7 +122,7 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
     @Nullable
     private ShaderProgram postProcessingShader = null;
     private SpriteBatch spriteBatch;
-    private FrameBuffer fbo;
+    //    private FrameBuffer fbo;
     private Matrix4 postProjection = new Matrix4();
 
     public VrGraphics(VrActivity.VrApplication application, WeakReference<GLSurfaceView> surfaceViewRef, GvrApi api, GvrAudioEngine gvrAudioEngine) {
@@ -309,10 +309,10 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
             spriteBatch.dispose();
             spriteBatch = null;
         }
-        if (fbo != null) {
-            fbo.dispose();
-            fbo = null;
-        }
+//        if (fbo != null) {
+//            fbo.dispose();
+//            fbo = null;
+//        }
 //        shutdown();
     }
 
@@ -697,8 +697,8 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
         bufferSpec.setColorFormat(BufferSpec.ColorFormat.RGBA_8888);
         bufferSpec.setDepthStencilFormat(BufferSpec.DepthStencilFormat.DEPTH_16);
         bufferSpec.setSize(targetSize);
-        bufferSpec.setSamples(1);
-        fbo = new FrameBuffer(Pixmap.Format.RGB565, targetSize.x, targetSize.y, true);
+        bufferSpec.setSamples(4);
+//        fbo = new FrameBuffer(Pixmap.Format.RGB565, targetSize.x, targetSize.y, true);
         specList[INDEX_SCENE_BUFFER] = bufferSpec;
 
         swapChain = api.createSwapChain(specList);
@@ -743,37 +743,43 @@ public class VrGraphics implements Graphics, GLSurfaceView.Renderer {
 
         api.getRecommendedBufferViewports(recommendedList);
 
-        final Texture colorBufferTexture = fbo.getColorBufferTexture();
-        final int textureWidth = colorBufferTexture.getWidth();
-        final int textureHeight = colorBufferTexture.getHeight();
-        setEye(0, leftEye, textureWidth, textureHeight);
-        setEye(1, rightEye, textureWidth, textureHeight);
+//        final Texture colorBufferTexture = fbo.getColorBufferTexture();
+//        final int textureWidth = colorBufferTexture.getWidth();
+//        final int textureHeight = colorBufferTexture.getHeight();
+//        setEye(0, leftEye, textureWidth, textureHeight);
+//        setEye(1, rightEye, textureWidth, textureHeight);
 
-        fbo.begin();
+        setEye(0, leftEye, targetSize.x, targetSize.y);
+        setEye(1, rightEye, targetSize.x, targetSize.y);
+
+//        fbo.begin();
+
+//        onDrawFrame();
+//        checkGlError(TAG, "new frame");
+
+//        fbo.end(0, 0, targetSize.x, targetSize.y);
+
+        frame.bindBuffer(INDEX_SCENE_BUFFER);
+//        Gdx.gl.glClearColor(0f, 0.1f, 0.2f, 1f);
+//        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+//
+//        spriteBatch.begin();
+//        final int w = targetSize.x;
+//        final int h = targetSize.y;
+//        postProjection.setToOrtho2D(0, 0, w, h);
+//        spriteBatch.setProjectionMatrix(postProjection);
+//        try {
+//            if (postProcessingShader != null) {
+//                postProcessingShader.setUniformf("resolution", textureWidth, textureHeight);
+//            }
+//        } catch (Exception e) {
+//            Logger.e("shader error", e);
+//        }
+//        spriteBatch.draw(colorBufferTexture, 0, 0, w, h, 0, 0, textureWidth, textureHeight, false, true);
+//        spriteBatch.end();
 
         onDrawFrame();
         checkGlError(TAG, "new frame");
-
-        fbo.end(0, 0, targetSize.x, targetSize.y);
-
-        frame.bindBuffer(INDEX_SCENE_BUFFER);
-        Gdx.gl.glClearColor(0f, 0.1f, 0.2f, 1f);
-        Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-
-        spriteBatch.begin();
-        final int w = targetSize.x;
-        final int h = targetSize.y;
-        postProjection.setToOrtho2D(0, 0, w, h);
-        spriteBatch.setProjectionMatrix(postProjection);
-        try {
-            if (postProcessingShader != null) {
-                postProcessingShader.setUniformf("resolution", textureWidth, textureHeight);
-            }
-        } catch (Exception e) {
-            Logger.e("shader error", e);
-        }
-        spriteBatch.draw(colorBufferTexture, 0, 0, w, h, 0, 0, textureWidth, textureHeight, false, true);
-        spriteBatch.end();
 
         frame.unbind();
         frame.submit(viewportList, headTransform.getHeadView());
