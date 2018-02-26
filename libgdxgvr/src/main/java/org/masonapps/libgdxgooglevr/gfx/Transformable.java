@@ -280,7 +280,7 @@ public class Transformable {
     public void recalculateTransform() {
         transform.set(position, rotation, scale);
         try {
-            inverseTransform.set(transform).inv();
+            inverseTransform.set(-position.x, -position.y, -position.z, -rotation.x, -rotation.y, -rotation.z, rotation.w, 1f / scale.x, 1f / scale.y, 1f / scale.z);
         } catch (Exception e) {
             inverseTransform.idt();
             Log.e(Entity.class.getName(), e.getLocalizedMessage());

@@ -19,6 +19,7 @@ import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
@@ -118,7 +119,10 @@ public class SolidModelingGame extends VrGame {
     protected void doneLoading(AssetManager assets) {
         if (!isAtlasLoaded) {
             roomInstance = new ModelInstance(assets.get(Assets.ROOM_MODEL, Model.class));
-            roomInstance.transform.idt().translate(0, 0, -4).scale(0.05f, 0.05f, 0.05f);
+            final BoundingBox bounds = new BoundingBox();
+            roomInstance.calculateBoundingBox(bounds);
+            float s = (getVrCamera().far - 1f) / (bounds.getDimensions(new Vector3()).len() / 2f);
+            roomInstance.transform.idt().translate(0, -bounds.min.y * s - 1.3f, -4).scale(s, s, s);
 
             final TextureAtlas atlas = assets.get(Style.ATLAS_FILE, TextureAtlas.class);
             getSkin().addRegions(atlas);

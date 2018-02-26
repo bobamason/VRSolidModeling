@@ -82,8 +82,8 @@ import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.ViewAction.RO
 
 public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.OnControllerBackPressedListener {
 
-    public static final float MIN_Z = 2f;
-    public static final float MAX_Z = 20f;
+    public static final float MIN_Z = 0.5f;
+    public static final float MAX_Z = 10f;
     private static final String TAG = ModelingScreen.class.getSimpleName();
     private static final float UI_ALPHA = 0.25f;
     private final MainInterface mainInterface;
@@ -100,10 +100,11 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private Quaternion rotation = new Quaternion();
     private Quaternion lastRotation = new Quaternion();
     private Quaternion snappedRotation = new Quaternion();
-    private Vector3 projectPosition = new Vector3(0, 0, -4);
+    private Vector3 projectPosition = new Vector3(0, -0.5f, -1);
     private Vector3 position = new Vector3(projectPosition);
     private Vector3 snappedPosition = new Vector3(projectPosition);
     private Vector3 center = new Vector3();
+    private float projectScale = 0.25f;
     private String projectName;
     private ViewAction viewAction = ACTION_NONE;
     private InputMode currentInputMode = InputMode.VIEW;
@@ -306,6 +307,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         gridEntity.setVisible(false);
 
         getWorld().add(modelingProject);
+        modelingProject.setScale(projectScale);
 
         for (EditableNode node : nodeList) {
             modelingProject.add(node);
