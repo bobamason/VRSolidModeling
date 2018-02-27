@@ -36,7 +36,7 @@ public class Entity extends Transformable implements Disposable {
             setTransform(modelInstance.transform);
             bounds.inf();
             for (Node node : modelInstance.nodes) {
-                node.extendBoundingBox(bounds, false);
+                node.extendBoundingBox(bounds);
             }
         }
         bounds.getDimensions(dimensions);

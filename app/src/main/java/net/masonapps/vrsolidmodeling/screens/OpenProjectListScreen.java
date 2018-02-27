@@ -1,26 +1,21 @@
 package net.masonapps.vrsolidmodeling.screens;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Mesh;
-import com.badlogic.gdx.graphics.VertexAttribute;
-import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.model.data.ModelData;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
-import net.masonapps.vrsolidmodeling.mesh.MeshUtils;
-import net.masonapps.vrsolidmodeling.ui.ProjectPreviewList;
+import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
+import net.masonapps.vrsolidmodeling.ui.ProjectPreviewTestList;
 
 import org.json.JSONException;
 import org.masonapps.libgdxgooglevr.GdxVr;
@@ -38,9 +33,9 @@ import java.util.function.Consumer;
  * Created by Bob on 8/30/2017.
  */
 
-public class OpenProjectListScreen extends RoomScreen implements ProjectPreviewList.OnProjectSelectedListener {
+public class OpenProjectListScreen extends RoomScreen implements ProjectPreviewTestList.OnProjectSelectedListener {
 
-    protected final ProjectPreviewList<File> ui;
+    protected final ProjectPreviewTestList<File> ui;
     private final List<File> list;
     private final Consumer<File> consumer;
 
@@ -54,17 +49,10 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectPreviewL
 
         final SpriteBatch spriteBatch = new SpriteBatch();
         manageDisposable(spriteBatch);
-        ui = new ProjectPreviewList<File>(list, this) {
+        ui = new ProjectPreviewTestList<File>(list, this) {
             @Override
-            protected ModelData loadProject(File file) throws IOException, JSONException {
-//                return ProjectFileIO.loadModelData(file);
-                final Mesh mesh = new ModelBuilder().createBox(1, 1, 1, new Material(ColorAttribute.createDiffuse(Color.BLUE)), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal).meshes.get(0);
-                final float[] vertices = new float[mesh.getNumVertices()];
-                mesh.getVertices(vertices);
-                final short[] indices = new short[mesh.getNumIndices()];
-                mesh.getIndices(indices);
-                final VertexAttribute[] attrArray = new VertexAttribute[]{VertexAttribute.Position(), VertexAttribute.Normal()};
-                return MeshUtils.createModelData(vertices, indices, attrArray);
+            protected ModelData loadProject(File file, BoundingBox bounds) throws IOException, JSONException {
+                return ProjectFileIO.loadModelData(file, bounds);
             }
 
             @Override
@@ -72,6 +60,14 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectPreviewL
                 Logger.e(file.getName(), e);
             }
         };
+
+//        final MeshInfo meshInfo = Primitives.getPrimitiveMeshInfo(Primitives.KEY_TORUS);
+//        try {
+//            final Model model = new Model(ProjectFileIO.loadModelData(list.get(0)));
+//            getWorld().add(new Entity(new ModelInstance(model))).setPosition(0, 0, -2);
+//        } catch (Exception e){
+//            Logger.e("failed to create test model", e);
+//        }
     }
 
     @Override
@@ -130,7 +126,7 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectPreviewL
     }
 
     @Override
-    public void onProjectSelected(ProjectPreviewList.ProjectItem item) {
-        consumer.accept(list.get(item.key));
+    public void onProjectSelected(ProjectPreviewTestList.ProjectItem item) {
+        consumer.accept(list.get(item.index));
     }
 }

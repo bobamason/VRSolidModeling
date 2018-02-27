@@ -1,7 +1,6 @@
 package net.masonapps.vrsolidmodeling.ui;
 
 import android.support.annotation.Nullable;
-import android.util.SparseArray;
 
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -10,11 +9,11 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.data.ModelData;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.MathUtils;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
-import com.badlogic.gdx.utils.Pool;
 
 import org.json.JSONException;
 import org.masonapps.libgdxgooglevr.GdxVr;
@@ -25,50 +24,60 @@ import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
 import org.masonapps.libgdxgooglevr.utils.Logger;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * Created by Bob Mason on 2/8/2018.
  */
 
-public abstract class ProjectPreviewList<T> implements VrInputProcessor {
+public abstract class ProjectPreviewTestList<T> implements VrInputProcessor {
 
     public static final float ITEM_WIDTH = 1f;
     public static final float TOUCHPAD_SCALE = 150f;
+    public static final float SPACING = 0.1f;
+    private static final float VISIBLE_EXTENT = 4f;
+    private static final float HALF_VISIBLE_EXTENT = VISIBLE_EXTENT / 2f;
     private final List<T> list;
     private final GestureDetector gestureDetector;
     private final AABBTree aabbTree = new AABBTree();
-    private final Pool<ProjectItem> itemPool = new Pool<ProjectItem>() {
-        @Override
-        protected ProjectItem newObject() {
-            return new ProjectItem();
-        }
-    };
     private final Vector3 hitPoint = new Vector3();
     private final OnProjectSelectedListener listener;
+    private final List<ProjectItem> items;
     private AABBTree.IntersectionInfo intersetionInfo = new AABBTree.IntersectionInfo();
     @Nullable
     private ProjectItem focusedItem = null;
     private boolean scrolling = false;
     private float scrollX = 0f;
     private boolean isCursorOver = false;
-    private SparseArray<ProjectItem> visibleItems = new SparseArray<>();
     private float maxScroll = 0f;
     private boolean needsLayout = true;
     private float SPEED = 2f;
+    private Set<Integer> loadingIndices = new HashSet<>();
 
-    public ProjectPreviewList(List<T> list, OnProjectSelectedListener listener) {
+    public ProjectPreviewTestList(List<T> list, OnProjectSelectedListener listener) {
         this.list = list;
-        maxScroll = list.size() * ITEM_WIDTH;
+        final int n = list.size();
+        maxScroll = (ITEM_WIDTH + SPACING) * n - VISIBLE_EXTENT;
         this.listener = listener;
+        items = new ArrayList<>(n);
+        for (int i = 0; i < n; i++) {
+            items.add(i, null);
+            final float itemX = getItemX(i);
+            if (isWithinValidRange(itemX))
+                init(i);
+        }
         final GestureDetector.GestureAdapter gestureAdapter = new GestureDetector.GestureAdapter() {
 
-            public float startX = 0f;
+            public float lastX = 0f;
 
             @Override
             public boolean touchDown(float x, float y, int pointer, int button) {
-                startX = x;
+                lastX = x;
                 return super.touchDown(x, y, pointer, button);
             }
 
@@ -81,8 +90,9 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
             public boolean pan(float x, float y, float deltaX, float deltaY) {
 //                if (animating) return false;
                 scrolling = true;
-                scrollX += (x - startX) / TOUCHPAD_SCALE * SPEED;
+                scrollX += -(x - lastX) / TOUCHPAD_SCALE * SPEED;
                 scrollX = MathUtils.clamp(scrollX, 0, maxScroll);
+                lastX = x;
                 invalidate();
                 return true;
             }
@@ -112,32 +122,31 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
 
     private void validate() {
         if (needsLayout) {
-            final int startIndex = getStartIndex();
-            final int endIndex = getEndIndex();
-            for (int i = 0; i < visibleItems.size(); i++) {
-                final int key = visibleItems.keyAt(i);
-                if (key < 0) continue;
-                if (key < startIndex || key >= endIndex)
-                    recycle(visibleItems.get(key));
-            }
-            for (int i = startIndex; i < endIndex; i++) {
-                ProjectItem projectItem = visibleItems.get(i);
-                if (projectItem == null) {
-                    projectItem = init(list.get(i), i);
+            for (int i = 0; i < items.size(); i++) {
+                final ProjectItem item = items.get(i);
+                final float itemX = getItemX(i);
+                if (isWithinValidRange(itemX)) {
+                    if (Objects.nonNull(item)) {
+                        item.setVisible(isWithinVisibleRange(itemX));
+                        item.setPosition(itemX, 0, -3);
+                    } else {
+                        init(i);
+                    }
+                } else {
+                    if (Objects.nonNull(item))
+                        recycle(item);
                 }
-                projectItem.position.set((i - startIndex) * ITEM_WIDTH - scrollX * (startIndex * ITEM_WIDTH), 0f, -3f);
-                projectItem.updateTransform();
             }
             needsLayout = false;
         }
     }
 
-    private int getStartIndex() {
-        return Math.round(scrollX / ITEM_WIDTH);
+    private boolean isWithinVisibleRange(float itemX) {
+        return itemX > -VISIBLE_EXTENT && itemX < VISIBLE_EXTENT;
     }
 
-    private int getEndIndex() {
-        return Math.min(getStartIndex() + 6, list.size());
+    private boolean isWithinValidRange(float itemX) {
+        return itemX > -VISIBLE_EXTENT - HALF_VISIBLE_EXTENT && itemX < VISIBLE_EXTENT + HALF_VISIBLE_EXTENT;
     }
 
     private void invalidate() {
@@ -158,62 +167,72 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
 
     public void update() {
         validate();
-        for (int i = 0; i < visibleItems.size(); i++) {
-            final int key = visibleItems.keyAt(i);
-            final Entity project = visibleItems.get(key).project;
-            if (project != null) {
-                project.validate();
-            }
-        }
+    }
+
+    private float getItemX(int i) {
+        final float x = i * (ITEM_WIDTH + SPACING) - scrollX - HALF_VISIBLE_EXTENT;
+//        Logger.d("getItemX(" + i + ") -> " + x);
+        return x;
     }
 
     public void render(ModelBatch batch, Environment environment) {
-        for (int i = 0; i < visibleItems.size(); i++) {
-            final int key = visibleItems.keyAt(i);
-            final Entity project = visibleItems.get(key).project;
-            if (project != null && project.modelInstance != null)
-                batch.render(project.modelInstance, environment);
-        }
+        items.stream().filter(Objects::nonNull).forEach(item -> {
+            item.validate();
+            if (item.modelInstance != null && item.isVisible()) {
+                batch.render(item.modelInstance, environment);
+            }
+        });
     }
 
-    private ProjectItem init(final T t, final int index) {
+    private void init(final int index) {
+        if (loadingIndices.contains(index)) return;
+        loadingIndices.add(index);
+        final T t = list.get(index);
         Logger.d("init " + index);
-        final ProjectItem projectItem = itemPool.obtain();
-        visibleItems.put(projectItem.key, projectItem);
-        projectItem.key = index;
-        projectItem.loadModelFuture = CompletableFuture.supplyAsync(() -> {
+        final BoundingBox bb = new BoundingBox();
+        final CompletableFuture<ModelData> loadModelFuture = CompletableFuture.supplyAsync(() -> {
             try {
-                return loadProject(t);
+                return loadProject(t, bb);
             } catch (IOException | JSONException e) {
                 throw new RuntimeException("failed to load project #" + index, e);
             }
         });
-        projectItem.loadModelFuture.exceptionally(e -> {
+        loadModelFuture.exceptionally(e -> {
             GdxVr.app.postRunnable(() -> onLoadFailed(t, e));
             return null;
         }).thenAccept(modelData -> {
             if (modelData != null) {
                 GdxVr.app.postRunnable(() -> {
-                    projectItem.project = new Entity(new ModelInstance(new Model(modelData)));
-                        projectItem.updateTransform();
-                        projectItem.loadModelFuture = null;
-                        aabbTree.insert(projectItem);
-                        invalidate();
+                    loadingIndices.remove(index);
+
+                    final float maxx = Math.max(Math.abs(bb.min.x), Math.abs(bb.max.x));
+                    final float maxy = Math.max(Math.abs(bb.min.y), Math.abs(bb.max.y));
+                    final float maxz = Math.max(Math.abs(bb.min.z), Math.abs(bb.max.z));
+                    bb.set(bb.min.set(-maxx, -maxy, -maxz), bb.max.set(maxx, maxy, maxz));
+
+                    ProjectItem projectItem = new ProjectItem(new ModelInstance(new Model(modelData)), bb, index);
+                    projectItem.setPosition(getItemX(index), 0, -3);
+                    final Vector3 dimens = new Vector3();
+                    final float scale = ITEM_WIDTH / bb.getDimensions(dimens).len();
+                    Logger.d("bb dimens " + index + " = " + dimens);
+                    Logger.d("scale " + index + " = " + scale);
+                    projectItem.setScale(scale);
+                    items.set(index, projectItem);
+                    aabbTree.insert(projectItem);
+                    invalidate();
                 });
             }
         });
-        return projectItem;
     }
 
-    protected abstract ModelData loadProject(T t) throws IOException, JSONException;
+    protected abstract ModelData loadProject(T t, BoundingBox bounds) throws IOException, JSONException;
 
     protected abstract void onLoadFailed(T t, Throwable e);
 
     private void recycle(ProjectItem projectItem) {
-        Logger.d("recycle " + projectItem.key);
-        visibleItems.remove(projectItem.key);
+        items.set(projectItem.index, null);
         aabbTree.remove(projectItem);
-        itemPool.free(projectItem);
+        projectItem.dispose();
     }
 
     @Override
@@ -295,48 +314,32 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
         void onProjectSelected(ProjectItem item);
     }
 
-    public static class ProjectItem implements AABBTree.AABBObject {
+    public static class ProjectItem extends Entity implements AABBTree.AABBObject {
 
-        public int key = -1;
-        @Nullable
-        public CompletableFuture<ModelData> loadModelFuture = null;
-        @Nullable
-        public Entity project = null;
+        public final int index;
+        //        @Nullable
+//        public CompletableFuture<ModelData> loadModelFuture = null;
         @Nullable
         private AABBTree.LeafNode node = null;
         private BoundingBox aabb = new BoundingBox();
-        private Vector3 position = new Vector3();
-//        public Animator animator = new Animator(new Animator.AnimationListener() {
-//            @Override
-//            public void apply(float value) {
-//                if(project != null){
-//                    project.getPosition().set(position).lerp(targetPosition, value);
-//                    project.getRotation().set(rotation).slerp(targetRotation, value);
-//                }
-//            }
-//
-//            @Override
-//            public void finished() {
-//                position.set(targetPosition);
-//                rotation.set(targetRotation);
-//            }
-//        });
-//        public Vector3 position = new Vector3();
-//        public Vector3 targetPosition = new Vector3();
-//        public Quaternion rotation = new Quaternion();
-//        public Quaternion targetRotation = new Quaternion();
 
-        public void reset() {
-            position.set(0, 0, 0);
-            key = -1;
-            if (loadModelFuture != null) {
-                loadModelFuture.cancel(true);
-                loadModelFuture = null;
-            }
-            if (project != null) {
-                project.dispose();
-                project = null;
-            }
+        public ProjectItem(@Nullable ModelInstance modelInstance, BoundingBox boundingBox, int index) {
+            super(modelInstance, boundingBox);
+            this.index = index;
+        }
+
+        @Override
+        public Entity setTransform(Matrix4 transform) {
+            super.setTransform(transform);
+            if (aabb != null)
+                aabb.set(getBounds()).mul(this.transform);
+            return this;
+        }
+
+        @Override
+        public void recalculateTransform() {
+            super.recalculateTransform();
+            aabb.set(getBounds()).mul(this.transform);
         }
 
         @Nullable
@@ -357,25 +360,12 @@ public abstract class ProjectPreviewList<T> implements VrInputProcessor {
 
         @Override
         public boolean rayTest(Ray ray, AABBTree.IntersectionInfo intersection) {
-            if (project == null) return false;
-            intersection.object = null;
-            final boolean rayTest = project.intersectsRaySphere(ray, intersection.hitPoint);
-            if (rayTest)
+            final boolean rayTest = intersectsRayBounds(ray, intersection.hitPoint);
+            if (rayTest) {
                 intersection.object = this;
-            return rayTest;
-        }
-
-        public void updateTransform() {
-            if (project != null) {
-                project.setPosition(position);
-                project.setScale(ITEM_WIDTH / project.getRadius());
-                project.validate();
-                aabb.set(project.getBounds()).mul(project.getTransform());
-                Logger.d("project " + key + " position = " + project.getPosition());
-                Logger.d("project " + key + " scale = " + project.getScale().x);
-            } else {
-                Logger.d("project " + key + " is null");
+                intersection.t = ray.origin.dst2(intersection.hitPoint);
             }
+            return rayTest;
         }
     }
 }

@@ -100,11 +100,11 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private Quaternion rotation = new Quaternion();
     private Quaternion lastRotation = new Quaternion();
     private Quaternion snappedRotation = new Quaternion();
-    private Vector3 projectPosition = new Vector3(0, -0.5f, -1);
+    private Vector3 projectPosition = new Vector3(0, -0.5f, -2);
     private Vector3 position = new Vector3(projectPosition);
     private Vector3 snappedPosition = new Vector3(projectPosition);
     private Vector3 center = new Vector3();
-    private float projectScale = 0.25f;
+    private float projectScale = 1f;
     private String projectName;
     private ViewAction viewAction = ACTION_NONE;
     private InputMode currentInputMode = InputMode.VIEW;
@@ -289,7 +289,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             @Override
             public void onZoomChanged(float value) {
                 final float z = -MathUtils.lerp(MIN_Z, MAX_Z, (1f - value) * (1f - value));
-                projectPosition.set(0, 0, z);
+                projectPosition.z = z;
                 if (selectedEntity != null) {
                     center.set(selectedEntity.getPosition());
                 } else {

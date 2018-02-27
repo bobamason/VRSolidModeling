@@ -203,7 +203,8 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     public void calculateTransforms(boolean recursive) {
         super.calculateTransforms(recursive);
         try {
-            inverseTransform.set(-translation.x, -translation.y, -translation.z, -rotation.x, -rotation.y, -rotation.z, rotation.w, 1f / scale.x, 1f / scale.y, 1f / scale.z);
+//            inverseTransform.set(-translation.x, -translation.y, -translation.z, -rotation.x, -rotation.y, -rotation.z, rotation.w, 1f / scale.x, 1f / scale.y, 1f / scale.z);
+            inverseTransform.set(localTransform).inv();
         } catch (Exception ignored) {
         }
         aabb.set(bounds).mul(localTransform);

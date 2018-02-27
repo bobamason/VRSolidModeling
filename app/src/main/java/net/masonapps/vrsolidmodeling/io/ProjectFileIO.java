@@ -1,5 +1,7 @@
 package net.masonapps.vrsolidmodeling.io;
 
+import android.support.annotation.Nullable;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.VertexAttribute;
@@ -10,8 +12,10 @@ import com.badlogic.gdx.graphics.g3d.model.data.ModelMesh;
 import com.badlogic.gdx.graphics.g3d.model.data.ModelMeshPart;
 import com.badlogic.gdx.graphics.g3d.model.data.ModelNode;
 import com.badlogic.gdx.graphics.g3d.model.data.ModelNodePart;
+import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
 
 import net.masonapps.vrsolidmodeling.mesh.MeshInfo;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
@@ -84,6 +88,10 @@ public class ProjectFileIO {
     }
 
     public static ModelData loadModelData(File file) throws IOException, JSONException {
+        return loadModelData(file, null);
+    }
+
+    public static ModelData loadModelData(File file, @Nullable BoundingBox outBounds) throws IOException, JSONException {
         BufferedReader reader = null;
         final ModelData data = new ModelData();
         try {
@@ -96,8 +104,15 @@ public class ProjectFileIO {
             }
 
             final JSONArray jsonArray = new JSONArray(sb.toString());
+            if (outBounds != null) {
+                if (jsonArray.length() == 0)
+                    outBounds.set(new Vector3(-0.5f, -0.5f, -0.5f), new Vector3(0.5f, 0.5f, 0.5f));
+                else
+                    outBounds.inf();
+
+            }
             for (int i = 0; i < jsonArray.length(); i++) {
-                addModelNode(i, data, jsonArray.getJSONObject(i));
+                addModelNode(i, data, jsonArray.getJSONObject(i), outBounds);
             }
 
         } finally {
@@ -107,7 +122,7 @@ public class ProjectFileIO {
         return data;
     }
 
-    private static void addModelNode(int index, ModelData data, JSONObject jsonObject) throws JSONException {
+    private static void addModelNode(int index, ModelData data, JSONObject jsonObject, @Nullable BoundingBox outBounds) throws JSONException {
         ModelNode node = new ModelNode();
         final String nodeId = "node" + index;
         final String meshId = "mesh" + index;
@@ -137,14 +152,24 @@ public class ProjectFileIO {
             meshInfo = Primitives.getPrimitiveMeshInfo(primitiveKey);
         }
 
-        final float[] vertices = new float[meshInfo.numVertices];
-        System.arraycopy(meshInfo.vertices, 0, vertices, 0, meshInfo.numVertices);
-        final short[] indices = new short[meshInfo.numIndices];
-        System.arraycopy(meshInfo.indices, 0, indices, 0, meshInfo.numIndices);
+        final float[] vertices = new float[meshInfo.vertices.length];
+        System.arraycopy(meshInfo.vertices, 0, vertices, 0, meshInfo.vertices.length);
+        final short[] indices = new short[meshInfo.indices.length];
+        System.arraycopy(meshInfo.indices, 0, indices, 0, meshInfo.indices.length);
         final int n = meshInfo.vertexAttributes.size();
         final VertexAttribute[] attributes = new VertexAttribute[n];
         for (int i = 0; i < n; i++) {
             attributes[i] = meshInfo.vertexAttributes.get(i);
+        }
+
+        if (outBounds != null) {
+            final Vector3 tmp = new Vector3();
+            final Matrix4 transform = new Matrix4();
+            transform.set(node.translation, node.rotation, node.scale);
+            final int vertexSize = meshInfo.vertexAttributes.vertexSize / Float.BYTES;
+            for (int i = 0; i < vertices.length; i += vertexSize) {
+                outBounds.ext(tmp.set(vertices[i], vertices[i + 1], vertices[i + 2]).mul(transform));
+            }
         }
 
         ModelMeshPart part = new ModelMeshPart();
