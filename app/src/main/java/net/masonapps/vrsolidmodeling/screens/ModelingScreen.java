@@ -66,9 +66,7 @@ import org.masonapps.libgdxgooglevr.gfx.World;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_EDITING;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_NONE;
@@ -341,25 +339,6 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         return builder.end();
     }
 
-    protected static void debugAABBTree(ShapeRenderer shapeRenderer, ModelingProjectEntity modelingProject, Color color) {
-        shapeRenderer.setColor(color);
-        shapeRenderer.setTransformMatrix(modelingProject.getTransform());
-        Queue<AABBTree.Node> queue = new LinkedList<>();
-        queue.offer(modelingProject.getAABBTree().root);
-        while (!queue.isEmpty()) {
-            AABBTree.Node node = queue.poll();
-            if (node.bb.isValid())
-                drawBounds(shapeRenderer, node.bb);
-            if (node instanceof AABBTree.InnerNode) {
-                final AABBTree.InnerNode innerNode = (AABBTree.InnerNode) node;
-                if (innerNode.child1 != null)
-                    queue.offer(innerNode.child1);
-                if (innerNode.child2 != null)
-                    queue.offer(innerNode.child2);
-            }
-        }
-    }
-
     private static void drawBounds(ShapeRenderer shapeRenderer, BoundingBox bounds) {
         shapeRenderer.box(bounds.min.x, bounds.min.y, bounds.max.z,
                 bounds.getWidth(), bounds.getHeight(), bounds.getDepth());
@@ -517,7 +496,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
         shapeRenderer.begin();
         shapeRenderer.setProjectionMatrix(camera.combined);
-        debugAABBTree(shapeRenderer, modelingProject, Color.YELLOW);
+        shapeRenderer.setTransformMatrix(modelingProject.getTransform());
+//        AABBTree.debugAABBTree(shapeRenderer, modelingProject.getAABBTree(), Color.YELLOW);
         transformUI.drawShapes(shapeRenderer);
         if (focusedEntity != null) {
             drawEntityBounds(shapeRenderer, focusedEntity, Color.BLACK);

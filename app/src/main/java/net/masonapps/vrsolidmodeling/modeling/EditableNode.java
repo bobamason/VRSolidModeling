@@ -64,6 +64,10 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     private BoundingBox aabb = new BoundingBox();
     private String primitiveKey = KEY_MESH;
     private BVH.IntersectionInfo bvhIntersection = new BVH.IntersectionInfo();
+    private Color ambientColor = new Color(Color.BLACK);
+    private Color diffuseColor = new Color(Color.GRAY);
+    private Color specularColor = new Color(0x3f3f3fff);
+    private float shininess = 8f;
 
     public EditableNode(String primitiveKey) {
         this(Primitives.getPrimitiveMeshInfo(primitiveKey), Primitives.getPrimitiveBVH(primitiveKey));
@@ -74,13 +78,6 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         super();
         this.meshInfo = meshInfo;
         this.bvh = bvh;
-    }
-
-    public static Material createDefaultMaterial() {
-        return new Material(ColorAttribute.createAmbient(Color.BLACK),
-                ColorAttribute.createDiffuse(Color.GRAY),
-                ColorAttribute.createSpecular(Color.DARK_GRAY),
-                FloatAttribute.createShininess(8f));
     }
 
     public static EditableNode fromJSONObject(JSONObject jsonObject) throws JSONException {
@@ -146,6 +143,13 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         return mesh;
     }
 
+    private Material createDefaultMaterial() {
+        return new Material(ColorAttribute.createAmbient(ambientColor),
+                ColorAttribute.createDiffuse(diffuseColor),
+                ColorAttribute.createSpecular(specularColor),
+                FloatAttribute.createShininess(shininess));
+    }
+
     public void initMesh() {
         if (parts.size > 0) return;
         final Mesh mesh = meshInfo.createMesh();
@@ -158,6 +162,7 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         parts.add(new NodePart(meshPart, createDefaultMaterial()));
         bounds.inf();
         extendBoundingBox(bounds, false);
+        invalidate();
     }
 
     @Nullable
@@ -229,55 +234,63 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     }
 
     public Color getAmbientColor() {
-        final Material material = parts.get(0).material;
-        final ColorAttribute ambient = (ColorAttribute) material.get(ColorAttribute.Ambient);
-        return ambient.color;
+        return ambientColor;
     }
 
     public void setAmbientColor(Color color) {
+        ambientColor.set(color);
+        if (parts.size == 0) return;
         final Material material = parts.get(0).material;
         final ColorAttribute ambient = (ColorAttribute) material.get(ColorAttribute.Ambient);
         if (ambient != null)
             ambient.color.set(color);
+        else
+            material.set(ColorAttribute.createAmbient(color));
     }
 
     public Color getDiffuseColor() {
-        final Material material = parts.get(0).material;
-        final ColorAttribute diffuse = (ColorAttribute) material.get(ColorAttribute.Diffuse);
-        return diffuse.color;
+        return diffuseColor;
     }
 
     public void setDiffuseColor(Color color) {
+        diffuseColor.set(color);
+        if (parts.size == 0) return;
         final Material material = parts.get(0).material;
         final ColorAttribute diffuse = (ColorAttribute) material.get(ColorAttribute.Diffuse);
         if (diffuse != null)
             diffuse.color.set(color);
+        else
+            material.set(ColorAttribute.createDiffuse(color));
     }
 
     public Color getSpecularColor() {
-        final Material material = parts.get(0).material;
-        final ColorAttribute specular = (ColorAttribute) material.get(ColorAttribute.Specular);
-        return specular.color;
+        return specularColor;
     }
 
     public void setSpecularColor(Color color) {
+        specularColor.set(color);
+        if (parts.size == 0) return;
         final Material material = parts.get(0).material;
         final ColorAttribute specular = (ColorAttribute) material.get(ColorAttribute.Specular);
         if (specular != null)
             specular.color.set(color);
+        else
+            material.set(ColorAttribute.createSpecular(color));
     }
 
     public float getShininess() {
-        final Material material = parts.get(0).material;
-        final FloatAttribute shininess = (FloatAttribute) material.get(FloatAttribute.Shininess);
-        return shininess.value;
+        return shininess;
     }
 
     public void setShininess(float value) {
+        this.shininess = value;
+        if (parts.size == 0) return;
         final Material material = parts.get(0).material;
         final FloatAttribute shininess = (FloatAttribute) material.get(FloatAttribute.Shininess);
         if (shininess != null)
             shininess.value = value;
+        else
+            material.set(FloatAttribute.createShininess(value));
     }
 
     public JSONObject toJSONObject() throws JSONException {

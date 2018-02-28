@@ -1,5 +1,6 @@
 package net.masonapps.vrsolidmodeling.screens;
 
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.Environment;
@@ -15,7 +16,7 @@ import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
-import net.masonapps.vrsolidmodeling.ui.ProjectPreviewTestList;
+import net.masonapps.vrsolidmodeling.ui.ProjectList;
 
 import org.json.JSONException;
 import org.masonapps.libgdxgooglevr.GdxVr;
@@ -33,9 +34,9 @@ import java.util.function.Consumer;
  * Created by Bob on 8/30/2017.
  */
 
-public class OpenProjectListScreen extends RoomScreen implements ProjectPreviewTestList.OnProjectSelectedListener {
+public class OpenProjectListScreen extends RoomScreen implements ProjectList.OnProjectSelectedListener {
 
-    protected final ProjectPreviewTestList<File> ui;
+    protected final ProjectList<File> ui;
     private final List<File> list;
     private final Consumer<File> consumer;
 
@@ -49,7 +50,10 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectPreviewT
 
         final SpriteBatch spriteBatch = new SpriteBatch();
         manageDisposable(spriteBatch);
-        ui = new ProjectPreviewTestList<File>(list, this) {
+        for (int i = 0; i < list.size(); i++) {
+            Logger.d(i + " : " + list.get(i).getName());
+        }
+        ui = new ProjectList<File>(list, this) {
             @Override
             protected ModelData loadProject(File file, BoundingBox bounds) throws IOException, JSONException {
                 return ProjectFileIO.loadModelData(file, bounds);
@@ -60,6 +64,7 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectPreviewT
                 Logger.e(file.getName(), e);
             }
         };
+        manageDisposable(ui);
 
 //        final MeshInfo meshInfo = Primitives.getPrimitiveMeshInfo(Primitives.KEY_TORUS);
 //        try {
@@ -112,6 +117,12 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectPreviewT
     }
 
     @Override
+    public void render(Camera camera, int whichEye) {
+        super.render(camera, whichEye);
+        ui.debug(camera);
+    }
+
+    @Override
     public void onControllerButtonEvent(Controller controller, DaydreamButtonEvent event) {
     }
 
@@ -126,7 +137,7 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectPreviewT
     }
 
     @Override
-    public void onProjectSelected(ProjectPreviewTestList.ProjectItem item) {
+    public void onProjectSelected(ProjectList.ProjectItem item) {
         consumer.accept(list.get(item.index));
     }
 }

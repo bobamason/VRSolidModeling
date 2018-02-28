@@ -2,10 +2,15 @@ package org.masonapps.libgdxgooglevr.gfx;
 
 import android.support.annotation.Nullable;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
+
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * Created by Bob Mason on 12/28/2017.
@@ -24,6 +29,24 @@ public class AABBTree {
         float y = bb.max.y - bb.min.y;
         float z = bb.max.z - bb.min.z;
         return 2f * (y * z + x * z * x * y);
+    }
+
+    public static void debugAABBTree(ShapeRenderer shapeRenderer, AABBTree aabbTree, Color color) {
+        shapeRenderer.setColor(color);
+        Queue<Node> queue = new LinkedList<>();
+        queue.offer(aabbTree.root);
+        while (!queue.isEmpty()) {
+            AABBTree.Node node = queue.poll();
+            if (node.bb.isValid())
+                shapeRenderer.box(node.bb.min.x, node.bb.min.y, node.bb.max.z, node.bb.getWidth(), node.bb.getHeight(), node.bb.getDepth());
+            if (node instanceof AABBTree.InnerNode) {
+                final AABBTree.InnerNode innerNode = (AABBTree.InnerNode) node;
+                if (innerNode.child1 != null)
+                    queue.offer(innerNode.child1);
+                if (innerNode.child2 != null)
+                    queue.offer(innerNode.child2);
+            }
+        }
     }
 
     public void insert(AABBObject object) {
