@@ -50,9 +50,6 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectList.OnP
 
         final SpriteBatch spriteBatch = new SpriteBatch();
         manageDisposable(spriteBatch);
-        for (int i = 0; i < list.size(); i++) {
-            Logger.d(i + " : " + list.get(i).getName());
-        }
         ui = new ProjectList<File>(list, this) {
             @Override
             protected ModelData loadProject(File file, BoundingBox bounds) throws IOException, JSONException {

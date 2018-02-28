@@ -24,7 +24,6 @@ import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.masonapps.libgdxgooglevr.utils.Logger;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -114,9 +113,6 @@ public class ProjectFileIO {
             }
             for (int i = 0; i < jsonArray.length(); i++) {
                 final JSONObject jsonObject = jsonArray.getJSONObject(i);
-                final String primitiveKey = jsonObject.optString(EditableNode.KEY_PRIMITIVE, EditableNode.KEY_MESH);
-                if (i == 0)
-                    Logger.d(file.getName() + " node " + i + " : " + primitiveKey);
                 addModelNode(i, data, jsonObject, outBounds);
             }
 
