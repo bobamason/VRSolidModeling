@@ -1,5 +1,6 @@
 package net.masonapps.vrsolidmodeling.modeling;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.Color;
@@ -13,6 +14,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
@@ -30,6 +32,7 @@ import net.masonapps.vrsolidmodeling.mesh.Triangle;
 import net.masonapps.vrsolidmodeling.mesh.Vertex;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.masonapps.libgdxgooglevr.gfx.AABBTree;
@@ -42,6 +45,8 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
 
     public static final String KEY_PRIMITIVE = "primitive";
     public static final String KEY_MESH = "mesh";
+    public static final String KEY_GROUP = "group";
+    public static final String KEY_CHILDREN = "children";
     public static final String KEY_VERTEX_COUNT = "numVertices";
     public static final String KEY_VERTICES = "vertices";
     public static final String KEY_INDEX_COUNT = "numIndices";
@@ -54,41 +59,65 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     public static final String KEY_SPECULAR = "specular";
     public static final String KEY_SHININESS = "shininess";
     protected final Matrix4 inverseTransform = new Matrix4();
+    @Nullable
     private final MeshInfo meshInfo;
+    @Nullable
     private final BVH bvh;
     private final Ray transformedRay = new Ray();
+    private final String primitiveKey;
+    private final boolean isGroup;
     private boolean updated = false;
     @Nullable
     private AABBTree.LeafNode leafNode = null;
     private BoundingBox bounds = new BoundingBox();
     private BoundingBox aabb = new BoundingBox();
-    private String primitiveKey = KEY_MESH;
     private BVH.IntersectionInfo bvhIntersection = new BVH.IntersectionInfo();
-    private Color ambientColor = new Color(Color.BLACK);
+    private Color ambientColor = new Color(Color.GRAY);
     private Color diffuseColor = new Color(Color.GRAY);
     private Color specularColor = new Color(0x3f3f3fff);
     private float shininess = 8f;
 
-    public EditableNode(String primitiveKey) {
-        this(Primitives.getPrimitiveMeshInfo(primitiveKey), Primitives.getPrimitiveBVH(primitiveKey));
-        this.primitiveKey = primitiveKey;
+    public EditableNode() {
+        super();
+        meshInfo = null;
+        bvh = null;
+        primitiveKey = KEY_GROUP;
+        isGroup = true;
     }
 
-    public EditableNode(MeshInfo meshInfo, BVH bvh) {
+    public EditableNode(String primitiveKey) {
+        super();
+        this.meshInfo = Primitives.getPrimitiveMeshInfo(primitiveKey);
+        this.bvh = Primitives.getPrimitiveBVH(primitiveKey);
+        this.primitiveKey = primitiveKey;
+        isGroup = false;
+    }
+
+    public EditableNode(@NonNull MeshInfo meshInfo, @NonNull BVH bvh) {
         super();
         this.meshInfo = meshInfo;
         this.bvh = bvh;
+        primitiveKey = KEY_MESH;
+        isGroup = false;
     }
 
     public static EditableNode fromJSONObject(JSONObject jsonObject) throws JSONException {
-        final String primitiveKey = jsonObject.optString(KEY_PRIMITIVE, KEY_MESH);
+        final String primitiveKey = jsonObject.optString(KEY_PRIMITIVE, KEY_GROUP);
         final EditableNode editableNode;
-        if (primitiveKey.equals(KEY_MESH)) {
+
+        if (primitiveKey.equals(KEY_GROUP)) {
+            editableNode = new EditableNode();
+            final JSONArray children = jsonObject.getJSONArray(KEY_CHILDREN);
+            if (children != null) {
+                for (int i = 0; i < children.length(); i++) {
+                    editableNode.addChild(fromJSONObject(children.getJSONObject(i)));
+                }
+            }
+        } else if (primitiveKey.equals(KEY_MESH)) {
             if (jsonObject.has(KEY_MESH)) {
                 final MeshInfo meshInfo = parseMesh(jsonObject.getJSONObject(KEY_MESH));
                 editableNode = new EditableNode(meshInfo, buildBVH(meshInfo));
-            }
-            else
+            } else
                 editableNode = new EditableNode(Primitives.KEY_CUBE);
         } else {
             editableNode = new EditableNode(primitiveKey);
@@ -105,7 +134,7 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         final String rotationString = jsonObject.optString(KEY_ROTATION, "(0.0,0.0,0.0,1.0)");
         editableNode.rotation.set(JsonUtils.quaternionFromString(rotationString));
         editableNode.scale.fromString(jsonObject.optString(KEY_SCALE, "(1.0,1.0,1.0)"));
-        editableNode.calculateTransforms(false);
+        editableNode.calculateTransforms(true);
         return editableNode;
     }
 
@@ -143,6 +172,10 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         return mesh;
     }
 
+    public boolean isGroup() {
+        return isGroup;
+    }
+
     private Material createDefaultMaterial() {
         return new Material(ColorAttribute.createAmbient(ambientColor),
                 ColorAttribute.createDiffuse(diffuseColor),
@@ -151,7 +184,7 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     }
 
     public void initMesh() {
-        if (parts.size > 0) return;
+        if (parts.size > 0 || meshInfo == null) return;
         final Mesh mesh = meshInfo.createMesh();
         final MeshPart meshPart = new MeshPart();
         meshPart.id = "part";
@@ -185,8 +218,12 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     @Override
     public boolean rayTest(Ray ray, AABBTree.IntersectionInfo intersection) {
         validate();
+        boolean rayTest;
         transformedRay.set(ray).mul(inverseTransform);
-        final boolean rayTest = bvh.closestIntersection(transformedRay, bvhIntersection);
+        if (isGroup || bvh == null)
+            rayTest = Intersector.intersectRayBounds(transformedRay, bounds, intersection.hitPoint);
+        else
+            rayTest = bvh.closestIntersection(transformedRay, bvhIntersection);
         if (rayTest) {
             intersection.hitPoint.set(bvhIntersection.hitPoint).mul(getTransform());
             intersection.object = this;
@@ -197,7 +234,7 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
 
     public void validate() {
         if (!updated)
-            calculateTransforms(false);
+            calculateTransforms(true);
     }
 
     public void invalidate() {
@@ -212,6 +249,14 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
             inverseTransform.set(localTransform).inv();
         } catch (Exception ignored) {
         }
+        if (isGroup && getChildCount() > 0) {
+            bounds.inf();
+            final Iterable<Node> children = getChildren();
+            for (Node child : children) {
+                if (child instanceof EditableNode)
+                    bounds.ext(((EditableNode) child).getAABB());
+            }
+        }
         aabb.set(bounds).mul(localTransform);
         updated = true;
     }
@@ -220,7 +265,9 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     public EditableNode copy() {
         validate();
         final EditableNode node;
-        if (primitiveKey.equals(KEY_MESH))
+        if (isGroup)
+            node = new EditableNode();
+        else if (primitiveKey.equals(KEY_MESH) && meshInfo != null && bvh != null)
             node = new EditableNode(meshInfo, bvh);
         else
             node = new EditableNode(primitiveKey);
@@ -229,7 +276,17 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         node.scale.set(scale);
         node.localTransform.set(localTransform);
         node.globalTransform.set(globalTransform);
-        node.setDiffuseColor(getDiffuseColor());
+        if (isGroup) {
+            final Iterable<Node> children = getChildren();
+            for (Node child : children) {
+                if (child instanceof EditableNode)
+                    node.addChild(((EditableNode) child).copy());
+            }
+        }
+        node.ambientColor.set(ambientColor);
+        node.diffuseColor.set(diffuseColor);
+        node.specularColor.set(specularColor);
+        node.shininess = shininess;
         return node;
     }
 
@@ -297,7 +354,15 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         validate();
         final JSONObject jsonObject = new JSONObject();
         jsonObject.put(KEY_PRIMITIVE, primitiveKey);
-        if (primitiveKey.equals(KEY_MESH)) {
+        if (isGroup) {
+            final Iterable<Node> children = getChildren();
+            JSONArray jsonArray = new JSONArray();
+            for (Node child : children) {
+                if (child instanceof EditableNode)
+                    jsonArray.put(((EditableNode) child).toJSONObject());
+            }
+            jsonObject.put(KEY_CHILDREN, jsonArray);
+        } else if (primitiveKey.equals(KEY_MESH)) {
             jsonObject.put(KEY_MESH, meshToJsonObject(parts.get(0).meshPart.mesh));
         }
         jsonObject.put(KEY_AMBIENT, getAmbientColor().toString());

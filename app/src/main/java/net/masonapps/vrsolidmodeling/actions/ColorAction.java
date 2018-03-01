@@ -25,12 +25,14 @@ public class ColorAction extends Action {
 
     @Override
     public void redoAction() {
+        getNode().setAmbientColor(newColor);
         getNode().setDiffuseColor(newColor);
         consumer.accept(newColor);
     }
 
     @Override
     public void undoAction() {
+        getNode().setAmbientColor(oldColor);
         getNode().setDiffuseColor(oldColor);
         consumer.accept(oldColor);
     }

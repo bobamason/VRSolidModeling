@@ -110,7 +110,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     @Nullable
     private EditableNode focusedEntity = null;
     @Nullable
-    private EditableNode selectedEntity = null;
+    private EditableNode selectedNode = null;
     private ModelingProjectEntity modelingProject;
     private Vector3 hitPoint = new Vector3();
     private AABBTree.IntersectionInfo intersectionInfo = new AABBTree.IntersectionInfo();
@@ -154,7 +154,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 final AABBTree.LeafNode leafNode = entity.getNode();
                 if (leafNode != null)
                     leafNode.refit();
-                setSelectedEntity(entity);
+                setSelectedNode(entity);
             }
         };
         translateWidget.setListener(transformActionListener);
@@ -210,26 +210,26 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             public void onAddClicked(String key) {
                 final EditableNode entity = new EditableNode(key);
                 modelingProject.add(entity);
-                setSelectedEntity(entity);
+                setSelectedNode(entity);
                 undoRedoCache.save(new AddAction(entity, modelingProject));
                 setEditMode(EditModeTable.EditMode.TRANSLATE);
             }
 
             @Override
             public void onDeleteClicked() {
-                if (selectedEntity != null) {
-                    modelingProject.remove(selectedEntity);
-                    undoRedoCache.save(new RemoveAction(selectedEntity, modelingProject));
-                    setSelectedEntity(null);
+                if (selectedNode != null) {
+                    modelingProject.remove(selectedNode);
+                    undoRedoCache.save(new RemoveAction(selectedNode, modelingProject));
+                    setSelectedNode(null);
                 }
             }
 
             @Override
             public void onDuplicateClicked() {
-                if (selectedEntity != null) {
-                    final EditableNode entity = selectedEntity.copy();
+                if (selectedNode != null) {
+                    final EditableNode entity = selectedNode.copy();
                     modelingProject.add(entity);
-                    setSelectedEntity(entity);
+                    setSelectedNode(entity);
                     undoRedoCache.save(new AddAction(entity, modelingProject));
                     setEditMode(EditModeTable.EditMode.TRANSLATE);
                 }
@@ -237,10 +237,11 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void onColorChanged(Color color) {
-                if (selectedEntity != null) {
-                    final ColorAction colorAction = new ColorAction(selectedEntity, selectedEntity.getDiffuseColor().cpy(), color.cpy(), c -> mainInterface.getColorPicker().setColor(c));
+                if (selectedNode != null) {
+                    final ColorAction colorAction = new ColorAction(selectedNode, selectedNode.getDiffuseColor().cpy(), color.cpy(), c -> mainInterface.getColorPicker().setColor(c));
                     undoRedoCache.save(colorAction);
-                    selectedEntity.setDiffuseColor(color);
+                    selectedNode.setAmbientColor(color);
+                    selectedNode.setDiffuseColor(color);
                 }
             }
 
@@ -288,8 +289,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             public void onZoomChanged(float value) {
                 final float z = -MathUtils.lerp(MIN_Z, MAX_Z, (1f - value) * (1f - value));
                 projectPosition.z = z;
-                if (selectedEntity != null) {
-                    center.set(selectedEntity.getPosition());
+                if (selectedNode != null) {
+                    center.set(selectedNode.getPosition());
                 } else {
                     center.set(0, 0, 0);
                 }
@@ -357,25 +358,25 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 transformUI = translateWidget;
                 rotateWidget.setVisible(false);
                 scaleWidget.setVisible(false);
-                transformUI.setVisible(selectedEntity != null);
+                transformUI.setVisible(selectedNode != null);
                 break;
             case ROTATE:
                 transformUI = rotateWidget;
                 translateWidget.setVisible(false);
                 scaleWidget.setVisible(false);
-                transformUI.setVisible(selectedEntity != null);
+                transformUI.setVisible(selectedNode != null);
                 break;
             case SCALE:
                 transformUI = scaleWidget;
                 translateWidget.setVisible(false);
                 rotateWidget.setVisible(false);
-                transformUI.setVisible(selectedEntity != null);
+                transformUI.setVisible(selectedNode != null);
                 break;
             default:
                 transformUI.setVisible(false);
                 break;
         }
-        transformUI.setEntity(selectedEntity, modelingProject);
+        transformUI.setEntity(selectedNode, modelingProject);
         mainInterface.setEditMode(mode);
     }
 
@@ -455,18 +456,18 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     }
 
     @Nullable
-    public EditableNode getSelectedEntity() {
-        return selectedEntity;
+    public EditableNode getSelectedNode() {
+        return selectedNode;
     }
 
-    private void setSelectedEntity(@Nullable EditableNode entity) {
-        selectedEntity = entity;
-        mainInterface.setEntity(selectedEntity);
+    private void setSelectedNode(@Nullable EditableNode entity) {
+        selectedNode = entity;
+        mainInterface.setEntity(selectedNode);
 
-        if (selectedEntity != null) {
-            center.set(selectedEntity.getPosition());
+        if (selectedNode != null) {
+            center.set(selectedNode.getPosition());
 
-            final Color diffuseColor = selectedEntity.getDiffuseColor();
+            final Color diffuseColor = selectedNode.getDiffuseColor();
             if (diffuseColor != null)
                 mainInterface.getColorPicker().setColor(diffuseColor);
         } else {
@@ -502,8 +503,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         if (focusedEntity != null) {
             drawEntityBounds(shapeRenderer, focusedEntity, Color.BLACK);
         }
-        if (selectedEntity != null) {
-            drawEntityBounds(shapeRenderer, selectedEntity, Color.WHITE);
+        if (selectedNode != null) {
+            drawEntityBounds(shapeRenderer, selectedNode, Color.WHITE);
 //            debugBVH(shapeRenderer, modelingProject, Color.YELLOW);
         }
         shapeRenderer.end();
@@ -531,8 +532,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     @Override
     public void onControllerBackButtonClicked() {
         if (!mainInterface.onControllerBackButtonClicked()) {
-            if (selectedEntity != null) {
-                setSelectedEntity(null);
+            if (selectedNode != null) {
+                setSelectedNode(null);
             } else {
                 getSolidModelingGame().closeModelingScreen();
                 getSolidModelingGame().switchToStartupScreen();
@@ -595,7 +596,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             case SELECT:
                 if (focusedEntity != null && !grabControls.isTransforming()) {
                     final Vector3 tmp = Pools.obtain(Vector3.class);
-                    setSelectedEntity(focusedEntity);
+                    setSelectedNode(focusedEntity);
                     grabControls.begin(focusedEntity, hitPoint, modelingProject);
                     final Vector3 position = focusedEntity.getPosition();
                     gridEntity.setPosition(position);
