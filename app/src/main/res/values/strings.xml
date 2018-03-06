@@ -42,4 +42,9 @@
     <string name="scale">scale</string>
     <string name="add">add</string>
     <string name="duplicate">duplicate</string>
+    <string name="group_objects">Group Objects</string>
+    <string name="cancel">cancel</string>
+    <string name="done">done</string>
+    <string name="group">group</string>
+    <string name="ungroup">ungroup</string>
 </resources>

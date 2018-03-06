@@ -22,6 +22,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
@@ -56,6 +57,7 @@ import net.masonapps.vrsolidmodeling.modeling.transform.TranslateWidget;
 import net.masonapps.vrsolidmodeling.modeling.ui.EditModeTable;
 import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
 import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
+import net.masonapps.vrsolidmodeling.ui.GroupCompleteDialog;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.AABBTree;
@@ -69,6 +71,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_EDITING;
+import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_GROUPING;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_NONE;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_VIEW_TRANSFORM;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.ViewAction.ACTION_NONE;
@@ -93,6 +96,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private final TranslateWidget translateWidget;
     private final RotateWidget rotateWidget;
     private final ScaleWidget scaleWidget;
+    private final GroupCompleteDialog groupDialog;
     private TransformWidget3D transformUI;
     private boolean isTouchPadClicked = false;
     private Quaternion rotation = new Quaternion();
@@ -111,10 +115,12 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private EditableNode focusedEntity = null;
     @Nullable
     private EditableNode selectedNode = null;
+    private List<EditableNode> multiSelectNodes = new ArrayList<>();
     private ModelingProjectEntity modelingProject;
     private Vector3 hitPoint = new Vector3();
     private AABBTree.IntersectionInfo intersectionInfo = new AABBTree.IntersectionInfo();
     private SimpleGrabControls grabControls = new SimpleGrabControls();
+    private BoundingBox selectionBox = new BoundingBox();
 
     public ModelingScreen(VrGame game, String projectName) {
         this(game, projectName, new ArrayList<>());
@@ -208,6 +214,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void onAddClicked(String key) {
+                if (currentState == STATE_GROUPING) return;
                 final EditableNode entity = new EditableNode(key);
                 modelingProject.add(entity);
                 setSelectedNode(entity);
@@ -217,6 +224,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void onDeleteClicked() {
+                if (currentState == STATE_GROUPING) return;
                 if (selectedNode != null) {
                     modelingProject.remove(selectedNode);
                     undoRedoCache.save(new RemoveAction(selectedNode, modelingProject));
@@ -226,6 +234,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void onDuplicateClicked() {
+                if (currentState == STATE_GROUPING) return;
                 if (selectedNode != null) {
                     final EditableNode entity = selectedNode.copy();
                     modelingProject.add(entity);
@@ -237,6 +246,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void onColorChanged(Color color) {
+                if (currentState == STATE_GROUPING) return;
                 if (selectedNode != null) {
                     final ColorAction colorAction = new ColorAction(selectedNode, selectedNode.getDiffuseColor().cpy(), color.cpy(), c -> mainInterface.getColorPicker().setColor(c));
                     undoRedoCache.save(colorAction);
@@ -247,22 +257,52 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void onEditModeChanged(EditModeTable.EditMode mode) {
+                if (currentState == STATE_GROUPING) return;
                 setEditMode(mode);
             }
 
             @Override
             public void onUndoClicked() {
+                if (currentState == STATE_GROUPING) return;
                 undoRedoCache.undo();
             }
 
             @Override
             public void onRedoClicked() {
+                if (currentState == STATE_GROUPING) return;
                 undoRedoCache.redo();
             }
 
             @Override
             public void onExportClicked() {
+                if (currentState == STATE_GROUPING) return;
                 getSolidModelingGame().switchToExportScreen();
+            }
+
+            @Override
+            public void onGroupClicked() {
+                currentState = STATE_GROUPING;
+                groupDialog.show();
+            }
+
+            @Override
+            public void onUnGroupClicked() {
+                if (currentState == STATE_GROUPING) return;
+                if (selectedNode != null && selectedNode.isGroup()) {
+                    modelingProject.remove(selectedNode);
+                    final int n = selectedNode.getChildCount();
+                    for (int i = 0; i < n; i++) {
+                        final Node child = selectedNode.getChild(i);
+                        if (child instanceof EditableNode) {
+                            final EditableNode editableNode = (EditableNode) child;
+                            editableNode.translation.mul(selectedNode.localTransform);
+                            editableNode.rotation.mulLeft(selectedNode.rotation);
+                            editableNode.scale.scl(selectedNode.scale);
+                            editableNode.invalidate();
+                            modelingProject.add(editableNode);
+                        }
+                    }
+                }
             }
         };
         final Skin skin = getSolidModelingGame().getSkin();
@@ -299,6 +339,27 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 modelingProject.setPosition(position);
             }
         });
+
+        groupDialog = new GroupCompleteDialog(spriteBatch, skin, new GroupCompleteDialog.GroupDialogListener() {
+            @Override
+            public void onCancelClicked() {
+                multiSelectNodes.clear();
+                currentState = STATE_NONE;
+            }
+
+            @Override
+            public void onDoneClicked() {
+                final EditableNode group = new EditableNode();
+                for (EditableNode node : multiSelectNodes) {
+                    modelingProject.remove(node);
+                    group.addChild(node);
+                }
+                modelingProject.add(group);
+                multiSelectNodes.clear();
+                currentState = STATE_NONE;
+            }
+        });
+        groupDialog.setPosition(0, -1f, 0);
 
         gridEntity = new Entity(new ModelInstance(createGrid(modelBuilder, skin, 3f)));
         gridEntity.setLightingEnabled(false);
@@ -350,6 +411,13 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         shapeRenderer.setTransformMatrix(modelingProject.getTransform());
         final BoundingBox bounds = entity.getAABB();
         drawBounds(shapeRenderer, bounds);
+    }
+
+    protected void drawSelectionBox(ShapeRenderer shapeRenderer, Color color) {
+        if (!selectionBox.isValid()) return;
+        shapeRenderer.setColor(color);
+        shapeRenderer.setTransformMatrix(modelingProject.getTransform());
+        drawBounds(shapeRenderer, selectionBox);
     }
 
     protected void setEditMode(EditModeTable.EditMode mode) {
@@ -447,7 +515,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     public void update() {
         super.update();
         grabControls.update(hitPoint, modelingProject);
-        if (currentInputMode == InputMode.SELECT || currentInputMode == InputMode.EDIT)
+        if (currentInputMode == InputMode.SELECT || currentInputMode == InputMode.MULTI_SELECT || currentInputMode == InputMode.EDIT)
             getSolidModelingGame().getCursor().position.set(hitPoint);
         mainInterface.act();
         rotationAnimator.update(GdxVr.graphics.getDeltaTime());
@@ -507,6 +575,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             drawEntityBounds(shapeRenderer, selectedNode, Color.WHITE);
 //            debugBVH(shapeRenderer, modelingProject, Color.YELLOW);
         }
+        if (currentState == STATE_GROUPING)
+            drawSelectionBox(shapeRenderer, Color.WHITE);
         shapeRenderer.end();
 
         mainInterface.draw(camera);
@@ -589,6 +659,12 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             case UI:
                 currentState = STATE_NONE;
                 break;
+            case MULTI_SELECT:
+                if (focusedEntity != null && !multiSelectNodes.contains(focusedEntity)) {
+                    multiSelectNodes.add(focusedEntity);
+                    selectionBox.ext(focusedEntity.getAABB());
+                }
+                break;
             case EDIT:
                 currentState = STATE_EDITING;
                 transformUI.touchDown();
@@ -658,6 +734,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     }
 
     private void updateCurrentInputMode() {
+        focusedEntity = null;
         switch (currentState) {
             case STATE_EDITING:
                 transformUI.performRayTest(getControllerRay());
@@ -680,6 +757,16 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             case STATE_VIEW_TRANSFORM:
                 currentInputMode = InputMode.VIEW;
                 break;
+            case STATE_GROUPING:
+                if (mainInterface.isCursorOver()) {
+                    currentInputMode = InputMode.UI;
+                } else if (modelingProject.rayTest(getControllerRay(), intersectionInfo)) {
+                    hitPoint.set(intersectionInfo.hitPoint);
+                    focusedEntity = (EditableNode) intersectionInfo.object;
+                    currentInputMode = InputMode.MULTI_SELECT;
+                } else
+                    currentInputMode = InputMode.VIEW;
+                break;
         }
     }
 
@@ -692,10 +779,10 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     }
 
     enum InputMode {
-        UI, EDIT, SELECT, VIEW
+        UI, EDIT, MULTI_SELECT, SELECT, VIEW
     }
 
     enum State {
-        STATE_VIEW_TRANSFORM, STATE_EDITING, STATE_NONE
+        STATE_VIEW_TRANSFORM, STATE_EDITING, STATE_GROUPING, STATE_NONE
     }
 }
