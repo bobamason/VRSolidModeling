@@ -53,7 +53,7 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectList.OnP
         ui = new ProjectList<File>(list, this) {
             @Override
             protected ModelData loadProject(File file, BoundingBox bounds) throws IOException, JSONException {
-                return ProjectFileIO.loadModelData(file, bounds);
+                return new ProjectFileIO.ModelDataLoader(file, bounds).loadModelData();
             }
 
             @Override
