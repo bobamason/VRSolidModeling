@@ -112,7 +112,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private InputMode currentInputMode = InputMode.VIEW;
     private State currentState = STATE_NONE;
     @Nullable
-    private EditableNode focusedEntity = null;
+    private EditableNode focusedNode = null;
     @Nullable
     private EditableNode selectedNode = null;
     private List<EditableNode> multiSelectNodes = new ArrayList<>();
@@ -568,8 +568,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         shapeRenderer.setTransformMatrix(modelingProject.getTransform());
 //        AABBTree.debugAABBTree(shapeRenderer, modelingProject.getAABBTree(), Color.YELLOW);
         transformUI.drawShapes(shapeRenderer);
-        if (focusedEntity != null) {
-            drawEntityBounds(shapeRenderer, focusedEntity, Color.BLACK);
+        if (focusedNode != null) {
+            drawEntityBounds(shapeRenderer, focusedNode, Color.BLACK);
         }
         if (selectedNode != null) {
             drawEntityBounds(shapeRenderer, selectedNode, Color.WHITE);
@@ -657,12 +657,12 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private void onTouchPadButtonDown() {
         switch (currentInputMode) {
             case UI:
-                currentState = STATE_NONE;
+//                currentState = STATE_NONE;
                 break;
             case MULTI_SELECT:
-                if (focusedEntity != null && !multiSelectNodes.contains(focusedEntity)) {
-                    multiSelectNodes.add(focusedEntity);
-                    selectionBox.ext(focusedEntity.getAABB());
+                if (focusedNode != null && !multiSelectNodes.contains(focusedNode)) {
+                    multiSelectNodes.add(focusedNode);
+                    selectionBox.ext(focusedNode.getAABB());
                 }
                 break;
             case EDIT:
@@ -670,11 +670,11 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 transformUI.touchDown();
                 break;
             case SELECT:
-                if (focusedEntity != null && !grabControls.isTransforming()) {
+                if (focusedNode != null && !grabControls.isTransforming()) {
                     final Vector3 tmp = Pools.obtain(Vector3.class);
-                    setSelectedNode(focusedEntity);
-                    grabControls.begin(focusedEntity, hitPoint, modelingProject);
-                    final Vector3 position = focusedEntity.getPosition();
+                    setSelectedNode(focusedNode);
+                    grabControls.begin(focusedNode, hitPoint, modelingProject);
+                    final Vector3 position = focusedNode.getPosition();
                     gridEntity.setPosition(position);
                     final Vector3 normal = grabControls.getPlane().getNormal();
                     gridEntity.lookAt(tmp.set(position).add(normal), Math.abs(normal.dot(Vector3.Y)) > 0.99f ? Vector3.Z : Vector3.Y);
@@ -734,7 +734,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     }
 
     private void updateCurrentInputMode() {
-        focusedEntity = null;
+        focusedNode = null;
         switch (currentState) {
             case STATE_EDITING:
                 transformUI.performRayTest(getControllerRay());
@@ -749,7 +749,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                     currentInputMode = InputMode.EDIT;
                 } else if (!grabControls.isTransforming() && modelingProject.rayTest(getControllerRay(), intersectionInfo)) {
                     hitPoint.set(intersectionInfo.hitPoint);
-                    focusedEntity = (EditableNode) intersectionInfo.object;
+                    focusedNode = (EditableNode) intersectionInfo.object;
                     currentInputMode = InputMode.SELECT;
                 } else
                     currentInputMode = InputMode.VIEW;
@@ -762,7 +762,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                     currentInputMode = InputMode.UI;
                 } else if (modelingProject.rayTest(getControllerRay(), intersectionInfo)) {
                     hitPoint.set(intersectionInfo.hitPoint);
-                    focusedEntity = (EditableNode) intersectionInfo.object;
+                    focusedNode = (EditableNode) intersectionInfo.object;
                     currentInputMode = InputMode.MULTI_SELECT;
                 } else
                     currentInputMode = InputMode.VIEW;

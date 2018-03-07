@@ -1,5 +1,7 @@
 package net.masonapps.vrsolidmodeling.screens;
 
+import android.support.annotation.Nullable;
+
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -16,6 +18,7 @@ import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
+import net.masonapps.vrsolidmodeling.ui.FileButtonBar;
 import net.masonapps.vrsolidmodeling.ui.ProjectList;
 
 import org.json.JSONException;
@@ -23,6 +26,7 @@ import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.World;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 import org.masonapps.libgdxgooglevr.input.DaydreamTouchEvent;
+import org.masonapps.libgdxgooglevr.ui.VrUiContainer;
 import org.masonapps.libgdxgooglevr.utils.Logger;
 
 import java.io.File;
@@ -34,12 +38,16 @@ import java.util.function.Consumer;
  * Created by Bob on 8/30/2017.
  */
 
-public class OpenProjectListScreen extends RoomScreen implements ProjectList.OnProjectSelectedListener {
+public class OpenProjectListScreen extends RoomScreen implements ProjectList.OnProjectSelectedListener, FileButtonBar.OnFileButtonClicked<File> {
 
     protected final ProjectList<File> ui;
     private final List<File> list;
     private final Consumer<File> consumer;
-
+    private final FileButtonBar<File> fileButtonBar;
+    private final VrUiContainer container = new VrUiContainer();
+    @Nullable
+    private ProjectList.ProjectItem selectedItem = null;
+    private Vector3 tmp = new Vector3();
 
     public OpenProjectListScreen(SolidModelingGame game, List<File> list, Consumer<File> consumer) {
         super(game);
@@ -63,13 +71,12 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectList.OnP
         };
         manageDisposable(ui);
 
-//        final MeshInfo meshInfo = Primitives.getPrimitiveMeshInfo(Primitives.KEY_TORUS);
-//        try {
-//            final Model model = new Model(ProjectFileIO.loadModelData(list.get(0)));
-//            getWorld().add(new Entity(new ModelInstance(model))).setPosition(0, 0, -2);
-//        } catch (Exception e){
-//            Logger.e("failed to create test model", e);
-//        }
+        fileButtonBar = new FileButtonBar<>(spriteBatch, getSolidModelingGame().getSkin(), this);
+        fileButtonBar.setPosition(-2f, 1f, -2);
+        fileButtonBar.lookAt(tmp.set(0, 1f, 0f), Vector3.Y);
+
+        container.addProcessor(ui);
+        container.addProcessor(fileButtonBar);
     }
 
     @Override
@@ -97,6 +104,10 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectList.OnP
                     batch.render(roomInstance);
                 super.render(batch, environment);
                 ui.render(batch, environment);
+                if (selectedItem != null && selectedItem.modelInstance != null) {
+                    selectedItem.validate();
+                    batch.render(selectedItem.modelInstance, environment);
+                }
             }
         };
     }
@@ -104,7 +115,7 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectList.OnP
     @Override
     public void show() {
         super.show();
-        GdxVr.input.setInputProcessor(ui);
+        GdxVr.input.setInputProcessor(container);
     }
 
     @Override
@@ -114,9 +125,16 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectList.OnP
     }
 
     @Override
+    public void update() {
+        super.update();
+        container.act();
+    }
+
+    @Override
     public void render(Camera camera, int whichEye) {
         super.render(camera, whichEye);
         ui.debug(camera);
+        container.draw(camera);
     }
 
     @Override
@@ -135,6 +153,31 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectList.OnP
 
     @Override
     public void onProjectSelected(ProjectList.ProjectItem item) {
-        consumer.accept(list.get(item.index));
+        selectedItem = item.copy();
+        if (selectedItem != null) {
+            fileButtonBar.setT(list.get(item.index));
+            selectedItem.setPosition(0, 1, -3.5f);
+            final float scale = 3f / selectedItem.getBounds().getDimensions(tmp).len();
+            selectedItem.setScale(scale);
+        } else {
+            fileButtonBar.setT(null);
+        }
+//        consumer.accept(list.get(item.index));
+    }
+
+    @Override
+    public void onOpenClicked(File file) {
+        if (selectedItem != null)
+            consumer.accept(file);
+    }
+
+    @Override
+    public void onCopyClicked(File file) {
+
+    }
+
+    @Override
+    public void onDeleteClicked(File file) {
+
     }
 }

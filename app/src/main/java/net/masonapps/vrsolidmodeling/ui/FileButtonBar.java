@@ -19,8 +19,8 @@ public class FileButtonBar<T> extends TableVR {
     private T t = null;
     private OnFileButtonClicked<T> listener;
 
-    public FileButtonBar(Batch batch, Skin skin, int tableWidth, int tableHeight, OnFileButtonClicked<T> listener) {
-        super(batch, skin, tableWidth, tableHeight);
+    public FileButtonBar(Batch batch, Skin skin, OnFileButtonClicked<T> listener) {
+        super(batch, skin, 100, 100);
         this.listener = listener;
         final Table buttonBarTable = getTable();
         setBackground(skin.newDrawable(Style.Drawables.window, Style.COLOR_WINDOW));
@@ -34,7 +34,7 @@ public class FileButtonBar<T> extends TableVR {
             }
         });
         final float padding = 8f;
-        buttonBarTable.add(openBtn).padTop(padding).padBottom(padding).padLeft(padding).padRight(padding);
+        buttonBarTable.add(openBtn).pad(padding, padding, padding, padding).row();
 
         final VerticalImageTextButton copyBtn = new VerticalImageTextButton(Style.getStringResource(R.string.copy, "copy"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_copy));
         copyBtn.addListener(new ClickListener() {
@@ -44,7 +44,7 @@ public class FileButtonBar<T> extends TableVR {
                     listener.onCopyClicked(t);
             }
         });
-        buttonBarTable.add(copyBtn).padTop(padding).padBottom(padding).padRight(padding);
+        buttonBarTable.add(copyBtn).pad(0, padding, padding, padding).row();
 
         final VerticalImageTextButton deleteBtn = new VerticalImageTextButton(Style.getStringResource(R.string.delete, "export"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_delete));
         deleteBtn.addListener(new ClickListener() {
@@ -54,7 +54,7 @@ public class FileButtonBar<T> extends TableVR {
                     FileButtonBar.this.listener.onDeleteClicked(t);
             }
         });
-        buttonBarTable.add(deleteBtn).padTop(padding).padBottom(padding).padRight(padding);
+        buttonBarTable.add(deleteBtn).pad(0, padding, padding, padding).row();
 
         resizeToFitTable();
     }

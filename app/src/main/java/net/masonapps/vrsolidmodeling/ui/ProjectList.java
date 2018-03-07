@@ -409,5 +409,9 @@ public abstract class ProjectList<T> implements VrInputProcessor, Disposable {
             }
             return rayTest;
         }
+
+        public ProjectItem copy() {
+            return new ProjectItem(modelInstance == null ? null : modelInstance.copy(), new BoundingBox(getBounds()), index);
+        }
     }
 }
