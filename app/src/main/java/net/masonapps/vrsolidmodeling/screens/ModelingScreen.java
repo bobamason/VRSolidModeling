@@ -30,6 +30,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -66,6 +67,7 @@ import org.masonapps.libgdxgooglevr.gfx.VrGame;
 import org.masonapps.libgdxgooglevr.gfx.VrWorldScreen;
 import org.masonapps.libgdxgooglevr.gfx.World;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
+import org.masonapps.libgdxgooglevr.input.DaydreamTouchEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -121,6 +123,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private AABBTree.IntersectionInfo intersectionInfo = new AABBTree.IntersectionInfo();
     private SimpleGrabControls grabControls = new SimpleGrabControls();
     private BoundingBox selectionBox = new BoundingBox();
+    private Vector3 tmp = new Vector3();
+    private Vector2 vec2 = new Vector2();
 
     public ModelingScreen(VrGame game, String projectName) {
         this(game, projectName, new ArrayList<>());
@@ -360,6 +364,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             }
         });
         groupDialog.setPosition(0, -1f, 0);
+        mainInterface.addProcessor(groupDialog);
 
         gridEntity = new Entity(new ModelInstance(createGrid(modelBuilder, skin, 3f)));
         gridEntity.setLightingEnabled(false);
@@ -652,6 +657,32 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
     @Override
     public void onControllerButtonEvent(Controller controller, DaydreamButtonEvent event) {
+    }
+
+    @Override
+    public void onControllerTouchPadEvent(Controller controller, DaydreamTouchEvent event) {
+        switch (event.action) {
+            case DaydreamTouchEvent.ACTION_DOWN:
+                vec2.set(event.x - 0.5f, event.y - 0.5f);
+                break;
+            case DaydreamTouchEvent.ACTION_MOVE:
+                final float dx = event.x - 0.5f - vec2.x;
+                final float dy = event.y - 0.5f - vec2.y;
+                final float min = 0.25f * 0.25f;
+                if (currentState == STATE_NONE && dx * dx + dy * dy > min) {
+                    getVrCamera().direction.rotate(getVrCamera().up, -dx * 45f * GdxVr.graphics.getDeltaTime()).nor();
+                    tmp.set(getVrCamera().direction).scl(-dy * 2f * GdxVr.graphics.getDeltaTime());
+                    getVrCamera().position.add(tmp);
+//                    tmp.set(getVrCamera().direction).crs(getVrCamera().up).nor().scl(dx * 2f * GdxVr.graphics.getDeltaTime());
+//                    getVrCamera().position.add(tmp);
+                    mainInterface.setTransformable(true);
+                    mainInterface.setPosition(getVrCamera().position);
+                    mainInterface.lookAt(tmp.set(getVrCamera().direction).scl(-1).add(getVrCamera().position), getVrCamera().up);
+                }
+                break;
+            case DaydreamTouchEvent.ACTION_UP:
+                break;
+        }
     }
 
     private void onTouchPadButtonDown() {

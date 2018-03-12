@@ -37,7 +37,8 @@ public abstract class RoomScreen extends VrWorldScreen implements SolidModelingG
     public void show() {
         super.show();
         getVrCamera().position.set(0, 0, 0);
-        getVrCamera().lookAt(0, 0, 0);
+        getVrCamera().up.set(0, 1, 0);
+        getVrCamera().lookAt(0, 0, -1);
     }
 
     @Override

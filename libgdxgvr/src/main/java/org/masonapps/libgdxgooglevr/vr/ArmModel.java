@@ -76,32 +76,12 @@ public class ArmModel {
 //        UpdateTransparency();
         updatePointer();
 
-//        applyCameraTransform();
+        applyCameraTransform();
 
         firstUpdate = false;
         if (listener != null) {
             listener.onArmModelUpdate(this);
         }
-    }
-
-    private void applyCameraTransform() {
-        final Quaternion tmpQ = Pools.obtain(Quaternion.class);
-        final Vector3 tmp = Pools.obtain(Vector3.class);
-        final Vector3 tmp2 = Pools.obtain(Vector3.class);
-
-        final Vector3 pos = GdxVr.app.getVrApplicationAdapter().getVrCamera().position;
-        final Vector3 dir = GdxVr.app.getVrApplicationAdapter().getVrCamera().direction;
-        final Vector3 up = GdxVr.app.getVrApplicationAdapter().getVrCamera().up;
-
-        tmp.set(up).crs(dir).nor();
-        tmp2.set(dir).crs(tmp).nor();
-        pointerPosition.add(pos);
-//        pointerRotation.mulLeft(tmpQ.setFromAxes(false, tmp.x, tmp2.x, dir.x, tmp.y, tmp2.y, dir.y, tmp.z, tmp2.z, dir.z));
-        pointerRotation.mulLeft(tmpQ.setFromAxes(false, tmp.x, tmp.y, tmp.z, tmp2.x, tmp2.y, tmp2.z, dir.x, dir.y, dir.z));
-
-        Pools.free(tmpQ);
-        Pools.free(tmp);
-        Pools.free(tmp2);
     }
 
     private void updateHandedness() {
@@ -197,6 +177,19 @@ public class ArmModel {
         // Determine the direction of the ray.
         pointerPosition.set(POINTER_OFFSET).mul(wristRotation).add(wristPosition);
         pointerRotation.set(wristRotation).mul(pointerTilt);
+    }
+
+    private void applyCameraTransform() {
+        final Quaternion tmpQ = Pools.obtain(Quaternion.class);
+
+        final Vector3 pos = GdxVr.app.getVrApplicationAdapter().getVrCamera().position;
+        GdxVr.app.getVrApplicationAdapter().getVrCamera().getQuaternion(tmpQ);
+        pointerPosition.set(POINTER_OFFSET).mul(wristRotation).add(wristPosition);
+        pointerRotation.mul(tmpQ);
+        wristRotation.mul(tmpQ);
+        pointerPosition.set(POINTER_OFFSET).mul(wristRotation).add(wristPosition).add(pos);
+//        pointerRotation.mulLeft(tmpQ.setFromAxes(false, tmp.x, tmp.y, tmp.z, tmp2.x, tmp2.y, tmp2.z, dir.x, dir.y, dir.z));
+        Pools.free(tmpQ);
     }
 
     /// Represents when gaze-following behavior should occur.

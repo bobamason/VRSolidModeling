@@ -11,7 +11,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Container;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-import com.badlogic.gdx.utils.Pools;
 
 import net.masonapps.vrsolidmodeling.R;
 import net.masonapps.vrsolidmodeling.Style;
@@ -243,17 +242,18 @@ public class MainInterface extends CylindricalWindowUiContainer {
     }
 
     public void loadWindowPositions(SharedPreferences sharedPreferences) {
-        final Vector3 tmp = Pools.obtain(Vector3.class);
-
-        tmp.fromString(sharedPreferences.getString(WINDOW_MAIN, mainTable.getPosition().toString()));
-        mainTable.setPosition(tmp);
-        snapDragTableToCylinder(mainTable);
-
-        tmp.fromString(sharedPreferences.getString(WINDOW_VIEW_CONTROLS, viewControls.getPosition().toString()));
-        viewControls.setPosition(tmp);
-        snapDragTableToCylinder(viewControls);
-
-        Pools.free(tmp);
+        //todo uncomment
+//        final Vector3 tmp = Pools.obtain(Vector3.class);
+//
+//        tmp.fromString(sharedPreferences.getString(WINDOW_MAIN, mainTable.getPosition().toString()));
+//        mainTable.setPosition(tmp);
+//        snapDragTableToCylinder(mainTable);
+//
+//        tmp.fromString(sharedPreferences.getString(WINDOW_VIEW_CONTROLS, viewControls.getPosition().toString()));
+//        viewControls.setPosition(tmp);
+//        snapDragTableToCylinder(viewControls);
+//
+//        Pools.free(tmp);
     }
 
     public ColorPickerSimple getColorPicker() {
