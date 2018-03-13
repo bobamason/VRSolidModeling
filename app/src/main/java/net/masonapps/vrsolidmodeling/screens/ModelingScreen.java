@@ -669,12 +669,17 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 final float dx = event.x - 0.5f - vec2.x;
                 final float dy = event.y - 0.5f - vec2.y;
                 final float min = 0.25f * 0.25f;
-                if (currentState == STATE_NONE && dx * dx + dy * dy > min) {
-                    getVrCamera().direction.rotate(getVrCamera().up, -dx * 45f * GdxVr.graphics.getDeltaTime()).nor();
-                    tmp.set(getVrCamera().direction).scl(-dy * 2f * GdxVr.graphics.getDeltaTime());
-                    getVrCamera().position.add(tmp);
+                final float dx2 = dx * dx;
+                final float dy2 = dy * dy;
+                if (currentState == STATE_NONE && dx2 + dy2 > min) {
+                    if (dx2 > dy2) {
+                        getVrCamera().direction.rotate(getVrCamera().up, -dx * 45f * GdxVr.graphics.getDeltaTime()).nor();
 //                    tmp.set(getVrCamera().direction).crs(getVrCamera().up).nor().scl(dx * 2f * GdxVr.graphics.getDeltaTime());
 //                    getVrCamera().position.add(tmp);
+                    } else {
+                        tmp.set(getVrCamera().direction).scl(-dy * 2f * GdxVr.graphics.getDeltaTime());
+                        getVrCamera().position.add(tmp);
+                    }
                     mainInterface.setTransformable(true);
                     mainInterface.setPosition(getVrCamera().position);
                     mainInterface.lookAt(tmp.set(getVrCamera().direction).scl(-1).add(getVrCamera().position), getVrCamera().up);

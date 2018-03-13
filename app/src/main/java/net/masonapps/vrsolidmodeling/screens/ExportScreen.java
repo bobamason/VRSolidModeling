@@ -125,7 +125,7 @@ public class ExportScreen extends RoomScreen {
         ui.addProcessor(zLabel);
 
         final ModelBuilder builder = new ModelBuilder();
-        solidEntity = new Entity(new ModelInstance(builder.createBox(1, 1, 1, new Material(), VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal)));
+        solidEntity = new Entity(modelingProject.modelInstance, modelingProject.getAABBTree().root.bb);
         solidEntity.setPosition(modelPosition);
         getWorld().add(solidEntity);
 

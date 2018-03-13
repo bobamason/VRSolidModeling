@@ -72,7 +72,7 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectList.OnP
         manageDisposable(ui);
 
         fileButtonBar = new FileButtonBar<>(spriteBatch, getSolidModelingGame().getSkin(), this);
-        fileButtonBar.setPosition(-2f, 1f, -2);
+        fileButtonBar.setPosition(-1.25f, 0.75f, -2);
         fileButtonBar.lookAt(tmp.set(0, 1f, 0f), Vector3.Y);
 
         container.addProcessor(ui);

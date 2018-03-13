@@ -185,8 +185,8 @@ public class ArmModel {
         final Vector3 pos = GdxVr.app.getVrApplicationAdapter().getVrCamera().position;
         GdxVr.app.getVrApplicationAdapter().getVrCamera().getQuaternion(tmpQ);
         pointerPosition.set(POINTER_OFFSET).mul(wristRotation).add(wristPosition);
-        pointerRotation.mul(tmpQ);
-        wristRotation.mul(tmpQ);
+        pointerRotation.mulLeft(tmpQ);
+        wristRotation.mulLeft(tmpQ);
         pointerPosition.set(POINTER_OFFSET).mul(wristRotation).add(wristPosition).add(pos);
 //        pointerRotation.mulLeft(tmpQ.setFromAxes(false, tmp.x, tmp.y, tmp.z, tmp2.x, tmp2.y, tmp2.z, dir.x, dir.y, dir.z));
         Pools.free(tmpQ);
