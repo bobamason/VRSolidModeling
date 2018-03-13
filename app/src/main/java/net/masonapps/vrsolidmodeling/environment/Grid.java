@@ -5,38 +5,42 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.VertexAttributes;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Model;
+import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.Shader;
-import com.badlogic.gdx.graphics.g3d.shaders.BaseShader;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 
-import org.masonapps.libgdxgooglevr.gfx.Entity;
+import org.masonapps.libgdxgooglevr.gfx.PhongShader;
+import org.masonapps.libgdxgooglevr.gfx.Transformable;
 
 /**
  * Created by Bob on 6/6/2017.
  */
 
-public class Grid extends Entity {
+public class Grid extends Transformable implements Disposable {
 
     private final GridShader gridShader;
+    private final float sectionSize;
+    private final Model rect;
+    private Array<ModelInstance> modelInstances = new Array<>();
 
-    public Grid(ModelInstance modelInstance) {
-        super(modelInstance);
-        setLightingEnabled(false);
-        gridShader = new GridShader();
-        setShader(gridShader);
-    }
-
-    public static Grid newInstance(float radius, float spacing, float thickness, Color color, Color color2) {
+    public Grid(float sectionSize, TextureRegion textureRegion, Color color) {
+        this.sectionSize = sectionSize;
         final ModelBuilder modelBuilder = new ModelBuilder();
-        final Material material = new Material();
-        final Model rect = modelBuilder.createRect(
+        final Material material = new Material(TextureAttribute.createDiffuse(textureRegion), ColorAttribute.createDiffuse(color));
+        final float radius = sectionSize / 2f;
+        rect = modelBuilder.createRect(
                 -radius, 0f, radius,
                 radius, 0f, radius,
                 radius, 0f, -radius,
@@ -45,31 +49,22 @@ public class Grid extends Entity {
                 material,
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.TextureCoordinates
         );
-        final Grid grid = new Grid(new ModelInstance(rect));
-        grid.gridShader.setColor1(color);
-        grid.gridShader.setColor2(color2);
-        grid.gridShader.setSpacing(spacing);
-        grid.gridShader.setThickness(thickness);
-        return grid;
+        final ModelInstance modelInstance = new ModelInstance(rect);
+        gridShader = new GridShader(modelInstance.getRenderable(new Renderable()));
     }
 
-    public void setColor1(Color color) {
-        gridShader.setColor1(color);
+    public void update(ModelBatch batch) {
+        batch.render(modelInstances, gridShader);
     }
 
-    public void setColor2(Color color) {
-        gridShader.setColor2(color);
+    @Override
+    public void dispose() {
+        if (rect != null) {
+
+        }
     }
 
-    public void setSpacing(float spacing) {
-        gridShader.setSpacing(spacing);
-    }
-
-    public void setThickness(float thickness) {
-        gridShader.setThickness(thickness);
-    }
-
-    private static class GridShader extends BaseShader {
+    private static class GridShader extends PhongShader {
 
         private static String vertexShader = null;
         private static String fragmentShader = null;
@@ -85,7 +80,8 @@ public class Grid extends Entity {
         private float spacing = 1f;
         private float thickness = 0.025f;
 
-        public GridShader() {
+        public GridShader(Renderable renderable) {
+            super(renderable);
             program = new ShaderProgram(getVertexShader(), getFragmentShader());
 
             if (!program.isCompiled())
@@ -136,9 +132,6 @@ public class Grid extends Entity {
         public void render(Renderable renderable) {
             set(u_worldTrans, renderable.worldTransform);
             set(u_color1, color1);
-            set(u_color2, color2);
-            set(u_spacing, spacing);
-            set(u_thickness, thickness);
             renderable.meshPart.render(program);
         }
 
@@ -151,22 +144,6 @@ public class Grid extends Entity {
         public void dispose() {
             super.dispose();
             program.dispose();
-        }
-
-        public void setColor1(Color color) {
-            this.color1.set(color);
-        }
-
-        public void setColor2(Color color) {
-            this.color2.set(color);
-        }
-
-        public void setSpacing(float spacing) {
-            this.spacing = spacing;
-        }
-
-        public void setThickness(float thickness) {
-            this.thickness = thickness;
         }
     }
 }

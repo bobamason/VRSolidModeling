@@ -470,9 +470,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void render(ModelBatch batch, Environment environment) {
-                final ModelInstance roomInstance = getSolidModelingGame().getRoomInstance();
-                if (roomInstance != null)
-                    batch.render(roomInstance);
+                gridFloor
                 super.render(batch, environment);
                 transformUI.render(batch);
             }
