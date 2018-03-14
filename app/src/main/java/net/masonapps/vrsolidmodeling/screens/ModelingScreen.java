@@ -36,6 +36,8 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pools;
+import com.google.vr.sdk.base.Eye;
+import com.google.vr.sdk.base.HeadTransform;
 import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
@@ -45,6 +47,7 @@ import net.masonapps.vrsolidmodeling.actions.ColorAction;
 import net.masonapps.vrsolidmodeling.actions.RemoveAction;
 import net.masonapps.vrsolidmodeling.actions.TransformAction;
 import net.masonapps.vrsolidmodeling.actions.UndoRedoCache;
+import net.masonapps.vrsolidmodeling.environment.Grid;
 import net.masonapps.vrsolidmodeling.math.Animator;
 import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
@@ -63,7 +66,6 @@ import net.masonapps.vrsolidmodeling.ui.GroupCompleteDialog;
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.AABBTree;
 import org.masonapps.libgdxgooglevr.gfx.Entity;
-import org.masonapps.libgdxgooglevr.gfx.VrGame;
 import org.masonapps.libgdxgooglevr.gfx.VrWorldScreen;
 import org.masonapps.libgdxgooglevr.gfx.World;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
@@ -99,6 +101,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private final RotateWidget rotateWidget;
     private final ScaleWidget scaleWidget;
     private final GroupCompleteDialog groupDialog;
+    private final Entity gradientBackground;
     private TransformWidget3D transformUI;
     private boolean isTouchPadClicked = false;
     private Quaternion rotation = new Quaternion();
@@ -125,14 +128,22 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private BoundingBox selectionBox = new BoundingBox();
     private Vector3 tmp = new Vector3();
     private Vector2 vec2 = new Vector2();
+    private Grid gridFloor;
+    private Vector3 cameraPosition = new Vector3();
+    private boolean cameraUpdated = true;
 
-    public ModelingScreen(VrGame game, String projectName) {
+    public ModelingScreen(SolidModelingGame game, String projectName) {
         this(game, projectName, new ArrayList<>());
     }
 
-    public ModelingScreen(VrGame game, String projectName, List<EditableNode> nodeList) {
+    public ModelingScreen(SolidModelingGame game, String projectName, List<EditableNode> nodeList) {
         super(game);
+        final Skin skin = game.getSkin();
         this.projectName = projectName;
+        gradientBackground = Style.newGradientBackground(getVrCamera().far - 1f);
+        getWorld().add(gradientBackground);
+        gradientBackground.invalidate();
+        gridFloor = new Grid(2, skin.getRegion(Style.Drawables.grid), Color.LIGHT_GRAY);
 
         setBackgroundColor(Color.SKY);
         modelingProject = new ModelingProjectEntity();
@@ -309,7 +320,6 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 }
             }
         };
-        final Skin skin = getSolidModelingGame().getSkin();
         mainInterface = new MainInterface(spriteBatch, skin, uiEventListener);
         mainInterface.loadWindowPositions(PreferenceManager.getDefaultSharedPreferences(GdxVr.app.getContext()));
 
@@ -470,8 +480,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void render(ModelBatch batch, Environment environment) {
-                gridFloor
                 super.render(batch, environment);
+                gridFloor.render(batch);
                 transformUI.render(batch);
             }
         };
@@ -501,6 +511,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     public void show() {
         super.show();
         GdxVr.input.setInputProcessor(mainInterface);
+        getVrCamera().position.set(0, 0f, 0);
+        getVrCamera().lookAt(0, 0, -1);
 //        buttonControls.attachListener();
     }
 
@@ -512,6 +524,23 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         final SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(GdxVr.app.getContext()).edit();
         mainInterface.saveWindowPositions(editor);
         editor.apply();
+    }
+
+    @Override
+    public void onDrawFrame(HeadTransform headTransform, Eye leftEye, Eye rightEye) {
+        updateCamera();
+        super.onDrawFrame(headTransform, leftEye, rightEye);
+    }
+
+    private void updateCamera() {
+        if (cameraUpdated) {
+            getVrCamera().position.set(cameraPosition);
+            gradientBackground.setPosition(getVrCamera().position);
+            mainInterface.setTransformable(true);
+            mainInterface.setPosition(getVrCamera().position);
+            mainInterface.lookAt(tmp.set(getVrCamera().direction).scl(-1).add(getVrCamera().position), getVrCamera().up);
+            cameraUpdated = false;
+        }
     }
 
     @Override
@@ -670,17 +699,22 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 final float dx2 = dx * dx;
                 final float dy2 = dy * dy;
                 if (currentState == STATE_NONE && dx2 + dy2 > min) {
+                    cameraPosition.set(getVrCamera().position);
+                    cameraUpdated = true;
                     if (dx2 > dy2) {
-                        getVrCamera().direction.rotate(getVrCamera().up, -dx * 45f * GdxVr.graphics.getDeltaTime()).nor();
-//                    tmp.set(getVrCamera().direction).crs(getVrCamera().up).nor().scl(dx * 2f * GdxVr.graphics.getDeltaTime());
-//                    getVrCamera().position.add(tmp);
+//                        getVrCamera().direction.rotate(getVrCamera().up, -dx * 45f * GdxVr.graphics.getDeltaTime()).nor();
+                        tmp.set(getRightVector());
+                        tmp.y = 0;
+                        tmp.nor();
+                        tmp.scl(dx * 2f * GdxVr.graphics.getDeltaTime());
+                        cameraPosition.add(tmp);
                     } else {
-                        tmp.set(getVrCamera().direction).scl(-dy * 2f * GdxVr.graphics.getDeltaTime());
-                        getVrCamera().position.add(tmp);
+                        tmp.set(getForwardVector());
+                        tmp.y = 0;
+                        tmp.nor();
+                        tmp.scl(-dy * 2f * GdxVr.graphics.getDeltaTime());
+                        cameraPosition.add(tmp);
                     }
-                    mainInterface.setTransformable(true);
-                    mainInterface.setPosition(getVrCamera().position);
-                    mainInterface.lookAt(tmp.set(getVrCamera().direction).scl(-1).add(getVrCamera().position), getVrCamera().up);
                 }
                 break;
             case DaydreamTouchEvent.ACTION_UP:

@@ -103,9 +103,9 @@ uniform float u_shininess;
 const float u_shininess = 20.0;
 #endif // shininessFlag
 
-#ifdef cameraPositionFlag
+//#ifdef cameraPositionFlag
 uniform vec4 u_cameraPosition;
-#endif // cameraPositionFlag
+//#endif // cameraPositionFlag
 
 #if numDirectionalLights > 0
 struct DirectionalLight
@@ -161,10 +161,10 @@ varying vec3 v_ambientLight;
 
 #endif //lightingFlag
 
-#ifdef fogFlag
+//#ifdef fogFlag
 uniform vec4 u_fogColor;
 float v_fog;
-#endif // fogFlag
+//#endif // fogFlag
 
 void main() {
 	#if defined(normalFlag) 
@@ -175,11 +175,12 @@ void main() {
 
 ////////////--------------start lighting--------------------
 
-    #ifdef fogFlag
+//    #ifdef fogFlag
         vec3 flen = u_cameraPosition.xyz - pos.xyz;
-        float fog = dot(flen, flen) * u_cameraPosition.w;
+//        float fog = dot(flen, flen) * u_cameraPosition.w;
+        float fog = dot(flen, flen) * 1.0;
         v_fog = min(fog, 1.0);
-    #endif
+//    #endif
 
 	#ifdef lightingFlag
 		#if	defined(ambientLightFlag)
@@ -322,9 +323,10 @@ void main() {
     		#endif
     	#endif //lightingFlag
 
-	#ifdef fogFlag
-		gl_FragColor = mix(gl_FragColor, u_fogColor, v_fog);
-	#endif // end fogFlag
+//	#ifdef fogFlag
+//		gl_FragColor = mix(gl_FragColor, u_fogColor, v_fog);
+		gl_FragColor = mix(gl_FragColor, vec4(0.0, 0.0, 0.0, 0.0), v_fog);
+//	#endif // end fogFlag
 
 	#ifdef blendedFlag
 		gl_FragColor.a = diffuse.a * v_opacity;
