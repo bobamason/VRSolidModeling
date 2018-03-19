@@ -74,6 +74,7 @@ import org.masonapps.libgdxgooglevr.input.DaydreamTouchEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_ADDING;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_EDITING;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_GROUPING;
 import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_NONE;
@@ -131,6 +132,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private Grid gridFloor;
     private Vector3 cameraPosition = new Vector3();
     private boolean cameraUpdated = true;
+    @Nullable
+    private EditableNode nodeToAdd = null;
 
     public ModelingScreen(SolidModelingGame game, String projectName) {
         this(game, projectName, new ArrayList<>());
@@ -230,11 +233,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             @Override
             public void onAddClicked(String key) {
                 if (currentState == STATE_GROUPING) return;
-                final EditableNode entity = new EditableNode(key);
-                modelingProject.add(entity);
-                setSelectedNode(entity);
-                undoRedoCache.save(new AddAction(entity, modelingProject));
-                setEditMode(EditModeTable.EditMode.TRANSLATE);
+                currentState = STATE_ADDING;
+                nodeToAdd = new EditableNode(key);
             }
 
             @Override
@@ -251,11 +251,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             public void onDuplicateClicked() {
                 if (currentState == STATE_GROUPING) return;
                 if (selectedNode != null) {
-                    final EditableNode entity = selectedNode.copy();
-                    modelingProject.add(entity);
-                    setSelectedNode(entity);
-                    undoRedoCache.save(new AddAction(entity, modelingProject));
-                    setEditMode(EditModeTable.EditMode.TRANSLATE);
+                    nodeToAdd = selectedNode.copy();
                 }
             }
 
@@ -421,6 +417,12 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 bounds.getWidth(), bounds.getHeight(), bounds.getDepth());
     }
 
+    private void addNode(EditableNode node) {
+        modelingProject.add(node);
+        setSelectedNode(node);
+        undoRedoCache.save(new AddAction(node, modelingProject));
+    }
+
     protected void drawEntityBounds(ShapeRenderer shapeRenderer, EditableNode entity, Color color) {
         shapeRenderer.setColor(color);
         shapeRenderer.setTransformMatrix(modelingProject.getTransform());
@@ -565,7 +567,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         mainInterface.setEntity(selectedNode);
 
         if (selectedNode != null) {
-            center.set(selectedNode.getPosition());
+//            center.set(selectedNode.getPosition());
 
             final Color diffuseColor = selectedNode.getDiffuseColor();
             if (diffuseColor != null)
@@ -573,9 +575,9 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         } else {
             transformUI.setVisible(false);
         }
-        snappedPosition.set(center).scl(-1).mul(rotation).add(projectPosition);
-        positionAnimator.setDuration(0.5f);
-        positionAnimator.start();
+//        snappedPosition.set(center).scl(-1).mul(rotation).add(projectPosition);
+//        positionAnimator.setDuration(0.5f);
+//        positionAnimator.start();
     }
 
     @Override
@@ -727,6 +729,13 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
             case UI:
 //                currentState = STATE_NONE;
                 break;
+            case ADDING:
+                if (nodeToAdd != null) {
+                    final EditableNode node = nodeToAdd.copy();
+                    node.setPosition(hitPoint);
+                    addNode(node);
+                }
+                break;
             case MULTI_SELECT:
                 if (focusedNode != null && !multiSelectNodes.contains(focusedNode)) {
                     multiSelectNodes.add(focusedNode);
@@ -804,6 +813,12 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private void updateCurrentInputMode() {
         focusedNode = null;
         switch (currentState) {
+            case STATE_ADDING:
+                if (modelingProject.rayTest(getControllerRay(), intersectionInfo)) {
+                    hitPoint.set(intersectionInfo.hitPoint);
+                    currentInputMode = InputMode.ADDING;
+                }
+                break;
             case STATE_EDITING:
                 transformUI.performRayTest(getControllerRay());
                 hitPoint.set(transformUI.getHitPoint3D());
@@ -815,10 +830,12 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
                 else if (transformUI.performRayTest(getControllerRay())) {
                     hitPoint.set(transformUI.getHitPoint3D());
                     currentInputMode = InputMode.EDIT;
-                } else if (!grabControls.isTransforming() && modelingProject.rayTest(getControllerRay(), intersectionInfo)) {
+                } else if (modelingProject.rayTest(getControllerRay(), intersectionInfo)) {
                     hitPoint.set(intersectionInfo.hitPoint);
-                    focusedNode = (EditableNode) intersectionInfo.object;
-                    currentInputMode = InputMode.SELECT;
+                    if (!grabControls.isTransforming()) {
+                        focusedNode = (EditableNode) intersectionInfo.object;
+                        currentInputMode = InputMode.SELECT;
+                    }
                 } else
                     currentInputMode = InputMode.VIEW;
                 break;
@@ -847,10 +864,10 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     }
 
     enum InputMode {
-        UI, EDIT, MULTI_SELECT, SELECT, VIEW
+        UI, EDIT, MULTI_SELECT, SELECT, VIEW, ADDING
     }
 
     enum State {
-        STATE_VIEW_TRANSFORM, STATE_EDITING, STATE_GROUPING, STATE_NONE
+        STATE_VIEW_TRANSFORM, STATE_EDITING, STATE_GROUPING, STATE_ADDING, STATE_NONE
     }
 }
