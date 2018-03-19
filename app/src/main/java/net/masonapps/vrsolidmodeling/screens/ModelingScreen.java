@@ -59,6 +59,7 @@ import net.masonapps.vrsolidmodeling.modeling.transform.SimpleGrabControls;
 import net.masonapps.vrsolidmodeling.modeling.transform.TransformWidget3D;
 import net.masonapps.vrsolidmodeling.modeling.transform.TranslateWidget;
 import net.masonapps.vrsolidmodeling.modeling.ui.EditModeTable;
+import net.masonapps.vrsolidmodeling.modeling.ui.InputProcessorChooser;
 import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
 import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
 import net.masonapps.vrsolidmodeling.ui.GroupCompleteDialog;
@@ -134,6 +135,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private boolean cameraUpdated = true;
     @Nullable
     private EditableNode nodeToAdd = null;
+    private InputProcessorChooser inputProcessorChooser;
 
     public ModelingScreen(SolidModelingGame game, String projectName) {
         this(game, projectName, new ArrayList<>());
@@ -371,6 +373,8 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
         });
         groupDialog.setPosition(0, -1f, 0);
         mainInterface.addProcessor(groupDialog);
+        inputProcessorChooser = new InputProcessorChooser();
+        mainInterface.addProcessor(inputProcessorChooser);
 
         gridEntity = new Entity(new ModelInstance(createGrid(modelBuilder, skin, 3f)));
         gridEntity.setLightingEnabled(false);
