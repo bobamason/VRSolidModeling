@@ -2,7 +2,7 @@ package net.masonapps.vrsolidmodeling.mesh;
 
 import com.badlogic.gdx.math.Vector3;
 
-import net.masonapps.clayvr.math.Segment;
+import net.masonapps.vrsolidmodeling.math.Segment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +15,8 @@ public class Stroke {
 
     private static final Vector3 n = new Vector3();
     private static final Vector3 v = new Vector3();
-
-    private List<Vector3> points = new ArrayList<>();
+    private final Segment tmpSegment = new Segment();
+    public List<Vector3> points = new ArrayList<>();
 
     public Stroke() {
     }
@@ -77,13 +77,12 @@ public class Stroke {
 
     public void simplifyByPerpendicularDistance(float minDist) {
         if (points.size() < 3) return;
-        final Segment segment = new Segment();
         final float minSqDist = minDist * minDist;
         int i = 2;
         while (i < points.size() - 1) {
-            segment.p1.set(points.get(i - 1));
-            segment.p2.set(points.get(i + 1));
-            if (segment.sqDistancePointToSegment(points.get(i)) < minSqDist) {
+            tmpSegment.p1.set(points.get(i - 1));
+            tmpSegment.p2.set(points.get(i + 1));
+            if (tmpSegment.sqDistancePointToSegment(points.get(i)) < minSqDist) {
                 points.remove(i);
             } else {
                 i++;
@@ -93,13 +92,12 @@ public class Stroke {
 
     public void simplifyBySegmentLength(float minDist) {
         if (points.size() < 2) return;
-        final Segment segment = new Segment();
         final float minSqDist = minDist * minDist;
         int i = 1;
         while (i < points.size()) {
-            segment.p1.set(points.get(i - 1));
-            segment.p2.set(points.get(i));
-            if (segment.length2() < minSqDist) {
+            tmpSegment.p1.set(points.get(i - 1));
+            tmpSegment.p2.set(points.get(i));
+            if (tmpSegment.length2() < minSqDist) {
                 points.remove(i);
             } else {
                 i++;

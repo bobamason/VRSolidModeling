@@ -75,23 +75,23 @@ import org.masonapps.libgdxgooglevr.input.DaydreamTouchEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_ADDING;
-import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_EDITING;
-import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_GROUPING;
-import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_NONE;
-import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.State.STATE_VIEW_TRANSFORM;
-import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.ViewAction.ACTION_NONE;
-import static net.masonapps.vrsolidmodeling.screens.ModelingScreen.ViewAction.ROTATE;
+import static net.masonapps.vrsolidmodeling.screens.MainScreen.State.STATE_ADDING;
+import static net.masonapps.vrsolidmodeling.screens.MainScreen.State.STATE_EDITING;
+import static net.masonapps.vrsolidmodeling.screens.MainScreen.State.STATE_GROUPING;
+import static net.masonapps.vrsolidmodeling.screens.MainScreen.State.STATE_NONE;
+import static net.masonapps.vrsolidmodeling.screens.MainScreen.State.STATE_VIEW_TRANSFORM;
+import static net.masonapps.vrsolidmodeling.screens.MainScreen.ViewAction.ACTION_NONE;
+import static net.masonapps.vrsolidmodeling.screens.MainScreen.ViewAction.ROTATE;
 
 /**
  * Created by Bob Mason on 12/20/2017.
  */
 
-public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.OnControllerBackPressedListener {
+public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnControllerBackPressedListener {
 
     public static final float MIN_Z = 0.5f;
     public static final float MAX_Z = 10f;
-    private static final String TAG = ModelingScreen.class.getSimpleName();
+    private static final String TAG = MainScreen.class.getSimpleName();
     private static final float UI_ALPHA = 0.25f;
     private final MainInterface mainInterface;
     private final UndoRedoCache undoRedoCache;
@@ -137,11 +137,11 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
     private EditableNode nodeToAdd = null;
     private InputProcessorChooser inputProcessorChooser;
 
-    public ModelingScreen(SolidModelingGame game, String projectName) {
+    public MainScreen(SolidModelingGame game, String projectName) {
         this(game, projectName, new ArrayList<>());
     }
 
-    public ModelingScreen(SolidModelingGame game, String projectName, List<EditableNode> nodeList) {
+    public MainScreen(SolidModelingGame game, String projectName, List<EditableNode> nodeList) {
         super(game);
         final Skin skin = game.getSkin();
         this.projectName = projectName;

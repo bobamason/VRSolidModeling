@@ -60,16 +60,16 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     public static final String KEY_SHININESS = "shininess";
     protected final Matrix4 inverseTransform = new Matrix4();
     @Nullable
-    private final MeshInfo meshInfo;
+    protected final MeshInfo meshInfo;
     @Nullable
     private final BVH bvh;
     private final Ray transformedRay = new Ray();
     private final String primitiveKey;
     private final boolean isGroup;
+    protected BoundingBox bounds = new BoundingBox();
     private boolean updated = false;
     @Nullable
-    private AABBTree.LeafNode leafNode = null;
-    private BoundingBox bounds = new BoundingBox();
+    private AABBTree.Node node = null;
     private BoundingBox aabb = new BoundingBox();
     private BVH.IntersectionInfo bvhIntersection = new BVH.IntersectionInfo();
     private Color ambientColor = new Color(Color.GRAY);
@@ -176,7 +176,7 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         return isGroup;
     }
 
-    private Material createDefaultMaterial() {
+    protected Material createDefaultMaterial() {
         return new Material(ColorAttribute.createAmbient(ambientColor),
                 ColorAttribute.createDiffuse(diffuseColor),
                 ColorAttribute.createSpecular(specularColor),
@@ -193,20 +193,24 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         meshPart.offset = 0;
         meshPart.size = mesh.getNumIndices();
         parts.add(new NodePart(meshPart, createDefaultMaterial()));
+        updateBounds();
+        invalidate();
+    }
+
+    public void updateBounds() {
         bounds.inf();
         extendBoundingBox(bounds, false);
-        invalidate();
     }
 
     @Nullable
     @Override
-    public AABBTree.LeafNode getNode() {
-        return leafNode;
+    public AABBTree.Node getNode() {
+        return node;
     }
 
     @Override
-    public void setNode(@Nullable AABBTree.LeafNode node) {
-        leafNode = node;
+    public void setNode(@Nullable AABBTree.Node node) {
+        this.node = node;
     }
 
     @Override
