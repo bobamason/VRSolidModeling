@@ -38,6 +38,7 @@ import net.masonapps.vrsolidmodeling.modeling.primitives.AssetPrimitive;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.screens.ExportScreen;
 import net.masonapps.vrsolidmodeling.screens.LoadingScreen;
+import net.masonapps.vrsolidmodeling.screens.MainScreen;
 import net.masonapps.vrsolidmodeling.screens.ModelingScreen;
 import net.masonapps.vrsolidmodeling.screens.OpenProjectListScreen;
 import net.masonapps.vrsolidmodeling.screens.ProgressLoadingScreen;
@@ -71,7 +72,7 @@ public class SolidModelingGame extends VrGame {
     private LoadingScreen loadingScreen;
     private ProgressLoadingScreen progressLoadingScreen;
     @Nullable
-    private ModelingScreen modelingScreen = null;
+    private MainScreen modelingScreen = null;
     private Skin skin;
     @Nullable
     private StartupScreen startupScreen = null;
@@ -227,7 +228,7 @@ public class SolidModelingGame extends VrGame {
         loadingFailed = false;
         final String projectName = generateNewProjectName();
         Logger.d("new project created: " + projectName);
-        GdxVr.app.postRunnable(() -> setScreen(new ModelingScreen(SolidModelingGame.this, projectName)));
+        GdxVr.app.postRunnable(() -> setScreen(new MainScreen(SolidModelingGame.this, projectName)));
     }
 
     private void openProject(final File file) {
@@ -331,8 +332,8 @@ public class SolidModelingGame extends VrGame {
     @Override
     public void setScreen(VrScreen screen) {
         super.setScreen(screen);
-        if (screen instanceof ModelingScreen) {
-            modelingScreen = (ModelingScreen) screen;
+        if (screen instanceof MainScreen) {
+            modelingScreen = (MainScreen) screen;
         } else if (screen instanceof ProgressLoadingScreen) {
             resetProgressLoadingScreen();
         }
@@ -388,7 +389,7 @@ public class SolidModelingGame extends VrGame {
     }
 
     @Nullable
-    public ModelingScreen getModelingScreen() {
+    public MainScreen getModelingScreen() {
         return modelingScreen;
     }
 

@@ -523,7 +523,7 @@ public class ExportScreen extends RoomScreen {
 
     @Override
     public void onControllerBackButtonClicked() {
-        final ModelingScreen modelingScreen = getSolidModelingGame().getModelingScreen();
+        final MainScreen modelingScreen = getSolidModelingGame().getModelingScreen();
         if (modelingScreen != null)
             getSolidModelingGame().setScreen(modelingScreen);
         else

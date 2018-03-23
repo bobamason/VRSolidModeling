@@ -355,7 +355,7 @@ public abstract class ProjectList<T> implements VrInputProcessor, Disposable {
         //        @Nullable
 //        public CompletableFuture<ModelData> loadModelFuture = null;
         @Nullable
-        private AABBTree.LeafNode node = null;
+        private AABBTree.Node node = null;
         private BoundingBox aabb = new BoundingBox();
 
         public ProjectItem(@Nullable ModelInstance modelInstance, BoundingBox boundingBox, int index) {
@@ -385,12 +385,12 @@ public abstract class ProjectList<T> implements VrInputProcessor, Disposable {
 
         @Nullable
         @Override
-        public AABBTree.LeafNode getNode() {
+        public AABBTree.Node getNode() {
             return node;
         }
 
         @Override
-        public void setNode(@Nullable AABBTree.LeafNode node) {
+        public void setNode(@Nullable AABBTree.Node node) {
             this.node = node;
         }
 

@@ -61,6 +61,7 @@ import net.masonapps.vrsolidmodeling.modeling.transform.TranslateWidget;
 import net.masonapps.vrsolidmodeling.modeling.ui.EditModeTable;
 import net.masonapps.vrsolidmodeling.modeling.ui.InputProcessorChooser;
 import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
+import net.masonapps.vrsolidmodeling.modeling.ui.PlanarPointsInput;
 import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
 import net.masonapps.vrsolidmodeling.ui.GroupCompleteDialog;
 
@@ -71,11 +72,11 @@ import org.masonapps.libgdxgooglevr.gfx.VrWorldScreen;
 import org.masonapps.libgdxgooglevr.gfx.World;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 import org.masonapps.libgdxgooglevr.input.DaydreamTouchEvent;
+import org.masonapps.libgdxgooglevr.utils.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.masonapps.vrsolidmodeling.screens.MainScreen.State.STATE_ADDING;
 import static net.masonapps.vrsolidmodeling.screens.MainScreen.State.STATE_EDITING;
 import static net.masonapps.vrsolidmodeling.screens.MainScreen.State.STATE_GROUPING;
 import static net.masonapps.vrsolidmodeling.screens.MainScreen.State.STATE_NONE;
@@ -104,6 +105,8 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     private final ScaleWidget scaleWidget;
     private final GroupCompleteDialog groupDialog;
     private final Entity gradientBackground;
+    // TODO: 3/23/2018 rename 
+    private final PlanarPointsInput pointInput;
     private TransformWidget3D transformUI;
     private boolean isTouchPadClicked = false;
     private Quaternion rotation = new Quaternion();
@@ -235,8 +238,8 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
             @Override
             public void onAddClicked(String key) {
                 if (currentState == STATE_GROUPING) return;
-                currentState = STATE_ADDING;
                 nodeToAdd = new EditableNode(key);
+                addNode(nodeToAdd);
             }
 
             @Override
@@ -387,6 +390,10 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
         for (EditableNode node : nodeList) {
             modelingProject.add(node);
         }
+
+        // TODO: 3/23/2018 remove test 
+        pointInput = new PlanarPointsInput(modelingProject, point -> Logger.d("point added " + point));
+        pointInput.getPlane().set(Vector3.Zero, Vector3.Z);
     }
 
     private static Model createGrid(ModelBuilder builder, Skin skin, float radius) {
@@ -516,7 +523,9 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     @Override
     public void show() {
         super.show();
-        GdxVr.input.setInputProcessor(mainInterface);
+        // TODO: 3/23/2018 remove test 
+        GdxVr.input.setInputProcessor(pointInput);
+//        GdxVr.input.setInputProcessor(mainInterface);
         getVrCamera().position.set(0, 0f, 0);
         getVrCamera().lookAt(0, 0, -1);
 //        buttonControls.attachListener();
@@ -615,6 +624,10 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
         }
         if (currentState == STATE_GROUPING)
             drawSelectionBox(shapeRenderer, Color.WHITE);
+
+        // TODO: 3/23/2018 improve draw 
+        pointInput.draw(shapeRenderer);
+        
         shapeRenderer.end();
 
         mainInterface.draw(camera);
@@ -733,13 +746,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
             case UI:
 //                currentState = STATE_NONE;
                 break;
-            case ADDING:
-                if (nodeToAdd != null) {
-                    final EditableNode node = nodeToAdd.copy();
-                    node.setPosition(hitPoint);
-                    addNode(node);
-                }
-                break;
             case MULTI_SELECT:
                 if (focusedNode != null && !multiSelectNodes.contains(focusedNode)) {
                     multiSelectNodes.add(focusedNode);
@@ -817,12 +823,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     private void updateCurrentInputMode() {
         focusedNode = null;
         switch (currentState) {
-            case STATE_ADDING:
-                if (modelingProject.rayTest(getControllerRay(), intersectionInfo)) {
-                    hitPoint.set(intersectionInfo.hitPoint);
-                    currentInputMode = InputMode.ADDING;
-                }
-                break;
             case STATE_EDITING:
                 transformUI.performRayTest(getControllerRay());
                 hitPoint.set(transformUI.getHitPoint3D());
@@ -868,10 +868,10 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     }
 
     enum InputMode {
-        UI, EDIT, MULTI_SELECT, SELECT, VIEW, ADDING
+        UI, EDIT, MULTI_SELECT, SELECT, VIEW
     }
 
     enum State {
-        STATE_VIEW_TRANSFORM, STATE_EDITING, STATE_GROUPING, STATE_ADDING, STATE_NONE
+        STATE_VIEW_TRANSFORM, STATE_EDITING, STATE_GROUPING, STATE_NONE
     }
 }
