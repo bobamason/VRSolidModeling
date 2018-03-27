@@ -4,7 +4,7 @@ import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.CatmullRomSpline;
+import com.badlogic.gdx.math.BSpline;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Plane;
 import com.badlogic.gdx.math.Vector2;
@@ -23,7 +23,7 @@ import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
 
 public class PlanarPointsInput implements VrInputProcessor {
 
-    public static final int SPLINE_DEGREE = 4;
+    public static final int SPLINE_DEGREE = 2;
     private final Plane plane = new Plane();
     private final Array<Vector3> points = new Array<>();
     //    private final Vector2 hitPoint2D = new Vector2();
@@ -34,7 +34,7 @@ public class PlanarPointsInput implements VrInputProcessor {
     protected boolean isCursorOver = false;
     private Ray transformedRay = new Ray();
     // TODO: 3/23/2018 remove spline test 
-    private CatmullRomSpline<Vector3> spline = new CatmullRomSpline<>();
+    private BSpline<Vector3> spline = new BSpline<>();
 
     public PlanarPointsInput(ModelingProjectEntity project, OnPointAddedListener listener) {
         this.project = project;
@@ -115,7 +115,7 @@ public class PlanarPointsInput implements VrInputProcessor {
             points.add(cpy);
             listener.pointAdded(cpy);
             if (points.size > SPLINE_DEGREE)
-                spline.set(points.toArray(Vector3.class), false);
+                spline.set(points.toArray(Vector3.class), SPLINE_DEGREE, false);
         }
         return isCursorOver;
     }
