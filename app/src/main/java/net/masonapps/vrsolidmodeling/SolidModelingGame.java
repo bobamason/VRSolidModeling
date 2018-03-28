@@ -39,7 +39,6 @@ import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.screens.ExportScreen;
 import net.masonapps.vrsolidmodeling.screens.LoadingScreen;
 import net.masonapps.vrsolidmodeling.screens.MainScreen;
-import net.masonapps.vrsolidmodeling.screens.ModelingScreen;
 import net.masonapps.vrsolidmodeling.screens.OpenProjectListScreen;
 import net.masonapps.vrsolidmodeling.screens.ProgressLoadingScreen;
 import net.masonapps.vrsolidmodeling.screens.StartupScreen;
@@ -251,7 +250,7 @@ public class SolidModelingGame extends VrGame {
             if (editableNodes != null) {
                 final int endIndex = fileName.lastIndexOf('.');
                 final String projectName = endIndex == -1 ? fileName : fileName.substring(0, endIndex);
-                GdxVr.app.postRunnable(() -> setScreen(new ModelingScreen(SolidModelingGame.this, projectName, editableNodes)));
+                GdxVr.app.postRunnable(() -> setScreen(new MainScreen(SolidModelingGame.this, projectName, editableNodes)));
             } else {
                 loadingFailed = true;
                 showError("unable to open project");

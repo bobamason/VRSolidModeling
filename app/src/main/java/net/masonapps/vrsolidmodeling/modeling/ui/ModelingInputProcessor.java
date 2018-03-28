@@ -20,6 +20,7 @@ public abstract class ModelingInputProcessor implements VrInputProcessor {
     protected final ModelingProjectEntity modelingProject;
     protected final AABBTree.IntersectionInfo intersectionInfo = new AABBTree.IntersectionInfo();
     protected boolean isCursorOver = false;
+    protected boolean visible = true;
 
     public ModelingInputProcessor(ModelingProjectEntity modelingProject) {
         this.modelingProject = modelingProject;
@@ -27,7 +28,7 @@ public abstract class ModelingInputProcessor implements VrInputProcessor {
 
     @Override
     public boolean performRayTest(Ray ray) {
-        isCursorOver = modelingProject.getAABBTree().rayTest(ray, intersectionInfo);
+        isCursorOver = visible && modelingProject.rayTest(ray, intersectionInfo);
         return isCursorOver;
     }
 
@@ -66,5 +67,13 @@ public abstract class ModelingInputProcessor implements VrInputProcessor {
     @Override
     public boolean scrolled(int amount) {
         return false;
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
     }
 }

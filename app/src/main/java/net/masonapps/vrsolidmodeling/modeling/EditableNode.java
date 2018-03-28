@@ -223,6 +223,7 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     public boolean rayTest(Ray ray, AABBTree.IntersectionInfo intersection) {
         validate();
         boolean rayTest;
+        intersection.normal.set(0, 0, 0);
         transformedRay.set(ray).mul(inverseTransform);
         if (isGroup || bvh == null)
             rayTest = Intersector.intersectRayBounds(transformedRay, bounds, intersection.hitPoint);
@@ -230,6 +231,10 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
             rayTest = bvh.closestIntersection(transformedRay, bvhIntersection);
         if (rayTest) {
             intersection.hitPoint.set(bvhIntersection.hitPoint).mul(getTransform());
+            if (bvhIntersection.triangle != null)
+                intersection.normal.set(bvhIntersection.triangle.plane.normal).mul(getRotation());
+            else
+                intersection.normal.set(Vector3.Y);
             intersection.object = this;
             intersection.t = ray.origin.dst(intersection.hitPoint);
         }
@@ -677,5 +682,9 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         this.scale.set(scale, scale, scale);
         invalidate();
         return this;
+    }
+
+    public BoundingBox getBounds() {
+        return bounds;
     }
 }

@@ -263,6 +263,7 @@ public class AABBTree {
     public static class IntersectionInfo {
         public float t = -1f;
         public Vector3 hitPoint = new Vector3();
+        public Vector3 normal = new Vector3();
         @Nullable
         public AABBObject object = null;
     }

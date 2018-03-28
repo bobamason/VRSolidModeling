@@ -11,17 +11,20 @@ import net.masonapps.vrsolidmodeling.modeling.ModelingProjectEntity;
 
 public class SingleNodeSelector extends ModelingInputProcessor {
 
+    private final OnNodeSelectedListener listener;
     @Nullable
     private EditableNode selectedNode = null;
 
-    public SingleNodeSelector(ModelingProjectEntity modelingProject) {
+    public SingleNodeSelector(ModelingProjectEntity modelingProject, OnNodeSelectedListener listener) {
         super(modelingProject);
+        this.listener = listener;
     }
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         if (isCursorOver() && intersectionInfo.object instanceof EditableNode) {
             selectedNode = (EditableNode) intersectionInfo.object;
+            listener.nodeSelected(selectedNode);
             return true;
         }
         return false;
@@ -42,12 +45,7 @@ public class SingleNodeSelector extends ModelingInputProcessor {
         return selectedNode != null;
     }
 
-    @Nullable
-    public EditableNode getSelectedNode() {
-        return selectedNode;
-    }
-
-    public void setSelectedNode(@Nullable EditableNode selectedNode) {
-        this.selectedNode = selectedNode;
+    public interface OnNodeSelectedListener {
+        void nodeSelected(EditableNode node);
     }
 }

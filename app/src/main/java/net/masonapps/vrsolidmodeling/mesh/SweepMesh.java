@@ -3,6 +3,8 @@ package net.masonapps.vrsolidmodeling.mesh;
 import com.badlogic.gdx.math.Path;
 import com.badlogic.gdx.math.Polygon;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.FloatArray;
+import com.badlogic.gdx.utils.ShortArray;
 
 /**
  * Created by Bob Mason on 3/22/2018.
@@ -16,6 +18,8 @@ public class SweepMesh {
 
     public static MeshInfo sweep(Polygon polygon, Path<Vector3> path, int sections) {
         final MeshInfo meshInfo = new MeshInfo();
+        final FloatArray vertices = new FloatArray();
+        final ShortArray indices = new ShortArray();
         final float step = 1f / sections;
         path.valueAt(pos, 0f);
         path.derivativeAt(d, 0f);
