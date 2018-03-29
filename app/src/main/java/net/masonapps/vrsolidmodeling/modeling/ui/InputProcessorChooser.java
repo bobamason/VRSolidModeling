@@ -80,4 +80,8 @@ public class InputProcessorChooser implements VrInputProcessor {
     public void setActiveProcessor(@Nullable VrInputProcessor activeProcessor) {
         this.activeProcessor = activeProcessor;
     }
+
+    public VrInputProcessor getActiveProcessor() {
+        return activeProcessor;
+    }
 }

@@ -53,7 +53,6 @@ import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProjectEntity;
-import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.modeling.transform.RotateWidget;
 import net.masonapps.vrsolidmodeling.modeling.transform.ScaleWidget;
 import net.masonapps.vrsolidmodeling.modeling.transform.SimpleGrabControls;
@@ -63,8 +62,10 @@ import net.masonapps.vrsolidmodeling.modeling.ui.AddNodeInput;
 import net.masonapps.vrsolidmodeling.modeling.ui.EditModeTable;
 import net.masonapps.vrsolidmodeling.modeling.ui.InputProcessorChooser;
 import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
+import net.masonapps.vrsolidmodeling.modeling.ui.MultiNodeSelector;
 import net.masonapps.vrsolidmodeling.modeling.ui.SingleNodeSelector;
 import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
+import net.masonapps.vrsolidmodeling.ui.ExportDialog;
 import net.masonapps.vrsolidmodeling.ui.GroupCompleteDialog;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
@@ -100,6 +101,7 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     private final ScaleWidget scaleWidget;
     private final GroupCompleteDialog groupDialog;
     private final Entity gradientBackground;
+    private final ExportDialog exportDialog;
     // TODO: 3/23/2018 rename 
 //    private final PlanarPointsInput pointInput;
     private TransformWidget3D transformUI;
@@ -136,6 +138,8 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     private EditableNode nodeToAdd = null;
     private InputProcessorChooser inputProcessorChooser;
     private AddNodeInput addNodeInput;
+    private SingleNodeSelector singleNodeSelector;
+    private MultiNodeSelector multiNodeSelector;
 
     public MainScreen(SolidModelingGame game, String projectName) {
         this(game, projectName, new ArrayList<>());
@@ -230,20 +234,32 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
 
         modelingProject.setPosition(projectPosition);
 
+
+        addNodeInput = new AddNodeInput(modelingProject, node -> Logger.d("node added"));
+
+        multiNodeSelector = new MultiNodeSelector(modelingProject, nodes -> {
+            selectionBox.inf();
+            nodes.forEach(node -> selectionBox.ext(node.getAABB()));
+            multiSelectNodes.clear();
+            multiSelectNodes.addAll(nodes);
+        });
+
+        exportDialog = new ExportDialog(spriteBatch, skin, (projectName1, fileType, transform) -> getSolidModelingGame().exportFile(modelingProject, projectName1, fileType, transform));
+        exportDialog.setPosition(0, 0, -2);
+
         final MainInterface.UiEventListener uiEventListener = new MainInterface.UiEventListener() {
 
             @Override
             public void onAddClicked(String key) {
-                // TODO: 3/28/2018 remove 
-//                if (currentState == STATE_GROUPING) return;
-                nodeToAdd = new EditableNode(key);
-                addNode(nodeToAdd);
+                final EditableNode previewNode = new EditableNode(key);
+                previewNode.initMesh();
+                addNodeInput.setPreviewNode(previewNode);
+                addNodeInput.setVisible(true);
+                inputProcessorChooser.setActiveProcessor(addNodeInput);
             }
 
             @Override
             public void onDeleteClicked() {
-                // TODO: 3/28/2018 remove 
-//                if (currentState == STATE_GROUPING) return;
                 if (selectedNode != null) {
                     modelingProject.remove(selectedNode);
                     undoRedoCache.save(new RemoveAction(selectedNode, modelingProject));
@@ -253,17 +269,17 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
 
             @Override
             public void onDuplicateClicked() {
-                // TODO: 3/28/2018 remove 
-//                if (currentState == STATE_GROUPING) return;
                 if (selectedNode != null) {
-                    nodeToAdd = selectedNode.copy();
+                    final EditableNode previewNode = selectedNode.copy();
+                    previewNode.initMesh();
+                    addNodeInput.setPreviewNode(previewNode);
+                    addNodeInput.setVisible(true);
+                    inputProcessorChooser.setActiveProcessor(addNodeInput);
                 }
             }
 
             @Override
             public void onColorChanged(Color color) {
-                // TODO: 3/28/2018 remove 
-//                if (currentState == STATE_GROUPING) return;
                 if (selectedNode != null) {
                     final ColorAction colorAction = new ColorAction(selectedNode, selectedNode.getDiffuseColor().cpy(), color.cpy(), c -> mainInterface.getColorPicker().setColor(c));
                     undoRedoCache.save(colorAction);
@@ -274,43 +290,32 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
 
             @Override
             public void onEditModeChanged(EditModeTable.EditMode mode) {
-                // TODO: 3/28/2018 remove 
-//                if (currentState == STATE_GROUPING) return;
                 setEditMode(mode);
             }
 
             @Override
             public void onUndoClicked() {
-                // TODO: 3/28/2018 remove 
-//                if (currentState == STATE_GROUPING) return;
                 undoRedoCache.undo();
             }
 
             @Override
             public void onRedoClicked() {
-                // TODO: 3/28/2018 remove 
-//                if (currentState == STATE_GROUPING) return;
                 undoRedoCache.redo();
             }
 
             @Override
             public void onExportClicked() {
-                // TODO: 3/28/2018 remove 
-//                if (currentState == STATE_GROUPING) return;
-                getSolidModelingGame().switchToExportScreen();
+                exportDialog.show();
             }
 
             @Override
             public void onGroupClicked() {
-                // TODO: 3/28/2018 remove 
-//                currentState = STATE_GROUPING;
                 groupDialog.show();
+                inputProcessorChooser.setActiveProcessor(multiNodeSelector);
             }
 
             @Override
             public void onUnGroupClicked() {
-                // TODO: 3/28/2018 remove 
-//                if (currentState == STATE_GROUPING) return;
                 if (selectedNode != null && selectedNode.isGroup()) {
                     modelingProject.remove(selectedNode);
                     final int n = selectedNode.getChildCount();
@@ -366,8 +371,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
             @Override
             public void onCancelClicked() {
                 multiSelectNodes.clear();
-                // TODO: 3/28/2018 remove 
-//                currentState = STATE_NONE;
             }
 
             @Override
@@ -379,12 +382,15 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
                 }
                 modelingProject.add(group);
                 multiSelectNodes.clear();
-                // TODO: 3/28/2018 remove 
-//                currentState = STATE_NONE;
             }
         });
-        groupDialog.setPosition(0, -1f, 0);
+        groupDialog.setPosition(0, -1f, -1.5f);
+        groupDialog.setVisible(false);
         mainInterface.addProcessor(groupDialog);
+
+        exportDialog.setVisible(false);
+        mainInterface.addProcessor(exportDialog);
+        
         inputProcessorChooser = new InputProcessorChooser();
         mainInterface.addProcessor(inputProcessorChooser);
 
@@ -403,15 +409,8 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
         // TODO: 3/23/2018 remove test 
 //        pointInput = new PlanarPointsInput(modelingProject, point -> Logger.d("point added " + point));
 //        pointInput.getPlane().set(Vector3.Zero, Vector3.Z);
-
-        // TODO: 3/28/2018 remove tests 
-        addNodeInput = new AddNodeInput(modelingProject, node -> Logger.d("node added"));
-        final EditableNode previewNode = new EditableNode(Primitives.KEY_CONE);
-        previewNode.initMesh();
-        addNodeInput.setPreviewNode(previewNode);
-        addNodeInput.setVisible(false);
-//        inputProcessorChooser.setActiveProcessor(addNodeInput);
-        inputProcessorChooser.setActiveProcessor(new SingleNodeSelector(modelingProject, this::setSelectedNode));
+        singleNodeSelector = new SingleNodeSelector(modelingProject, this::setSelectedNode);
+        inputProcessorChooser.setActiveProcessor(singleNodeSelector);
     }
 
     private static Model createGrid(ModelBuilder builder, Skin skin, float radius) {
@@ -542,8 +541,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     @Override
     public void show() {
         super.show();
-        // TODO: 3/23/2018 remove test 
-//        GdxVr.input.setInputProcessor(pointInput);
         GdxVr.input.setInputProcessor(mainInterface);
         getVrCamera().position.set(0, 0f, 0);
         getVrCamera().lookAt(0, 0, -1);
@@ -642,13 +639,12 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
             drawEntityBounds(shapeRenderer, selectedNode, Color.WHITE);
 //            debugBVH(shapeRenderer, modelingProject, Color.YELLOW);
         }
-        // TODO: 3/28/2018 remove 
-//        if (currentState == STATE_GROUPING)
-//            drawSelectionBox(shapeRenderer, Color.WHITE);
+        if (inputProcessorChooser.getActiveProcessor() instanceof MultiNodeSelector)
+            drawSelectionBox(shapeRenderer, Color.WHITE);
 
         // TODO: 3/23/2018 improve draw 
 //        pointInput.draw(shapeRenderer);
-        
+
         shapeRenderer.end();
 
         mainInterface.draw(camera);
@@ -674,8 +670,8 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     @Override
     public void onControllerBackButtonClicked() {
         if (!mainInterface.onControllerBackButtonClicked()) {
-            if (selectedNode != null) {
-                setSelectedNode(null);
+            if (!(inputProcessorChooser.getActiveProcessor() instanceof SingleNodeSelector)) {
+                inputProcessorChooser.setActiveProcessor(singleNodeSelector);
             } else {
                 getSolidModelingGame().closeModelingScreen();
                 getSolidModelingGame().switchToStartupScreen();

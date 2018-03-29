@@ -82,7 +82,7 @@ public class SolidModelingGame extends VrGame {
     private boolean appButtonDown = false;
 
     @SuppressLint("SimpleDateFormat")
-    private static String generateNewProjectName() {
+    public static String generateNewProjectName() {
         return "model_" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 //        return "sculpt_" + MathUtils.random(5000);
     }
@@ -291,7 +291,7 @@ public class SolidModelingGame extends VrGame {
 
     @SuppressWarnings({"ResultOfMethodCallIgnored", "ConstantConditions"})
     @SuppressLint({"SetWorldReadable", "SetWorldWritable"})
-    private void exportFile(final ModelingProjectEntity modelingProject, final String projectName, final String fileType, Matrix4 transform) {
+    public void exportFile(final ModelingProjectEntity modelingProject, final String projectName, final String fileType, Matrix4 transform) {
         Activity activity = GdxVr.app.getActivityWeakReference().get();
         if (activity == null || modelingScreen == null) return;
         if (!((MainActivity) activity).areStoragePermissionsGranted()) {
@@ -480,13 +480,6 @@ public class SolidModelingGame extends VrGame {
 
     public Skin getSkin() {
         return skin;
-    }
-
-    public void switchToExportScreen() {
-        if (modelingScreen != null) {
-            final ModelingProjectEntity modelingProject = modelingScreen.getModelingProject();
-            setScreen(new ExportScreen(this, modelingProject, modelingScreen.getProjectName(), (projectName, fileType, transform) -> exportFile(modelingProject, projectName, fileType, transform)));
-        }
     }
 
     public List<File> getProjectFileList() {
