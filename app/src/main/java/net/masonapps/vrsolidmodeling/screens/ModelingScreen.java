@@ -288,8 +288,7 @@ public class ModelingScreen extends VrWorldScreen implements SolidModelingGame.O
 
             @Override
             public void onExportClicked() {
-                if (currentState == STATE_GROUPING) return;
-                getSolidModelingGame().switchToExportScreen();
+                // TODO: 4/18/2018 fix 
             }
 
             @Override

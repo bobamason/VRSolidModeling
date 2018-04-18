@@ -36,7 +36,6 @@ import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProjectEntity;
 import net.masonapps.vrsolidmodeling.modeling.primitives.AssetPrimitive;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
-import net.masonapps.vrsolidmodeling.screens.ExportScreen;
 import net.masonapps.vrsolidmodeling.screens.LoadingScreen;
 import net.masonapps.vrsolidmodeling.screens.MainScreen;
 import net.masonapps.vrsolidmodeling.screens.OpenProjectListScreen;
@@ -499,9 +498,8 @@ public class SolidModelingGame extends VrGame {
     }
 
     public void onExportComplete() {
-        final VrScreen screen = getScreen();
-        if (screen instanceof ExportScreen)
-            ((ExportScreen) screen).onExportComplete();
+        Logger.d("EXPORT COMPLETE!");
+        // TODO: 4/18/2018 notify 
     }
 
     public interface OnControllerBackPressedListener {

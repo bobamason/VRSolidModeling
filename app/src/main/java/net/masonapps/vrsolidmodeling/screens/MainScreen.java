@@ -36,8 +36,6 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pools;
-import com.google.vr.sdk.base.Eye;
-import com.google.vr.sdk.base.HeadTransform;
 import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
@@ -75,6 +73,7 @@ import org.masonapps.libgdxgooglevr.gfx.VrWorldScreen;
 import org.masonapps.libgdxgooglevr.gfx.World;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 import org.masonapps.libgdxgooglevr.input.DaydreamTouchEvent;
+import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
 import org.masonapps.libgdxgooglevr.utils.Logger;
 
 import java.util.ArrayList;
@@ -133,7 +132,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     private Vector2 vec2 = new Vector2();
     private Grid gridFloor;
     private Vector3 cameraPosition = new Vector3();
-    private boolean cameraUpdated = true;
     @Nullable
     private EditableNode nodeToAdd = null;
     private InputProcessorChooser inputProcessorChooser;
@@ -542,6 +540,7 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     public void show() {
         super.show();
         GdxVr.input.setInputProcessor(mainInterface);
+        GdxVr.input.addDaydreamControllerListener(inputProcessorChooser);
         getVrCamera().position.set(0, 0f, 0);
         getVrCamera().lookAt(0, 0, -1);
 //        buttonControls.attachListener();
@@ -551,27 +550,18 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     public void hide() {
         super.hide();
         GdxVr.input.setInputProcessor(null);
+        GdxVr.input.removeDaydreamControllerListener(inputProcessorChooser);
 //        buttonControls.detachListener();
         final SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(GdxVr.app.getContext()).edit();
         mainInterface.saveWindowPositions(editor);
         editor.apply();
     }
 
-    @Override
-    public void onDrawFrame(HeadTransform headTransform, Eye leftEye, Eye rightEye) {
-        updateCamera();
-        super.onDrawFrame(headTransform, leftEye, rightEye);
-    }
-
-    private void updateCamera() {
-        if (cameraUpdated) {
-            getVrCamera().position.set(cameraPosition);
+    private void updateInterfacePosition() {
             gradientBackground.setPosition(getVrCamera().position);
             mainInterface.setTransformable(true);
             mainInterface.setPosition(getVrCamera().position);
             mainInterface.lookAt(tmp.set(getVrCamera().direction).scl(-1).add(getVrCamera().position), getVrCamera().up);
-            cameraUpdated = false;
-        }
     }
 
     @Override
@@ -670,7 +660,11 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     @Override
     public void onControllerBackButtonClicked() {
         if (!mainInterface.onControllerBackButtonClicked()) {
-            if (!(inputProcessorChooser.getActiveProcessor() instanceof SingleNodeSelector)) {
+            final VrInputProcessor activeProcessor = inputProcessorChooser.getActiveProcessor();
+            if (activeProcessor instanceof AddNodeInput) {
+                ((AddNodeInput) activeProcessor).setPreviewNode(null);
+            }
+            if (!(activeProcessor instanceof SingleNodeSelector)) {
                 inputProcessorChooser.setActiveProcessor(singleNodeSelector);
             } else {
                 getSolidModelingGame().closeModelingScreen();
@@ -739,20 +733,29 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
 //                if (currentState == STATE_NONE && dx2 + dy2 > min) {
                 if (dx2 + dy2 > min) {
                     cameraPosition.set(getVrCamera().position);
-                    cameraUpdated = true;
+                    final Vector3 vec = new Vector3();
                     if (dx2 > dy2) {
 //                        getVrCamera().direction.rotate(getVrCamera().up, -dx * 45f * GdxVr.graphics.getDeltaTime()).nor();
-                        tmp.set(getRightVector());
-                        tmp.y = 0;
-                        tmp.nor();
-                        tmp.scl(dx * 2f * GdxVr.graphics.getDeltaTime());
-                        cameraPosition.add(tmp);
+                        vec.set(getRightVector());
+                        vec.y = 0;
+                        vec.nor();
+                        vec.scl(dx * 2f * GdxVr.graphics.getDeltaTime());
+                        vec.add(cameraPosition);
+                        runOnGLThread(() -> {
+                            getVrCamera().position.set(vec);
+                            updateInterfacePosition();
+                        });
                     } else {
-                        tmp.set(getForwardVector());
-                        tmp.y = 0;
-                        tmp.nor();
-                        tmp.scl(-dy * 2f * GdxVr.graphics.getDeltaTime());
-                        cameraPosition.add(tmp);
+                        vec.set(getForwardVector());
+                        vec.y = 0;
+                        vec.nor();
+                        vec.scl(-dy * 2f * GdxVr.graphics.getDeltaTime());
+                        vec.add(cameraPosition);
+                        Logger.d("camera moved to ");
+                        runOnGLThread(() -> {
+                            getVrCamera().position.set(vec);
+                            updateInterfacePosition();
+                        });
                     }
                 }
                 break;

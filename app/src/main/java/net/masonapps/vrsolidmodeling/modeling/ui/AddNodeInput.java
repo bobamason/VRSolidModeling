@@ -13,15 +13,20 @@ import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
+import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProjectEntity;
+
+import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
+import org.masonapps.libgdxgooglevr.input.DaydreamControllerInputListener;
+import org.masonapps.libgdxgooglevr.input.DaydreamTouchEvent;
 
 /**
  * Created by Bob Mason on 3/19/2018.
  */
 
-public class AddNodeInput extends ModelingInputProcessor {
+public class AddNodeInput extends ModelingInputProcessor implements DaydreamControllerInputListener {
 
     private final OnNodeAddedListener listener;
     private final ModelInstance modelInstance;
@@ -65,16 +70,7 @@ public class AddNodeInput extends ModelingInputProcessor {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        if (previewNode != null) {
-            final EditableNode copy = previewNode.copy();
-            previewNode.getPosition().mul(modelingProject.getInverseTransform());
-            previewNode.getRotation().mul(new Quaternion(modelingProject.getRotation()).conjugate());
-            previewNode.invalidate();
-            modelingProject.add(copy);
-            listener.nodeAdded(copy);
-            return true;
-        }
-        return false;
+        return isVisible() && previewNode != null;
     }
 
     @Override
@@ -94,23 +90,23 @@ public class AddNodeInput extends ModelingInputProcessor {
 
     public void setPreviewNode(@Nullable EditableNode previewNode) {
         this.previewNode = previewNode;
-        if (previewNode != null) {
-            modelInstance.nodes.clear();
-            modelInstance.model.nodes.clear();
+        modelInstance.nodes.clear();
+        modelInstance.model.nodes.clear();
 
+        modelInstance.model.meshParts.clear();
+        modelInstance.model.meshes.clear();
+
+        modelInstance.materials.clear();
+        modelInstance.model.materials.clear();
+
+        if (previewNode != null) {
             modelInstance.nodes.add(previewNode);
             modelInstance.model.nodes.add(previewNode);
 
             final NodePart nodePart = previewNode.parts.get(0);
 
-            modelInstance.model.meshParts.clear();
-            modelInstance.model.meshes.clear();
-
             modelInstance.model.meshParts.add(nodePart.meshPart);
             modelInstance.model.meshes.add(nodePart.meshPart.mesh);
-
-            modelInstance.materials.clear();
-            modelInstance.model.materials.clear();
 
             modelInstance.materials.add(material);
             modelInstance.model.materials.add(material);
@@ -119,6 +115,39 @@ public class AddNodeInput extends ModelingInputProcessor {
 
     public void setDistance(float distance) {
         this.distance = distance;
+    }
+
+    @Override
+    public void onDaydreamControllerUpdate(Controller controller, int connectionState) {
+
+    }
+
+    @Override
+    public void onControllerButtonEvent(Controller controller, DaydreamButtonEvent event) {
+        if (isVisible() && event.button == DaydreamButtonEvent.BUTTON_TOUCHPAD) {
+            switch (event.action) {
+                case DaydreamButtonEvent.ACTION_DOWN:
+                    if (previewNode != null) {
+                        final EditableNode copy = previewNode.copy();
+                        previewNode.getPosition().mul(modelingProject.getInverseTransform());
+                        previewNode.getRotation().mul(new Quaternion(modelingProject.getRotation()).conjugate());
+                        previewNode.invalidate();
+                        modelingProject.add(copy);
+                        listener.nodeAdded(copy);
+                    }
+                    break;
+            }
+        }
+    }
+
+    @Override
+    public void onControllerTouchPadEvent(Controller controller, DaydreamTouchEvent event) {
+
+    }
+
+    @Override
+    public void onControllerConnectionStateChange(int connectionState) {
+
     }
 
     public interface OnNodeAddedListener {
