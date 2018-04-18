@@ -103,11 +103,13 @@ public class InputProcessorChooser implements VrInputProcessor, DaydreamControll
 
     @Override
     public void onControllerTouchPadEvent(Controller controller, DaydreamTouchEvent event) {
-        ((DaydreamControllerInputListener) activeProcessor).onControllerTouchPadEvent(controller, event);
+        if (activeProcessor instanceof DaydreamControllerInputListener)
+            ((DaydreamControllerInputListener) activeProcessor).onControllerTouchPadEvent(controller, event);
     }
 
     @Override
     public void onControllerConnectionStateChange(int connectionState) {
-        ((DaydreamControllerInputListener) activeProcessor).onControllerConnectionStateChange(connectionState);
+        if (activeProcessor instanceof DaydreamControllerInputListener)
+            ((DaydreamControllerInputListener) activeProcessor).onControllerConnectionStateChange(connectionState);
     }
 }

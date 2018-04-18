@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
@@ -14,6 +15,7 @@ import com.badlogic.gdx.math.collision.Ray;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 
 import org.masonapps.libgdxgooglevr.gfx.Transformable;
+import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +24,7 @@ import java.util.List;
  * Created by Bob Mason on 1/17/2018.
  */
 
-public abstract class TransformWidget3D extends Transformable {
+public abstract class TransformWidget3D extends Transformable implements VrInputProcessor {
 
     protected List<DragHandle3D> processors;
     protected BoundingBox bounds = new BoundingBox();
@@ -66,6 +68,7 @@ public abstract class TransformWidget3D extends Transformable {
     }
 
     @SuppressWarnings("ConstantConditions")
+    @Override
     public boolean performRayTest(Ray ray) {
         if (!visible) return false;
         if (!updated) recalculateTransform();
@@ -97,10 +100,18 @@ public abstract class TransformWidget3D extends Transformable {
         return isCursorOver;
     }
 
+    @Override
     public boolean isCursorOver() {
         return isCursorOver;
     }
 
+    @Nullable
+    @Override
+    public Vector2 getHitPoint2D() {
+        return null;
+    }
+
+    @Override
     public Vector3 getHitPoint3D() {
         return hitPoint;
     }
@@ -155,6 +166,46 @@ public abstract class TransformWidget3D extends Transformable {
             setRotation(transformable.getRotation());
             setScale(transformable.getScaleX(), transformable.getScaleY(), transformable.getScaleZ());
         }
+    }
+
+    @Override
+    public boolean keyDown(int keycode) {
+        return false;
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+        return false;
+    }
+
+    @Override
+    public boolean keyTyped(char character) {
+        return false;
+    }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        return touchDown();
+    }
+
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        return touchUp();
+    }
+
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        return isCursorOver;
+    }
+
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        return isCursorOver;
+    }
+
+    @Override
+    public boolean scrolled(int amount) {
+        return false;
     }
 
     public interface OnTransformActionListener {
