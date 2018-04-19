@@ -80,6 +80,9 @@ import org.masonapps.libgdxgooglevr.utils.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
+import static net.masonapps.vrsolidmodeling.screens.MainScreen.State.STATE_NONE;
+import static net.masonapps.vrsolidmodeling.screens.MainScreen.State.STATE_VIEW_TRANSFORM;
+
 /**
  * Created by Bob Mason on 12/20/2017.
  */
@@ -115,10 +118,9 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     private Vector3 center = new Vector3();
     private float projectScale = 1f;
     private String projectName;
-    // TODO: 3/28/2018 remove 
 //    private ViewAction viewAction = ACTION_NONE;
-//    private InputMode currentInputMode = InputMode.VIEW;
-//    private State currentState = STATE_NONE;
+private InputMode currentInputMode = InputMode.VIEW;
+    private State currentState = STATE_NONE;
     @Nullable
     private EditableNode focusedNode = null;
     @Nullable
@@ -688,32 +690,26 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
 
     @Override
     public void onDaydreamControllerUpdate(Controller controller, int connectionState) {
-        // TODO: 3/28/2018 remove 
-//        updateCurrentInputMode();
-//        if (currentState == STATE_VIEW_TRANSFORM) {
-//            getSolidModelingGame().setCursorVisible(false);
-//            mainInterface.setVisible(false);
-//            if (viewAction == ROTATE)
-//                rotate();
-////            else if (transformAction == PAN)
-////                pan();
-////            else if (transformAction == ZOOM)
-////                zoom();
-//        } else {
-//            getSolidModelingGame().setCursorVisible(true);
-//        }
-//
-//        if (controller.clickButtonState) {
-//            if (!isTouchPadClicked) {
-//                onTouchPadButtonDown();
-//                isTouchPadClicked = true;
-//            }
-//        } else {
-//            if (isTouchPadClicked) {
-//                onTouchPadButtonUp();
-//                isTouchPadClicked = false;
-//            }
-//        }
+        updateCurrentInputMode();
+        if (currentState == STATE_VIEW_TRANSFORM) {
+            getSolidModelingGame().setCursorVisible(false);
+            mainInterface.setVisible(false);
+            rotate();
+        } else {
+            getSolidModelingGame().setCursorVisible(true);
+        }
+
+        if (controller.clickButtonState) {
+            if (!isTouchPadClicked) {
+                onTouchPadButtonDown();
+                isTouchPadClicked = true;
+            }
+        } else {
+            if (isTouchPadClicked) {
+                onTouchPadButtonUp();
+                isTouchPadClicked = false;
+            }
+        }
     }
 
     @Override
@@ -766,126 +762,69 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
         }
     }
 
-    // TODO: 3/28/2018 remove 
-//    private void onTouchPadButtonDown() {
-//        switch (currentInputMode) {
-//            case UI:
-////                currentState = STATE_NONE;
-//                break;
-//            case MULTI_SELECT:
-//                if (focusedNode != null && !multiSelectNodes.contains(focusedNode)) {
-//                    multiSelectNodes.add(focusedNode);
-//                    selectionBox.ext(focusedNode.getAABB());
-//                }
-//                break;
-//            case EDIT:
-//                currentState = STATE_EDITING;
-//                transformUI.touchDown();
-//                break;
-//            case SELECT:
-//                if (focusedNode != null && !grabControls.isTransforming()) {
-//                    final Vector3 tmp = Pools.obtain(Vector3.class);
-//                    setSelectedNode(focusedNode);
-//                    grabControls.begin(focusedNode, hitPoint, modelingProject);
-//                    final Vector3 position = focusedNode.getPosition();
-//                    gridEntity.setPosition(position);
-//                    final Vector3 normal = grabControls.getPlane().getNormal();
-//                    gridEntity.lookAt(tmp.set(position).add(normal), Math.abs(normal.dot(Vector3.Y)) > 0.99f ? Vector3.Z : Vector3.Y);
-//                    gridEntity.getPosition().mul(modelingProject.getTransform());
-//                    gridEntity.getRotation().mulLeft(modelingProject.getRotation());
-//                    gridEntity.invalidate();
-//                    gridEntity.setVisible(true);
-//                }
-//                break;
-//            case VIEW:
-//                lastRotation.set(GdxVr.input.getControllerOrientation());
-//                viewAction = ROTATE;
-//                currentState = STATE_VIEW_TRANSFORM;
-//                break;
-//            default:
-//                break;
-//        }
-//    }
+    private void onTouchPadButtonDown() {
+        switch (currentInputMode) {
+            case UI:
+                currentState = STATE_NONE;
+                break;
+            case VIEW:
+                lastRotation.set(GdxVr.input.getControllerOrientation());
+                currentState = STATE_VIEW_TRANSFORM;
+                break;
+            default:
+                break;
+        }
+    }
 
-    // TODO: 3/28/2018 remove 
-//    private void onTouchPadButtonUp() {
-//        switch (currentState) {
-//            case STATE_NONE:
-//                if (grabControls.isTransforming()) {
-//                    grabControls.end();
-//                    gridEntity.setVisible(false);
-//                }
-//                break;
-//            case STATE_EDITING:
-//                transformUI.touchUp();
-//                break;
-//            case STATE_VIEW_TRANSFORM:
-//                if (RotationUtil.snap(rotation, snappedRotation, 0.1f)) {
-//                    final Quaternion rotDiff = Pools.obtain(Quaternion.class);
-//                    rotDiff.set(rotation).conjugate().mulLeft(snappedRotation);
-//                    final float angleRad = rotDiff.getAngleRad();
-//                    final float duration = Math.abs(angleRad < MathUtils.PI ? angleRad : MathUtils.PI2 - angleRad) / MathUtils.PI;
-//                    Pools.free(rotDiff);
-//                    rotationAnimator.setDuration(duration);
-//                    rotationAnimator.start();
-//
-//                    snappedPosition.set(center).scl(-1).mul(snappedRotation).add(projectPosition);
-//                    positionAnimator.setDuration(duration);
-//                    positionAnimator.start();
-//                }
-////                final float len = getVrCamera().position.len();
-////                RotationUtil.setToClosestUnitVector(getVrCamera().position).scl(len);
-////                RotationUtil.setToClosestUnitVector(getVrCamera().up);
-////                getVrCamera().lookAt(Vector3.Zero);
-//                viewAction = ACTION_NONE;
-//                break;
-//            default:
-//                break;
-//        }
-//        currentState = STATE_NONE;
-//        mainInterface.setAlpha(1f);
-//        mainInterface.setVisible(true);
-//    }
+    private void onTouchPadButtonUp() {
+        switch (currentState) {
+            case STATE_NONE:
+                if (grabControls.isTransforming()) {
+                    grabControls.end();
+                    gridEntity.setVisible(false);
+                }
+                break;
+            case STATE_VIEW_TRANSFORM:
+                if (RotationUtil.snap(rotation, snappedRotation, 0.1f)) {
+                    final Quaternion rotDiff = Pools.obtain(Quaternion.class);
+                    rotDiff.set(rotation).conjugate().mulLeft(snappedRotation);
+                    final float angleRad = rotDiff.getAngleRad();
+                    final float duration = Math.abs(angleRad < MathUtils.PI ? angleRad : MathUtils.PI2 - angleRad) / MathUtils.PI;
+                    Pools.free(rotDiff);
+                    rotationAnimator.setDuration(duration);
+                    rotationAnimator.start();
 
-    // TODO: 3/28/2018 remove 
-//    private void updateCurrentInputMode() {
-//        focusedNode = null;
-//        switch (currentState) {
-//            case STATE_EDITING:
-//                transformUI.performRayTest(getControllerRay());
-//                hitPoint.set(transformUI.getHitPoint3D());
-//                currentInputMode = InputMode.EDIT;
-//                break;
-//            case STATE_NONE:
-//                if (mainInterface.isCursorOver())
-//                    currentInputMode = InputMode.UI;
-//                else if (transformUI.performRayTest(getControllerRay())) {
-//                    hitPoint.set(transformUI.getHitPoint3D());
-//                    currentInputMode = InputMode.EDIT;
-//                } else if (modelingProject.rayTest(getControllerRay(), intersectionInfo)) {
-//                    hitPoint.set(intersectionInfo.hitPoint);
-//                    if (!grabControls.isTransforming()) {
-//                        focusedNode = (EditableNode) intersectionInfo.object;
-//                        currentInputMode = InputMode.SELECT;
-//                    }
-//                } else
-//                    currentInputMode = InputMode.VIEW;
-//                break;
-//            case STATE_VIEW_TRANSFORM:
-//                currentInputMode = InputMode.VIEW;
-//                break;
-//            case STATE_GROUPING:
-//                if (mainInterface.isCursorOver()) {
-//                    currentInputMode = InputMode.UI;
-//                } else if (modelingProject.rayTest(getControllerRay(), intersectionInfo)) {
-//                    hitPoint.set(intersectionInfo.hitPoint);
-//                    focusedNode = (EditableNode) intersectionInfo.object;
-//                    currentInputMode = InputMode.MULTI_SELECT;
-//                } else
-//                    currentInputMode = InputMode.VIEW;
-//                break;
-//        }
-//    }
+                    snappedPosition.set(center).scl(-1).mul(snappedRotation).add(projectPosition);
+                    positionAnimator.setDuration(duration);
+                    positionAnimator.start();
+                }
+//                final float len = getVrCamera().position.len();
+//                RotationUtil.setToClosestUnitVector(getVrCamera().position).scl(len);
+//                RotationUtil.setToClosestUnitVector(getVrCamera().up);
+//                getVrCamera().lookAt(Vector3.Zero);
+                break;
+            default:
+                break;
+        }
+        currentState = STATE_NONE;
+        mainInterface.setAlpha(1f);
+        mainInterface.setVisible(true);
+    }
+
+    private void updateCurrentInputMode() {
+        focusedNode = null;
+        switch (currentState) {
+            case STATE_NONE:
+                if (mainInterface.isCursorOver())
+                    currentInputMode = InputMode.UI;
+                else
+                    currentInputMode = InputMode.VIEW;
+                break;
+            case STATE_VIEW_TRANSFORM:
+                currentInputMode = InputMode.VIEW;
+                break;
+        }
+    }
 
     public ModelingProjectEntity getModelingProject() {
         return modelingProject;
@@ -896,11 +835,11 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
 //        ACTION_NONE, ROTATE, PAN, ZOOM
 //    }
 //
-//    enum InputMode {
-//        UI, VIEW
-//    }
-//
-//    enum State {
-//        STATE_VIEW_TRANSFORM, STATE_EDITING, STATE_NONE
-//    }
+    enum InputMode {
+        UI, VIEW
+    }
+
+    enum State {
+        STATE_VIEW_TRANSFORM, STATE_NONE
+    }
 }
