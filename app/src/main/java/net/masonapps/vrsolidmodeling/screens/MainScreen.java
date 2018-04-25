@@ -61,7 +61,6 @@ import net.masonapps.vrsolidmodeling.modeling.ui.EditModeTable;
 import net.masonapps.vrsolidmodeling.modeling.ui.InputProcessorChooser;
 import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
 import net.masonapps.vrsolidmodeling.modeling.ui.MultiNodeSelector;
-import net.masonapps.vrsolidmodeling.modeling.ui.PlanarPointsInput;
 import net.masonapps.vrsolidmodeling.modeling.ui.SingleNodeSelector;
 import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
 import net.masonapps.vrsolidmodeling.ui.ExportDialog;
@@ -105,8 +104,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     private final GroupCompleteDialog groupDialog;
     private final Entity gradientBackground;
     private final ExportDialog exportDialog;
-    // TODO: 3/23/2018 rename 
-    private final PlanarPointsInput pointInput;
     private TransformWidget3D transformUI;
     private boolean isTouchPadClicked = false;
     private Quaternion rotation = new Quaternion();
@@ -407,11 +404,8 @@ private InputMode currentInputMode = InputMode.VIEW;
             modelingProject.add(node);
         }
 
-        // TODO: 3/23/2018 remove test 
-        pointInput = new PlanarPointsInput(modelingProject, point -> Logger.d("point added " + point));
-        pointInput.getPlane().set(Vector3.Zero, Vector3.Z);
         singleNodeSelector = new SingleNodeSelector(modelingProject, this::setSelectedNode);
-        inputProcessorChooser.setActiveProcessor(pointInput);
+        inputProcessorChooser.setActiveProcessor(singleNodeSelector);
     }
 
     private static Model createGrid(ModelBuilder builder, Skin skin, float radius) {
