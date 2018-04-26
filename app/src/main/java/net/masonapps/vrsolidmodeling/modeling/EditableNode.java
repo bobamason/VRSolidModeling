@@ -37,6 +37,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.masonapps.libgdxgooglevr.gfx.AABBTree;
 
+import java.util.HashMap;
+
 /**
  * Created by Bob Mason on 2/9/2018.
  */
@@ -183,11 +185,21 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
                 FloatAttribute.createShininess(shininess));
     }
 
-    public void initMesh() {
+    public void initMesh(HashMap<String, Mesh> meshes) {
         if (parts.size > 0 || meshInfo == null) return;
-        final Mesh mesh = meshInfo.createMesh();
+        final Mesh mesh;
+        if (primitiveKey.equals(KEY_MESH)) {
+            mesh = meshInfo.createMesh();
+        } else {
+            if (meshes.containsKey(primitiveKey)) {
+                mesh = meshes.get(primitiveKey);
+            } else {
+                mesh = meshInfo.createMesh();
+                meshes.put(primitiveKey, mesh);
+            }
+        }
         final MeshPart meshPart = new MeshPart();
-        meshPart.id = "part";
+        meshPart.id = primitiveKey;
         meshPart.primitiveType = GL20.GL_TRIANGLES;
         meshPart.mesh = mesh;
         meshPart.offset = 0;

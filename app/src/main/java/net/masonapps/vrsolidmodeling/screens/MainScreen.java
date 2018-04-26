@@ -250,7 +250,7 @@ private InputMode currentInputMode = InputMode.VIEW;
             @Override
             public void onAddClicked(String key) {
                 final EditableNode previewNode = new EditableNode(key);
-                previewNode.initMesh();
+                previewNode.initMesh(modelingProject.getMeshCache());
                 addNodeInput.setPreviewNode(previewNode);
                 addNodeInput.setVisible(true);
                 inputProcessorChooser.setActiveProcessor(addNodeInput);
@@ -269,7 +269,7 @@ private InputMode currentInputMode = InputMode.VIEW;
             public void onDuplicateClicked() {
                 if (selectedNode != null) {
                     final EditableNode previewNode = selectedNode.copy();
-                    previewNode.initMesh();
+                    previewNode.initMesh(modelingProject.getMeshCache());
                     addNodeInput.setPreviewNode(previewNode);
                     addNodeInput.setVisible(true);
                     inputProcessorChooser.setActiveProcessor(addNodeInput);

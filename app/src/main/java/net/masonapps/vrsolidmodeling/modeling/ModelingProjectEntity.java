@@ -3,6 +3,7 @@ package net.masonapps.vrsolidmodeling.modeling;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.Camera;
+import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.model.Node;
@@ -14,6 +15,7 @@ import com.badlogic.gdx.utils.Pools;
 import org.masonapps.libgdxgooglevr.gfx.AABBTree;
 import org.masonapps.libgdxgooglevr.gfx.Entity;
 
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -23,6 +25,7 @@ import java.util.List;
 public class ModelingProjectEntity extends Entity {
 
     private AABBTree aabbTree;
+    private HashMap<String, Mesh> meshCache = new HashMap<>();
 
     public ModelingProjectEntity() {
         this(null);
@@ -40,7 +43,7 @@ public class ModelingProjectEntity extends Entity {
 
     public void add(EditableNode node) {
         if (modelInstance == null) return;
-        node.initMesh();
+        node.initMesh(meshCache);
 
         modelInstance.nodes.add(node);
         modelInstance.model.nodes.add(node);
@@ -115,6 +118,10 @@ public class ModelingProjectEntity extends Entity {
             modelInstance.model.dispose();
             modelInstance = null;
         }
+    }
+
+    public HashMap<String, Mesh> getMeshCache() {
+        return meshCache;
     }
 
     public AABBTree getAABBTree() {
