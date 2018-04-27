@@ -4,11 +4,12 @@ import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.Model;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
-import com.badlogic.gdx.graphics.g3d.model.data.ModelData;
+import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.input.GestureDetector;
 import com.badlogic.gdx.math.MathUtils;
@@ -18,6 +19,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Disposable;
+
+import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 
 import org.json.JSONException;
 import org.masonapps.libgdxgooglevr.GdxVr;
@@ -31,6 +34,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -65,9 +69,11 @@ public abstract class ProjectList<T> implements VrInputProcessor, Disposable {
     private boolean needsLayout = true;
     private float SPEED = 2f;
     private Set<Integer> loadingIndices = new HashSet<>();
+    private final Map<String, Mesh> meshCache;
 
-    public ProjectList(List<T> list, OnProjectSelectedListener listener) {
+    public ProjectList(List<T> list, OnProjectSelectedListener listener, Map<String, Mesh> meshCache) {
         this.list = list;
+        this.meshCache = meshCache;
         final int n = list.size();
         maxScroll = (ITEM_WIDTH + SPACING) * n - VISIBLE_EXTENT;
         this.listener = listener;
@@ -216,10 +222,9 @@ public abstract class ProjectList<T> implements VrInputProcessor, Disposable {
         loadingIndices.add(index);
         final T t = list.get(index);
         Logger.d("init " + index);
-        final BoundingBox bb = new BoundingBox();
-        final CompletableFuture<ModelData> loadModelFuture = CompletableFuture.supplyAsync(() -> {
+        final CompletableFuture<List<EditableNode>> loadModelFuture = CompletableFuture.supplyAsync(() -> {
             try {
-                return loadProject(t, bb);
+                return loadProject(t);
             } catch (IOException | JSONException e) {
                 throw new RuntimeException("failed to load project #" + index, e);
             }
@@ -227,22 +232,20 @@ public abstract class ProjectList<T> implements VrInputProcessor, Disposable {
         loadModelFuture.exceptionally(e -> {
             GdxVr.app.postRunnable(() -> onLoadFailed(t, e));
             return null;
-        }).thenAccept(modelData -> {
-            if (modelData != null) {
+        }).thenAccept(nodes -> {
+            if (nodes != null) {
                 GdxVr.app.postRunnable(() -> {
                     loadingIndices.remove(index);
+                    ProjectItem projectItem = new ProjectItem(nodes, index, meshCache);
+                    projectItem.setPosition(getItemX(index), LIST_Y, LIST_Z);
 
+                    final BoundingBox bb = projectItem.getBounds();
                     final float maxx = Math.max(Math.abs(bb.min.x), Math.abs(bb.max.x));
                     final float maxy = Math.max(Math.abs(bb.min.y), Math.abs(bb.max.y));
                     final float maxz = Math.max(Math.abs(bb.min.z), Math.abs(bb.max.z));
                     bb.set(bb.min.set(-maxx, -maxy, -maxz), bb.max.set(maxx, maxy, maxz));
-
-                    ProjectItem projectItem = new ProjectItem(new ModelInstance(new Model(modelData)), bb, index);
-                    projectItem.setPosition(getItemX(index), LIST_Y, LIST_Z);
-                    final Vector3 dimens = new Vector3();
-                    final float scale = ITEM_WIDTH / bb.getDimensions(dimens).len();
-//                    Logger.d("bb dimens " + index + " = " + dimens);
-//                    Logger.d("scale " + index + " = " + scale);
+                    projectItem.updateDimensions();
+                    final float scale = ITEM_WIDTH / projectItem.getDimensions().len();
                     projectItem.setScale(scale);
                     items.set(index, projectItem);
                     aabbTree.insert(projectItem);
@@ -252,7 +255,7 @@ public abstract class ProjectList<T> implements VrInputProcessor, Disposable {
         });
     }
 
-    protected abstract ModelData loadProject(T t, BoundingBox bounds) throws IOException, JSONException;
+    protected abstract List<EditableNode> loadProject(T t) throws IOException, JSONException;
 
     protected abstract void onLoadFailed(T t, Throwable e);
 
@@ -357,10 +360,37 @@ public abstract class ProjectList<T> implements VrInputProcessor, Disposable {
         @Nullable
         private AABBTree.Node node = null;
         private BoundingBox aabb = new BoundingBox();
+        private List<EditableNode> nodes;
+        private Map<String, Mesh> meshCache;
 
-        public ProjectItem(@Nullable ModelInstance modelInstance, BoundingBox boundingBox, int index) {
-            super(modelInstance, boundingBox);
+        public ProjectItem(List<EditableNode> nodes, int index, Map<String, Mesh> meshCache) {
+            super(new ModelInstance(new Model()));
+            this.nodes = nodes;
             this.index = index;
+            this.meshCache = meshCache;
+            for (EditableNode node : nodes) {
+                add(node);
+            }
+        }
+
+
+        public void add(EditableNode node) {
+            if (modelInstance == null) return;
+            node.initMesh(meshCache);
+
+            modelInstance.nodes.add(node);
+            modelInstance.model.nodes.add(node);
+
+            final NodePart nodePart = node.parts.get(0);
+            modelInstance.model.meshParts.add(nodePart.meshPart);
+            modelInstance.model.meshes.add(nodePart.meshPart.mesh);
+
+            modelInstance.materials.add(nodePart.material);
+            modelInstance.model.materials.add(nodePart.material);
+
+            getBounds().ext(node.getAABB());
+            getBounds().getDimensions(dimensions);
+            radius = dimensions.len() / 2f;
         }
 
         @Override
@@ -411,7 +441,7 @@ public abstract class ProjectList<T> implements VrInputProcessor, Disposable {
         }
 
         public ProjectItem copy() {
-            return new ProjectItem(modelInstance == null ? null : modelInstance.copy(), new BoundingBox(getBounds()), index);
+            return new ProjectItem(nodes, index, meshCache);
         }
     }
 }

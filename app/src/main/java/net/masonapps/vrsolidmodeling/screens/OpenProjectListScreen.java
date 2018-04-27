@@ -10,14 +10,13 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
-import com.badlogic.gdx.graphics.g3d.model.data.ModelData;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
 import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
+import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.ui.FileButtonBar;
 import net.masonapps.vrsolidmodeling.ui.ProjectList;
 
@@ -58,10 +57,10 @@ public class OpenProjectListScreen extends RoomScreen implements ProjectList.OnP
 
         final SpriteBatch spriteBatch = new SpriteBatch();
         manageDisposable(spriteBatch);
-        ui = new ProjectList<File>(list, this) {
+        ui = new ProjectList<File>(list, this, getSolidModelingGame().getMeshCache()) {
             @Override
-            protected ModelData loadProject(File file, BoundingBox bounds) throws IOException, JSONException {
-                return new ProjectFileIO.ModelDataLoader(file, bounds).loadModelData();
+            protected List<EditableNode> loadProject(File file) throws IOException, JSONException {
+                return ProjectFileIO.loadFile(file);
             }
 
             @Override

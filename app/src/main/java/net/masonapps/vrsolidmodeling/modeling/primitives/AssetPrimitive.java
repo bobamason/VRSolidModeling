@@ -1,5 +1,6 @@
 package net.masonapps.vrsolidmodeling.modeling.primitives;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.VertexAttribute;
@@ -29,24 +30,27 @@ import java.util.List;
 public class AssetPrimitive extends Primitive {
     protected final String name;
     protected final String asset;
+    @Nullable
+    protected final String hullAsset;
     protected BVH bvh;
     protected boolean isInitialized = false;
     private BVH.IntersectionInfo intersectionInfo;
     private MeshInfo meshInfo = new MeshInfo();
 
 
-    public AssetPrimitive(String name, String asset) {
+    public AssetPrimitive(String name, String asset, @Nullable String hullAsset) {
         this.name = name;
         this.asset = asset;
+        this.hullAsset = hullAsset;
         intersectionInfo = new BVH.IntersectionInfo();
     }
 
     @Override
-    public void initialize(InputStream inputStream) {
+    public void initialize(@NonNull InputStream meshStream, @Nullable InputStream hullStream) {
         try {
             List<Face> faceList = new ArrayList<>();
             List<Vertex> vertexList = new ArrayList<>();
-            PLYAssetLoader.parseFaceList(inputStream, false, vertexList, faceList);
+            PLYAssetLoader.parseFaceList(meshStream, false, vertexList, faceList);
 
             meshInfo.vertexAttributes = new VertexAttributes(VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0));
 
@@ -56,8 +60,17 @@ public class AssetPrimitive extends Primitive {
             meshInfo.indices = MeshUtils.toIndices(triangles);
             meshInfo.numVertices = vertexList.size();
             meshInfo.numIndices = triangles.length * 3;
-            
-            final BVH.Node root = new BVHBuilder().build(triangles);
+            vertexList.clear();
+            faceList.clear();
+
+            final BVH.Node root;
+            if (hullStream != null) {
+                PLYAssetLoader.parseFaceList(hullStream, false, vertexList, faceList);
+                final Triangle[] hullTriangles = MeshData.fromFaces(faceList);
+                root = new BVHBuilder().build(hullTriangles);
+            } else {
+                root = new BVHBuilder().build(triangles);
+            }
             bvh = new BVH(root);
             isInitialized = true;
         } catch (Exception e) {
@@ -82,6 +95,11 @@ public class AssetPrimitive extends Primitive {
 
     public String getAsset() {
         return asset;
+    }
+
+    @Nullable
+    public String getHullAsset() {
+        return hullAsset;
     }
 
     @Override

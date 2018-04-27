@@ -1,5 +1,6 @@
 package net.masonapps.vrsolidmodeling.modeling.primitives;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.math.Intersector;
@@ -19,12 +20,12 @@ public class Sphere extends AssetPrimitive {
     private float radius = 0.5f;
 
     public Sphere() {
-        super(Primitives.KEY_SPHERE, Assets.SHAPE_SPHERE);
+        super(Primitives.KEY_SPHERE, Assets.SHAPE_SPHERE, null);
     }
 
     @Override
-    public void initialize(InputStream inputStream) {
-        super.initialize(inputStream);
+    public void initialize(@NonNull InputStream meshStream, @Nullable InputStream hullStream) {
+        super.initialize(meshStream, null);
         final Vector3 dimens = new Vector3();
         bvh.root.bb.getDimensions(dimens);
         radius = Math.min(dimens.x, Math.min(dimens.y, dimens.z));

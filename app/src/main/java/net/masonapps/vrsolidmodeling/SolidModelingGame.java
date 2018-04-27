@@ -11,6 +11,7 @@ import android.util.Log;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g3d.Model;
@@ -55,7 +56,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
@@ -79,6 +82,7 @@ public class SolidModelingGame extends VrGame {
     private ModelInstance roomInstance = null;
     private boolean loadingFailed = false;
     private boolean appButtonDown = false;
+    private Map<String, Mesh> meshCache;
 
     @SuppressLint("SimpleDateFormat")
     public static String generateNewProjectName() {
@@ -89,6 +93,7 @@ public class SolidModelingGame extends VrGame {
     @Override
     public void create() {
         super.create();
+        meshCache = new HashMap<>();
         getVrCamera().near = 0.1f;
         getVrCamera().far = 50f;
         loadingScreen = new LoadingScreen(this);
@@ -144,12 +149,12 @@ public class SolidModelingGame extends VrGame {
                             if (primitive instanceof AssetPrimitive) {
                                 final android.content.res.AssetManager assets = GdxVr.app.getActivityWeakReference().get().getAssets();
                                 try {
-                                    primitive.initialize(assets.open(((AssetPrimitive) primitive).getAsset()));
+                                    final AssetPrimitive assetPrimitive = (AssetPrimitive) primitive;
+                                    final String hullAsset = assetPrimitive.getHullAsset();
+                                    primitive.initialize(assets.open(assetPrimitive.getAsset()), hullAsset == null ? null : assets.open(hullAsset));
                                 } catch (Exception e) {
                                     Logger.e("unable to load primitive " + primitive.getName(), e);
                                 }
-                            } else {
-                                primitive.initialize(null);
                             }
                         }))
                 .thenRun(() -> GdxVr.app.postRunnable(this::switchToStartupScreen));
@@ -500,6 +505,10 @@ public class SolidModelingGame extends VrGame {
     public void onExportComplete() {
         Logger.d("EXPORT COMPLETE!");
         // TODO: 4/18/2018 notify 
+    }
+
+    public Map<String, Mesh> getMeshCache() {
+        return meshCache;
     }
 
     public interface OnControllerBackPressedListener {

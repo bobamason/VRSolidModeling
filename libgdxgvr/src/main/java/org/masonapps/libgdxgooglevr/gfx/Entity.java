@@ -39,9 +39,7 @@ public class Entity extends Transformable implements Disposable {
                 node.extendBoundingBox(bounds);
             }
         }
-        bounds.getDimensions(dimensions);
-        bounds.getCenter(center);
-        radius = dimensions.len() / 2f;
+        updateDimensions();
     }
 
     public Entity(@Nullable ModelInstance modelInstance, BoundingBox bounds) {
@@ -49,6 +47,10 @@ public class Entity extends Transformable implements Disposable {
         if (modelInstance != null)
             setTransform(modelInstance.transform);
         this.bounds.set(bounds);
+        updateDimensions();
+    }
+
+    public void updateDimensions() {
         this.bounds.getDimensions(dimensions);
         this.bounds.getCenter(center);
         radius = dimensions.len() / 2f;

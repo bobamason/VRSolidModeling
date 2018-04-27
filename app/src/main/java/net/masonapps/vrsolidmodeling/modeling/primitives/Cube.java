@@ -1,5 +1,6 @@
 package net.masonapps.vrsolidmodeling.modeling.primitives;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.math.Intersector;
@@ -19,12 +20,12 @@ public class Cube extends AssetPrimitive {
     private final BoundingBox boundingBox = new BoundingBox();
 
     public Cube() {
-        super(Primitives.KEY_CUBE, Assets.SHAPE_CUBE);
+        super(Primitives.KEY_CUBE, Assets.SHAPE_CUBE, null);
     }
 
     @Override
-    public void initialize(InputStream inputStream) {
-        super.initialize(inputStream);
+    public void initialize(@NonNull InputStream meshStream, @Nullable InputStream hullStream) {
+        super.initialize(meshStream, null);
         boundingBox.set(createBounds());
     }
 

@@ -1,5 +1,6 @@
 package net.masonapps.vrsolidmodeling.modeling.primitives;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.math.Vector3;
@@ -21,7 +22,7 @@ public abstract class Primitive implements Disposable {
     public Primitive() {
     }
 
-    public abstract void initialize(InputStream inputStream);
+    public abstract void initialize(@NonNull InputStream meshStream, @Nullable InputStream hullStream);
 
     public abstract MeshInfo getMeshInfo();
 

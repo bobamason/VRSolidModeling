@@ -15,8 +15,8 @@ import com.badlogic.gdx.utils.Pools;
 import org.masonapps.libgdxgooglevr.gfx.AABBTree;
 import org.masonapps.libgdxgooglevr.gfx.Entity;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Bob Mason on 2/9/2018.
@@ -25,14 +25,15 @@ import java.util.List;
 public class ModelingProjectEntity extends Entity {
 
     private AABBTree aabbTree;
-    private HashMap<String, Mesh> meshCache = new HashMap<>();
+    private final Map<String, Mesh> meshCache;
 
-    public ModelingProjectEntity() {
-        this(null);
+    public ModelingProjectEntity(Map<String, Mesh> meshCache) {
+        this(null, meshCache);
     }
 
-    public ModelingProjectEntity(@Nullable List<EditableNode> nodes) {
+    public ModelingProjectEntity(@Nullable List<EditableNode> nodes, Map<String, Mesh> meshCache) {
         super(new ModelInstance(new Model()));
+        this.meshCache = meshCache;
         aabbTree = new AABBTree();
         if (nodes != null && !nodes.isEmpty()) {
             for (EditableNode node : nodes)
@@ -118,10 +119,6 @@ public class ModelingProjectEntity extends Entity {
             modelInstance.model.dispose();
             modelInstance = null;
         }
-    }
-
-    public HashMap<String, Mesh> getMeshCache() {
-        return meshCache;
     }
 
     public AABBTree getAABBTree() {

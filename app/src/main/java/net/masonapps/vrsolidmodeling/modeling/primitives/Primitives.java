@@ -25,9 +25,9 @@ public class Primitives {
     static {
         addToMap(new Cube());
         addToMap(new Sphere());
-        addToMap(new AssetPrimitive(KEY_CYLINDER, Assets.SHAPE_CYLINDER));
-        addToMap(new AssetPrimitive(KEY_CONE, Assets.SHAPE_CONE));
-        addToMap(new AssetPrimitive(KEY_TORUS, Assets.SHAPE_TORUS));
+        addToMap(new AssetPrimitive(KEY_CYLINDER, Assets.SHAPE_CYLINDER, null));
+        addToMap(new AssetPrimitive(KEY_CONE, Assets.SHAPE_CONE, null));
+        addToMap(new AssetPrimitive(KEY_TORUS, Assets.SHAPE_TORUS, null));
     }
 
     private static void addToMap(AssetPrimitive primitive) {

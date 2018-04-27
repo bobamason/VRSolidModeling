@@ -37,7 +37,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.masonapps.libgdxgooglevr.gfx.AABBTree;
 
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Bob Mason on 2/9/2018.
@@ -185,7 +185,7 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
                 FloatAttribute.createShininess(shininess));
     }
 
-    public void initMesh(HashMap<String, Mesh> meshes) {
+    public void initMesh(Map<String, Mesh> meshes) {
         if (parts.size > 0 || meshInfo == null) return;
         final Mesh mesh;
         if (primitiveKey.equals(KEY_MESH)) {

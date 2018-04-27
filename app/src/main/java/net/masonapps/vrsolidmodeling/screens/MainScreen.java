@@ -153,7 +153,7 @@ private InputMode currentInputMode = InputMode.VIEW;
         gridFloor = new Grid(2, skin.getRegion(Style.Drawables.grid), Color.LIGHT_GRAY);
 
         setBackgroundColor(Color.SKY);
-        modelingProject = new ModelingProjectEntity();
+        modelingProject = new ModelingProjectEntity(getSolidModelingGame().getMeshCache());
         undoRedoCache = new UndoRedoCache();
 
         final ModelBuilder modelBuilder = new ModelBuilder();
@@ -250,7 +250,7 @@ private InputMode currentInputMode = InputMode.VIEW;
             @Override
             public void onAddClicked(String key) {
                 final EditableNode previewNode = new EditableNode(key);
-                previewNode.initMesh(modelingProject.getMeshCache());
+                previewNode.initMesh(getSolidModelingGame().getMeshCache());
                 addNodeInput.setPreviewNode(previewNode);
                 addNodeInput.setVisible(true);
                 inputProcessorChooser.setActiveProcessor(addNodeInput);
@@ -269,7 +269,7 @@ private InputMode currentInputMode = InputMode.VIEW;
             public void onDuplicateClicked() {
                 if (selectedNode != null) {
                     final EditableNode previewNode = selectedNode.copy();
-                    previewNode.initMesh(modelingProject.getMeshCache());
+                    previewNode.initMesh(getSolidModelingGame().getMeshCache());
                     addNodeInput.setPreviewNode(previewNode);
                     addNodeInput.setVisible(true);
                     inputProcessorChooser.setActiveProcessor(addNodeInput);
