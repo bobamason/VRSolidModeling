@@ -51,8 +51,8 @@ public class Entity extends Transformable implements Disposable {
     }
 
     public void updateDimensions() {
-        this.bounds.getDimensions(dimensions);
-        this.bounds.getCenter(center);
+        bounds.getDimensions(dimensions);
+        bounds.getCenter(center);
         radius = dimensions.len() / 2f;
     }
 
@@ -159,7 +159,7 @@ public class Entity extends Transformable implements Disposable {
         validate();
         final Ray tmpRay = Pools.obtain(Ray.class).set(ray).mul(inverseTransform);
         tmpRay.direction.nor();
-        final boolean intersectRaySphere = Intersector.intersectRaySphere(tmpRay, center, radius * Math.min(scale.x, Math.min(scale.y, scale.z)), hitPoint);
+        final boolean intersectRaySphere = Intersector.intersectRaySphere(tmpRay, center, radius, hitPoint);
         if (intersectRaySphere && hitPoint != null) hitPoint.mul(transform);
 
         Pools.free(tmpRay);
