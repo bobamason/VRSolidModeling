@@ -1,13 +1,15 @@
 package net.masonapps.vrsolidmodeling.modeling.primitives;
 
-import net.masonapps.vrsolidmodeling.Assets;
+import android.support.annotation.Nullable;
+
 import net.masonapps.vrsolidmodeling.Style;
-import net.masonapps.vrsolidmodeling.bvh.BVH;
-import net.masonapps.vrsolidmodeling.mesh.MeshInfo;
+import net.masonapps.vrsolidmodeling.jcsg.Cube;
+import net.masonapps.vrsolidmodeling.jcsg.Cylinder;
+import net.masonapps.vrsolidmodeling.jcsg.Primitive;
+import net.masonapps.vrsolidmodeling.jcsg.Sphere;
 import net.masonapps.vrsolidmodeling.ui.PrimitiveSelector;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -18,44 +20,23 @@ public class Primitives {
     public static final String KEY_CUBE = "cube";
     public static final String KEY_SPHERE = "sphere";
     public static final String KEY_CYLINDER = "cylinder";
-    public static final String KEY_CONE = "cone";
-    public static final String KEY_TORUS = "torus";
-    private static final HashMap<String, Primitive> map = new HashMap<>();
-
-    static {
-        addToMap(new Cube());
-        addToMap(new Sphere());
-        addToMap(new AssetPrimitive(KEY_CYLINDER, Assets.SHAPE_CYLINDER, null));
-        addToMap(new AssetPrimitive(KEY_CONE, Assets.SHAPE_CONE, null));
-        addToMap(new AssetPrimitive(KEY_TORUS, Assets.SHAPE_TORUS, null));
-    }
-
-    private static void addToMap(AssetPrimitive primitive) {
-        map.put(primitive.getName(), primitive);
-    }
 
     public static List<PrimitiveSelector.PrimitiveItem> createListItems() {
         return Arrays.asList(
                 new PrimitiveSelector.PrimitiveItem(Primitives.KEY_CUBE, "Cube", Style.Drawables.ic_shape_cube),
                 new PrimitiveSelector.PrimitiveItem(Primitives.KEY_SPHERE, "Sphere", Style.Drawables.ic_shape_sphere),
-                new PrimitiveSelector.PrimitiveItem(Primitives.KEY_CYLINDER, "Cylinder", Style.Drawables.ic_shape_cylinder),
-                new PrimitiveSelector.PrimitiveItem(Primitives.KEY_CONE, "Cone", Style.Drawables.ic_shape_cone),
-                new PrimitiveSelector.PrimitiveItem(Primitives.KEY_TORUS, "Torus", Style.Drawables.ic_shape_torus));
+                new PrimitiveSelector.PrimitiveItem(Primitives.KEY_CYLINDER, "Cylinder", Style.Drawables.ic_shape_cylinder));
     }
 
-    public static HashMap<String, Primitive> getMap() {
-        return map;
-    }
-
-    public static Primitive getPrimitive(String key) {
-        return map.get(key);
-    }
-
-    public static MeshInfo getPrimitiveMeshInfo(String key) {
-        return map.get(key).getMeshInfo();
-    }
-
-    public static BVH getPrimitiveBVH(String key) {
-        return map.get(key).getBVH();
+    @Nullable
+    public static Primitive createPrimitive(String key) {
+        if (key.equals(KEY_CUBE))
+            return new Cube();
+        else if (key.equals(KEY_SPHERE))
+            return new Sphere();
+        else if (key.equals(KEY_CYLINDER))
+            return new Cylinder();
+        else
+            return null;
     }
 }

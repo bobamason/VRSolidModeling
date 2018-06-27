@@ -6,8 +6,6 @@ import android.support.annotation.Nullable;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
-import com.badlogic.gdx.graphics.VertexAttribute;
-import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
@@ -23,20 +21,18 @@ import com.badlogic.gdx.math.collision.Ray;
 import com.badlogic.gdx.utils.Pools;
 
 import net.masonapps.vrsolidmodeling.actions.TransformAction;
-import net.masonapps.vrsolidmodeling.bvh.BVH;
-import net.masonapps.vrsolidmodeling.bvh.BVHBuilder;
 import net.masonapps.vrsolidmodeling.io.Base64Utils;
 import net.masonapps.vrsolidmodeling.io.JsonUtils;
+import net.masonapps.vrsolidmodeling.jcsg.CSG;
+import net.masonapps.vrsolidmodeling.jcsg.Polygon;
 import net.masonapps.vrsolidmodeling.mesh.MeshInfo;
-import net.masonapps.vrsolidmodeling.mesh.Triangle;
-import net.masonapps.vrsolidmodeling.mesh.Vertex;
-import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.masonapps.libgdxgooglevr.gfx.AABBTree;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -49,10 +45,8 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     public static final String KEY_MESH = "mesh";
     public static final String KEY_GROUP = "group";
     public static final String KEY_CHILDREN = "children";
-    public static final String KEY_VERTEX_COUNT = "numVertices";
-    public static final String KEY_VERTICES = "vertices";
-    public static final String KEY_INDEX_COUNT = "numIndices";
-    public static final String KEY_INDICES = "indices";
+    public static final String KEY_POLYGON_COUNT = "numPolygons";
+    public static final String KEY_POLYGONS = "polygons";
     public static final String KEY_POSITION = "position";
     public static final String KEY_ROTATION = "rotation";
     public static final String KEY_SCALE = "scale";
@@ -64,7 +58,9 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     @Nullable
     protected final MeshInfo meshInfo;
     @Nullable
-    private final BVH bvh;
+    private final PolygonAABBTree bvh;
+    @Nullable
+    private final CSG csg;
     private final Ray transformedRay = new Ray();
     private final String primitiveKey;
     private final boolean isGroup;
@@ -73,7 +69,7 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     @Nullable
     private AABBTree.Node node = null;
     private BoundingBox aabb = new BoundingBox();
-    private BVH.IntersectionInfo bvhIntersection = new BVH.IntersectionInfo();
+    private AABBTree.IntersectionInfo bvhIntersection = new AABBTree.IntersectionInfo();
     private Color ambientColor = new Color(Color.GRAY);
     private Color diffuseColor = new Color(Color.GRAY);
     private Color specularColor = new Color(0x3f3f3fff);
@@ -82,22 +78,16 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     public EditableNode() {
         super();
         meshInfo = null;
+        csg = null;
         bvh = null;
         primitiveKey = KEY_GROUP;
         isGroup = true;
     }
 
-    public EditableNode(String primitiveKey) {
-        super();
-        this.meshInfo = Primitives.getPrimitiveMeshInfo(primitiveKey);
-        this.bvh = Primitives.getPrimitiveBVH(primitiveKey);
-        this.primitiveKey = primitiveKey;
-        isGroup = false;
-    }
-
-    public EditableNode(@NonNull MeshInfo meshInfo, @NonNull BVH bvh) {
+    public EditableNode(@NonNull MeshInfo meshInfo, @NonNull CSG csg, @NonNull PolygonAABBTree bvh) {
         super();
         this.meshInfo = meshInfo;
+        this.csg = csg;
         this.bvh = bvh;
         primitiveKey = KEY_MESH;
         isGroup = false;
@@ -115,14 +105,14 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
                     editableNode.addChild(fromJSONObject(children.getJSONObject(i)));
                 }
             }
-        } else if (primitiveKey.equals(KEY_MESH)) {
-            if (jsonObject.has(KEY_MESH)) {
-                final MeshInfo meshInfo = parseMesh(jsonObject.getJSONObject(KEY_MESH));
-                editableNode = new EditableNode(meshInfo, buildBVH(meshInfo));
-            } else
-                editableNode = new EditableNode(Primitives.KEY_CUBE);
         } else {
-            editableNode = new EditableNode(primitiveKey);
+            if (jsonObject.has(KEY_MESH)) {
+                final List<Polygon> polygons = parsePolygons(jsonObject.getJSONObject(KEY_MESH));
+                final CSG csg = CSG.fromPolygons(polygons);
+                editableNode = new EditableNode(MeshInfo.fromPolygons(polygons), csg, new PolygonAABBTree(csg.hull().getPolygons()));
+            } else {
+                return null;
+            }
         }
         final Color ambient = Color.valueOf(jsonObject.optString(KEY_AMBIENT, "000000FF"));
         final Color diffuse = Color.valueOf(jsonObject.optString(KEY_DIFFUSE, "7F7F7FFF"));
@@ -140,38 +130,9 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         return editableNode;
     }
 
-    private static BVH buildBVH(MeshInfo meshInfo) {
-        final Triangle[] triangles = new Triangle[meshInfo.numIndices / 3];
-        final int vertexSize = meshInfo.vertexAttributes.vertexSize / Float.BYTES;
-        for (int i = 0; i < meshInfo.numIndices; i += 3) {
-            int i0 = meshInfo.indices[i] * vertexSize;
-            int i1 = meshInfo.indices[i + 1] * vertexSize;
-            int i2 = meshInfo.indices[i + 2] * vertexSize;
-            final Vertex v0 = new Vertex();
-            v0.position.set(meshInfo.vertices[i0], meshInfo.vertices[i0 + 1], meshInfo.vertices[i0 + 2]);
-            final Vertex v1 = new Vertex();
-            v0.position.set(meshInfo.vertices[i1], meshInfo.vertices[i1 + 1], meshInfo.vertices[i1 + 2]);
-            final Vertex v2 = new Vertex();
-            v0.position.set(meshInfo.vertices[i2], meshInfo.vertices[i2 + 1], meshInfo.vertices[i2 + 2]);
-            triangles[i / 3] = new Triangle(v0, v1, v2);
-        }
-        return new BVH(new BVHBuilder().build(triangles));
-    }
-
-    private static MeshInfo parseMesh(JSONObject jsonObject) throws JSONException {
-        final MeshInfo mesh = new MeshInfo();
-        mesh.numVertices = jsonObject.getInt(KEY_VERTEX_COUNT);
-        mesh.numIndices = jsonObject.getInt(KEY_INDEX_COUNT);
-        mesh.vertexAttributes = new VertexAttributes(VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0));
-
-        final String vertexString = jsonObject.getString(KEY_VERTICES);
-        mesh.vertices = new float[mesh.vertexAttributes.vertexSize / Float.BYTES * mesh.numVertices];
-        Base64Utils.decodeFloatArray(vertexString, mesh.vertices);
-
-        final String indexString = jsonObject.getString(KEY_INDICES);
-        mesh.indices = new short[mesh.numIndices];
-        Base64Utils.decodeShortArray(indexString, mesh.indices);
-        return mesh;
+    public static List<Polygon> parsePolygons(JSONObject jsonObject) throws JSONException {
+        final String polygonsString = jsonObject.getString(KEY_POLYGONS);
+        return Base64Utils.decodePolygons(polygonsString);
     }
 
     public boolean isGroup() {
@@ -235,18 +196,13 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     public boolean rayTest(Ray ray, AABBTree.IntersectionInfo intersection) {
         validate();
         boolean rayTest;
-        intersection.normal.set(0, 0, 0);
         transformedRay.set(ray).mul(inverseTransform);
         if (isGroup || bvh == null)
             rayTest = Intersector.intersectRayBounds(transformedRay, bounds, intersection.hitPoint);
         else
-            rayTest = bvh.closestIntersection(transformedRay, bvhIntersection);
+            rayTest = bvh.rayTest(transformedRay, bvhIntersection);
         if (rayTest) {
             intersection.hitPoint.set(bvhIntersection.hitPoint).mul(getTransform());
-            if (bvhIntersection.triangle != null)
-                intersection.normal.set(bvhIntersection.triangle.plane.normal).mul(getRotation());
-            else
-                intersection.normal.set(Vector3.Y);
             intersection.object = this;
             intersection.t = ray.origin.dst(intersection.hitPoint);
         }
@@ -286,12 +242,10 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     public EditableNode copy() {
         validate();
         final EditableNode node;
-        if (isGroup)
-            node = new EditableNode();
-        else if (primitiveKey.equals(KEY_MESH) && meshInfo != null && bvh != null)
-            node = new EditableNode(meshInfo, bvh);
+        if (primitiveKey.equals(KEY_MESH) && meshInfo != null && csg != null && bvh != null)
+            node = new EditableNode(meshInfo, csg, bvh);
         else
-            node = new EditableNode(primitiveKey);
+            node = new EditableNode();
         node.translation.set(translation);
         node.rotation.set(rotation);
         node.scale.set(scale);
@@ -383,8 +337,8 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
                     jsonArray.put(((EditableNode) child).toJSONObject());
             }
             jsonObject.put(KEY_CHILDREN, jsonArray);
-        } else if (primitiveKey.equals(KEY_MESH)) {
-            jsonObject.put(KEY_MESH, meshToJsonObject(parts.get(0).meshPart.mesh));
+        } else if (primitiveKey.equals(KEY_MESH) && csg != null) {
+            jsonObject.put(KEY_MESH, polygonsToJsonObject(csg.getPolygons()));
         }
         jsonObject.put(KEY_AMBIENT, getAmbientColor().toString());
         jsonObject.put(KEY_DIFFUSE, getDiffuseColor().toString());
@@ -396,18 +350,10 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         return jsonObject;
     }
 
-    private JSONObject meshToJsonObject(Mesh mesh) throws JSONException {
+    private JSONObject polygonsToJsonObject(List<Polygon> polygons) throws JSONException {
         final JSONObject jsonObject = new JSONObject();
-        final int numVertices = mesh.getNumVertices();
-        final int numIndices = mesh.getNumIndices();
-        final float[] vertices = new float[mesh.getVertexSize() / Float.BYTES * numVertices];
-        mesh.getVertices(vertices);
-        final short[] indices = new short[numIndices];
-        mesh.getIndices(indices);
-        jsonObject.put(KEY_VERTEX_COUNT, numVertices);
-        jsonObject.put(KEY_INDEX_COUNT, numIndices);
-        jsonObject.put(KEY_VERTICES, Base64Utils.encode(vertices));
-        jsonObject.put(KEY_INDICES, Base64Utils.encode(indices));
+        jsonObject.put(KEY_POLYGON_COUNT, polygons.size());
+        jsonObject.put(KEY_POLYGONS, Base64Utils.encode(polygons));
         return jsonObject;
     }
 

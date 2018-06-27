@@ -46,11 +46,17 @@ import net.masonapps.vrsolidmodeling.actions.RemoveAction;
 import net.masonapps.vrsolidmodeling.actions.TransformAction;
 import net.masonapps.vrsolidmodeling.actions.UndoRedoCache;
 import net.masonapps.vrsolidmodeling.environment.Grid;
+import net.masonapps.vrsolidmodeling.jcsg.CSG;
+import net.masonapps.vrsolidmodeling.jcsg.Polygon;
+import net.masonapps.vrsolidmodeling.jcsg.Primitive;
 import net.masonapps.vrsolidmodeling.math.Animator;
 import net.masonapps.vrsolidmodeling.math.RotationUtil;
 import net.masonapps.vrsolidmodeling.math.Side;
+import net.masonapps.vrsolidmodeling.mesh.MeshInfo;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProjectEntity;
+import net.masonapps.vrsolidmodeling.modeling.PolygonAABBTree;
+import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.modeling.transform.RotateWidget;
 import net.masonapps.vrsolidmodeling.modeling.transform.ScaleWidget;
 import net.masonapps.vrsolidmodeling.modeling.transform.SimpleGrabControls;
@@ -249,7 +255,14 @@ private InputMode currentInputMode = InputMode.VIEW;
 
             @Override
             public void onAddClicked(String key) {
-                final EditableNode previewNode = new EditableNode(key);
+                final Primitive primitive = Primitives.createPrimitive(key);
+                if (primitive == null) {
+                    Logger.e("cannot create unknown primitive " + key);
+                    return;
+                }
+                final List<Polygon> polygons = primitive.toPolygons();
+                final CSG csg = CSG.fromPolygons(polygons);
+                final EditableNode previewNode = new EditableNode(MeshInfo.fromPolygons(polygons), csg, new PolygonAABBTree(csg.hull().getPolygons()));
                 previewNode.initMesh(getSolidModelingGame().getMeshCache());
                 addNodeInput.setPreviewNode(previewNode);
                 addNodeInput.setVisible(true);

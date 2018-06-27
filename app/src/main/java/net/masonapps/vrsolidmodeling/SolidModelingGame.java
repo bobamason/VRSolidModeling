@@ -35,8 +35,6 @@ import com.google.vr.sdk.controller.Controller;
 import net.masonapps.vrsolidmodeling.io.ProjectFileIO;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProjectEntity;
-import net.masonapps.vrsolidmodeling.modeling.primitives.AssetPrimitive;
-import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.screens.LoadingScreen;
 import net.masonapps.vrsolidmodeling.screens.MainScreen;
 import net.masonapps.vrsolidmodeling.screens.OpenProjectListScreen;
@@ -135,29 +133,7 @@ public class SolidModelingGame extends VrGame {
             isAtlasLoaded = true;
 
             setScreen(progressLoadingScreen);
-            setLoadingScreenMessage("initializing shapes");
-
-            initShapes();
         }
-    }
-
-    private void initShapes() {
-
-        CompletableFuture.runAsync(() ->
-                Primitives.getMap().values()
-                        .forEach(primitive -> {
-                            if (primitive instanceof AssetPrimitive) {
-                                final android.content.res.AssetManager assets = GdxVr.app.getActivityWeakReference().get().getAssets();
-                                try {
-                                    final AssetPrimitive assetPrimitive = (AssetPrimitive) primitive;
-                                    final String hullAsset = assetPrimitive.getHullAsset();
-                                    primitive.initialize(assets.open(assetPrimitive.getAsset()), hullAsset == null ? null : assets.open(hullAsset));
-                                } catch (Exception e) {
-                                    Logger.e("unable to load primitive " + primitive.getName(), e);
-                                }
-                            }
-                        }))
-                .thenRun(() -> GdxVr.app.postRunnable(this::switchToStartupScreen));
     }
 
     @Override

@@ -5,7 +5,6 @@ import android.support.annotation.Nullable;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.VertexAttribute;
-import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g3d.model.data.ModelData;
 import com.badlogic.gdx.graphics.g3d.model.data.ModelMaterial;
 import com.badlogic.gdx.graphics.g3d.model.data.ModelMesh;
@@ -19,7 +18,6 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 
 import net.masonapps.vrsolidmodeling.mesh.MeshInfo;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
-import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -98,22 +96,6 @@ public class ProjectFileIO {
             this.outBounds = outBounds;
         }
 
-        private static MeshInfo parseMesh(JSONObject jsonObject) throws JSONException {
-            final MeshInfo mesh = new MeshInfo();
-            mesh.numVertices = jsonObject.getInt(EditableNode.KEY_VERTEX_COUNT);
-            mesh.numIndices = jsonObject.getInt(EditableNode.KEY_INDEX_COUNT);
-            mesh.vertexAttributes = new VertexAttributes(VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0));
-
-            final String vertexString = jsonObject.getString(EditableNode.KEY_VERTICES);
-            mesh.vertices = new float[mesh.vertexAttributes.vertexSize / Float.BYTES * mesh.numVertices];
-            Base64Utils.decodeFloatArray(vertexString, mesh.vertices);
-
-            final String indexString = jsonObject.getString(EditableNode.KEY_INDICES);
-            mesh.indices = new short[mesh.numIndices];
-            Base64Utils.decodeShortArray(indexString, mesh.indices);
-            return mesh;
-        }
-
         public ModelData loadModelData() throws IOException, JSONException {
             BufferedReader reader = null;
             final ModelData data = new ModelData();
@@ -179,16 +161,15 @@ public class ProjectFileIO {
             node.parts = new ModelNodePart[]{pm};
             data.nodes.add(node);
 
-            final MeshInfo meshInfo;
+            MeshInfo meshInfo = null;
             final String primitiveKey = jsonObject.optString(EditableNode.KEY_PRIMITIVE, EditableNode.KEY_MESH);
             if (primitiveKey.equals(EditableNode.KEY_MESH)) {
                 if (jsonObject.has(EditableNode.KEY_MESH)) {
-                    meshInfo = parseMesh(jsonObject.getJSONObject(EditableNode.KEY_MESH));
-                } else
-                    meshInfo = Primitives.getPrimitiveMeshInfo(Primitives.KEY_CUBE);
-            } else {
-                meshInfo = Primitives.getPrimitiveMeshInfo(primitiveKey);
+                    meshInfo = MeshInfo.fromPolygons(EditableNode.parsePolygons(jsonObject.getJSONObject(EditableNode.KEY_MESH)));
+                }
             }
+
+            if (meshInfo == null) return;
 
             final float[] vertices = new float[meshInfo.vertices.length];
             System.arraycopy(meshInfo.vertices, 0, vertices, 0, meshInfo.vertices.length);

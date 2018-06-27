@@ -105,7 +105,6 @@ public class ModelingProjectEntity extends Entity {
         final boolean rayTest = aabbTree.rayTest(tmpRay, intersection);
         if (rayTest) {
             intersection.hitPoint.mul(transform);
-            intersection.normal.rot(transform);
         }
         Pools.free(tmpRay);
         Pools.free(tmpMat);
