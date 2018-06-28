@@ -69,6 +69,7 @@ import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
 import net.masonapps.vrsolidmodeling.modeling.ui.MultiNodeSelector;
 import net.masonapps.vrsolidmodeling.modeling.ui.SingleNodeSelector;
 import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
+import net.masonapps.vrsolidmodeling.ui.BackButtonListener;
 import net.masonapps.vrsolidmodeling.ui.ExportDialog;
 import net.masonapps.vrsolidmodeling.ui.GroupCompleteDialog;
 
@@ -80,6 +81,7 @@ import org.masonapps.libgdxgooglevr.gfx.World;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 import org.masonapps.libgdxgooglevr.input.DaydreamTouchEvent;
 import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
+import org.masonapps.libgdxgooglevr.ui.VrInputMultiplexer;
 import org.masonapps.libgdxgooglevr.utils.Logger;
 
 import java.util.ArrayList;
@@ -110,6 +112,7 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     private final GroupCompleteDialog groupDialog;
     private final Entity gradientBackground;
     private final ExportDialog exportDialog;
+    private final VrInputMultiplexer inputMultiplexer;
     private TransformWidget3D transformUI;
     private boolean isTouchPadClicked = false;
     private Quaternion rotation = new Quaternion();
@@ -403,7 +406,6 @@ private InputMode currentInputMode = InputMode.VIEW;
         mainInterface.addProcessor(exportDialog);
         
         inputProcessorChooser = new InputProcessorChooser();
-        mainInterface.addProcessor(inputProcessorChooser);
 
         gridEntity = new Entity(new ModelInstance(createGrid(modelBuilder, skin, 3f)));
         gridEntity.setLightingEnabled(false);
@@ -419,6 +421,8 @@ private InputMode currentInputMode = InputMode.VIEW;
 
         singleNodeSelector = new SingleNodeSelector(modelingProject, this::setSelectedNode);
         inputProcessorChooser.setActiveProcessor(singleNodeSelector);
+
+        inputMultiplexer = new VrInputMultiplexer(inputProcessorChooser, mainInterface);
     }
 
     private static Model createGrid(ModelBuilder builder, Skin skin, float radius) {
@@ -551,7 +555,7 @@ private InputMode currentInputMode = InputMode.VIEW;
     @Override
     public void show() {
         super.show();
-        GdxVr.input.setInputProcessor(mainInterface);
+        GdxVr.input.setInputProcessor(inputMultiplexer);
         GdxVr.input.addDaydreamControllerListener(inputProcessorChooser);
         getVrCamera().position.set(0, 0f, 0);
         getVrCamera().lookAt(0, 0, -1);
@@ -673,15 +677,29 @@ private InputMode currentInputMode = InputMode.VIEW;
     public void onControllerBackButtonClicked() {
         if (!mainInterface.onControllerBackButtonClicked()) {
             final VrInputProcessor activeProcessor = inputProcessorChooser.getActiveProcessor();
-            if (activeProcessor instanceof AddNodeInput) {
-                ((AddNodeInput) activeProcessor).setPreviewNode(null);
-            }
-            if (!(activeProcessor instanceof SingleNodeSelector)) {
-                inputProcessorChooser.setActiveProcessor(singleNodeSelector);
+            if (activeProcessor instanceof BackButtonListener) {
+                if (((BackButtonListener) activeProcessor).onBackButtonClicked())
+                    return;
+                if (!(activeProcessor instanceof SingleNodeSelector)) {
+                    inputProcessorChooser.setActiveProcessor(singleNodeSelector);
+                } else {
+                    toggleViewControls();
+                }
             } else {
-                getSolidModelingGame().closeModelingScreen();
-                getSolidModelingGame().switchToStartupScreen();
+                toggleViewControls();
             }
+        }
+    }
+
+    private void toggleViewControls() {
+        if (mainInterface.isVisible()) {
+            mainInterface.setVisible(false);
+            inputProcessorChooser.disable();
+            getSolidModelingGame().setCursorVisible(false);
+        } else {
+            mainInterface.setVisible(true);
+            inputProcessorChooser.enable();
+            getSolidModelingGame().setCursorVisible(true);
         }
     }
 

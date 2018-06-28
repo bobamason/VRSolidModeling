@@ -7,6 +7,7 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 
 import net.masonapps.vrsolidmodeling.modeling.ModelingProjectEntity;
+import net.masonapps.vrsolidmodeling.ui.BackButtonListener;
 
 import org.masonapps.libgdxgooglevr.gfx.AABBTree;
 import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
@@ -15,7 +16,7 @@ import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
  * Created by Bob Mason on 3/19/2018.
  */
 
-public abstract class ModelingInputProcessor implements VrInputProcessor {
+public abstract class ModelingInputProcessor implements VrInputProcessor, BackButtonListener {
 
     protected final ModelingProjectEntity modelingProject;
     protected final AABBTree.IntersectionInfo intersectionInfo = new AABBTree.IntersectionInfo();
@@ -75,5 +76,10 @@ public abstract class ModelingInputProcessor implements VrInputProcessor {
 
     public void setVisible(boolean visible) {
         this.visible = visible;
+    }
+
+    @Override
+    public boolean onBackButtonClicked() {
+        return false;
     }
 }
