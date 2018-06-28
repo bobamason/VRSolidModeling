@@ -775,8 +775,10 @@ private InputMode currentInputMode = InputMode.VIEW;
                 currentState = STATE_NONE;
                 break;
             case VIEW:
-                lastRotation.set(GdxVr.input.getControllerOrientation());
-                currentState = STATE_VIEW_TRANSFORM;
+                // TODO: 6/28/2018 handle view rotation 
+//                lastRotation.set(GdxVr.input.getControllerOrientation());
+//                currentState = STATE_VIEW_TRANSFORM;
+                currentState = STATE_NONE;
                 break;
             default:
                 break;

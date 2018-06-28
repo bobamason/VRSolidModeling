@@ -20,6 +20,7 @@ import net.masonapps.vrsolidmodeling.modeling.ModelingProjectEntity;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 import org.masonapps.libgdxgooglevr.input.DaydreamControllerInputListener;
 import org.masonapps.libgdxgooglevr.input.DaydreamTouchEvent;
+import org.masonapps.libgdxgooglevr.utils.Logger;
 
 /**
  * Created by Bob Mason on 3/19/2018.
@@ -50,16 +51,19 @@ public class AddNodeInput extends ModelingInputProcessor implements DaydreamCont
     public boolean performRayTest(Ray ray) {
         final boolean rayTest = super.performRayTest(ray);
         if (previewNode != null) {
-//            Logger.d("hit = " + String.valueOf(rayTest) + " normal = " + intersectionInfo.normal);
             if (rayTest) {
                 previewNode.getPosition().set(intersectionInfo.hitPoint);
                 previewNode.getRotation().idt();
                 previewNode.invalidate();
             } else {
                 previewNode.getPosition().set(ray.direction).scl(distance).add(ray.origin);
+                intersectionInfo.hitPoint.set(previewNode.getPosition());
                 previewNode.getRotation().idt();
                 previewNode.invalidate();
             }
+            Logger.d("hit = " + String.valueOf(rayTest) + ", hitPoint = " + intersectionInfo.hitPoint);
+            isCursorOver = true;
+            return true;
         }
         return rayTest;
     }

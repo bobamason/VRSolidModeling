@@ -3,11 +3,13 @@ package net.masonapps.vrsolidmodeling.screens;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g3d.Environment;
 import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 
 import net.masonapps.vrsolidmodeling.SolidModelingGame;
+import net.masonapps.vrsolidmodeling.Style;
+import net.masonapps.vrsolidmodeling.environment.Grid;
 
+import org.masonapps.libgdxgooglevr.gfx.Entity;
 import org.masonapps.libgdxgooglevr.gfx.VrGame;
 import org.masonapps.libgdxgooglevr.gfx.VrWorldScreen;
 import org.masonapps.libgdxgooglevr.gfx.World;
@@ -17,6 +19,7 @@ import org.masonapps.libgdxgooglevr.gfx.World;
  */
 public abstract class RoomScreen extends VrWorldScreen implements SolidModelingGame.OnControllerBackPressedListener {
     private final SolidModelingGame solidModelingGame;
+    private final Grid gridFloor;
 
     public RoomScreen(VrGame game) {
         super(game);
@@ -24,6 +27,10 @@ public abstract class RoomScreen extends VrWorldScreen implements SolidModelingG
             throw new IllegalArgumentException("game must be SculptingVrGame");
         solidModelingGame = (SolidModelingGame) game;
         setBackgroundColor(Color.SKY);
+        final Entity gradientBackground = Style.newGradientBackground(getVrCamera().far - 1f);
+        getWorld().add(gradientBackground);
+        gradientBackground.invalidate();
+        gridFloor = new Grid(2, solidModelingGame.getSkin().getRegion(Style.Drawables.grid), Color.LIGHT_GRAY);
     }
 
     @Override
@@ -46,10 +53,11 @@ public abstract class RoomScreen extends VrWorldScreen implements SolidModelingG
         return new World() {
             @Override
             public void render(ModelBatch batch, Environment environment) {
-                final ModelInstance roomInstance = solidModelingGame.getRoomInstance();
-                if (roomInstance != null)
-                    batch.render(roomInstance);
+//                final ModelInstance roomInstance = solidModelingGame.getRoomInstance();
+////                if (roomInstance != null)
+////                    batch.render(roomInstance);
                 super.render(batch, environment);
+                gridFloor.render(batch);
             }
         };
     }

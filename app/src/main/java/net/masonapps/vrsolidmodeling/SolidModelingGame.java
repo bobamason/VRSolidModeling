@@ -132,7 +132,8 @@ public class SolidModelingGame extends VrGame {
             progressLoadingScreen = new ProgressLoadingScreen(this, getSkin());
             isAtlasLoaded = true;
 
-            setScreen(progressLoadingScreen);
+//            setScreen(progressLoadingScreen);
+            switchToStartupScreen();
         }
     }
 

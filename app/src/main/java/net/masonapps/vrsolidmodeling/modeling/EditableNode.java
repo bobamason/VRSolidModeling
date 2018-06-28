@@ -4,7 +4,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
@@ -12,6 +11,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
 import com.badlogic.gdx.graphics.g3d.model.MeshPart;
 import com.badlogic.gdx.graphics.g3d.model.Node;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
+import com.badlogic.gdx.graphics.g3d.utils.MeshBuilder;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Quaternion;
@@ -69,11 +69,11 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     @Nullable
     private AABBTree.Node node = null;
     private BoundingBox aabb = new BoundingBox();
-    private AABBTree.IntersectionInfo bvhIntersection = new AABBTree.IntersectionInfo();
     private Color ambientColor = new Color(Color.GRAY);
     private Color diffuseColor = new Color(Color.GRAY);
     private Color specularColor = new Color(0x3f3f3fff);
     private float shininess = 8f;
+    private Vector3 origin = new Vector3();
 
     public EditableNode() {
         super();
@@ -94,7 +94,7 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     }
 
     public static EditableNode fromJSONObject(JSONObject jsonObject) throws JSONException {
-        final String primitiveKey = jsonObject.optString(KEY_PRIMITIVE, KEY_GROUP);
+        final String primitiveKey = jsonObject.optString(KEY_PRIMITIVE, KEY_MESH);
         final EditableNode editableNode;
 
         if (primitiveKey.equals(KEY_GROUP)) {
@@ -147,32 +147,14 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
     }
 
     public void initMesh(Map<String, Mesh> meshes) {
-        if (parts.size > 0 || meshInfo == null) return;
-        final Mesh mesh;
-        if (primitiveKey.equals(KEY_MESH)) {
-            mesh = meshInfo.createMesh();
-        } else {
-            if (meshes.containsKey(primitiveKey)) {
-                mesh = meshes.get(primitiveKey);
-            } else {
-                mesh = meshInfo.createMesh();
-                meshes.put(primitiveKey, mesh);
-            }
-        }
-        final MeshPart meshPart = new MeshPart();
-        meshPart.id = primitiveKey;
-        meshPart.primitiveType = GL20.GL_TRIANGLES;
-        meshPart.mesh = mesh;
-        meshPart.offset = 0;
-        meshPart.size = mesh.getNumIndices();
-        parts.add(new NodePart(meshPart, createDefaultMaterial()));
-        updateBounds();
-        invalidate();
-    }
+        // TODO: 6/28/2018 recycle and cache meshes 
+        if (isGroup || parts.size > 0 || meshInfo == null) return;
 
-    public void updateBounds() {
-        bounds.inf();
-        extendBoundingBox(bounds, false);
+        final MeshPart meshPart = meshInfo.createMeshPart(new MeshBuilder());
+        parts.add(new NodePart(meshPart, createDefaultMaterial()));
+        origin.set(meshPart.center);
+        bounds.set(bounds.min.set(meshPart.halfExtents).scl(-1).add(meshPart.center), bounds.max.set(meshPart.halfExtents).add(meshPart.center));
+        invalidate();
     }
 
     @Nullable
@@ -197,12 +179,12 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         validate();
         boolean rayTest;
         transformedRay.set(ray).mul(inverseTransform);
-        if (isGroup || bvh == null)
+//        if (isGroup || bvh == null)
             rayTest = Intersector.intersectRayBounds(transformedRay, bounds, intersection.hitPoint);
-        else
-            rayTest = bvh.rayTest(transformedRay, bvhIntersection);
+//        else
+//            rayTest = bvh.rayTest(transformedRay, intersection);
         if (rayTest) {
-            intersection.hitPoint.set(bvhIntersection.hitPoint).mul(getTransform());
+            intersection.hitPoint.set(intersection.hitPoint).mul(getTransform());
             intersection.object = this;
             intersection.t = ray.origin.dst(intersection.hitPoint);
         }
@@ -236,6 +218,16 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
         }
         aabb.set(bounds).mul(localTransform);
         updated = true;
+    }
+
+    @Override
+    public Matrix4 calculateLocalTransform() {
+        localTransform.idt()
+                .translate(translation)
+                .rotate(rotation)
+                .translate(-origin.x, -origin.y, -origin.z)
+                .scale(scale.x, scale.y, scale.z);
+        return localTransform;
     }
 
     @Override
