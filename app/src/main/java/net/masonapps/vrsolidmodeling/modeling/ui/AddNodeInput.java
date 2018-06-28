@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.math.Quaternion;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.google.vr.sdk.controller.Controller;
 
@@ -61,7 +62,6 @@ public class AddNodeInput extends ModelingInputProcessor implements DaydreamCont
                 previewNode.getRotation().idt();
                 previewNode.invalidate();
             }
-            Logger.d("hit = " + String.valueOf(rayTest) + ", hitPoint = " + intersectionInfo.hitPoint);
             isCursorOver = true;
             return true;
         }
@@ -129,11 +129,14 @@ public class AddNodeInput extends ModelingInputProcessor implements DaydreamCont
                 case DaydreamButtonEvent.ACTION_DOWN:
                     if (previewNode != null) {
                         final EditableNode copy = previewNode.copy();
+
                         previewNode.getPosition().mul(modelingProject.getInverseTransform());
                         previewNode.getRotation().mul(new Quaternion(modelingProject.getRotation()).conjugate());
                         previewNode.invalidate();
                         modelingProject.add(copy);
                         listener.nodeAdded(copy);
+                        final Vector3 cpy = previewNode.getPosition().cpy().mul(modelingProject.getTransform());
+                        Logger.d("equal =  " + getHitPoint3D().epsilonEquals(cpy, 1e-3f) + ", hitPoint = " + getHitPoint3D() + ", position = " + cpy);
                     }
                     break;
             }
@@ -148,6 +151,11 @@ public class AddNodeInput extends ModelingInputProcessor implements DaydreamCont
     @Override
     public void onControllerConnectionStateChange(int connectionState) {
 
+    }
+
+    @Override
+    public boolean onBackButtonClicked() {
+        return false;
     }
 
     public interface OnNodeAddedListener {

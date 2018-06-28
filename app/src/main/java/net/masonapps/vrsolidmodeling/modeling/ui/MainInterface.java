@@ -16,6 +16,7 @@ import net.masonapps.vrsolidmodeling.R;
 import net.masonapps.vrsolidmodeling.Style;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
+import net.masonapps.vrsolidmodeling.ui.BackButtonListener;
 import net.masonapps.vrsolidmodeling.ui.ColorPickerSimple;
 import net.masonapps.vrsolidmodeling.ui.ConfirmDialog;
 import net.masonapps.vrsolidmodeling.ui.PrimitiveSelector;
@@ -31,7 +32,7 @@ import java.util.function.Consumer;
  * Created by Bob Mason on 12/20/2017.
  */
 
-public class MainInterface extends CylindricalWindowUiContainer {
+public class MainInterface extends CylindricalWindowUiContainer implements BackButtonListener {
 
     public static final String WINDOW_MAIN = "winMain";
     public static final String WINDOW_VIEW_CONTROLS = "winViewControls";
@@ -265,14 +266,6 @@ public class MainInterface extends CylindricalWindowUiContainer {
         editor.putString(WINDOW_VIEW_CONTROLS, viewControls.getPosition().toString());
     }
 
-    public boolean onControllerBackButtonClicked() {
-        if (confirmDialog.isVisible()) {
-            confirmDialog.dismiss();
-            return true;
-        }
-        return false;
-    }
-
     public ViewControls getViewControls() {
         return viewControls;
     }
@@ -283,6 +276,15 @@ public class MainInterface extends CylindricalWindowUiContainer {
             editModeChanged(EditModeTable.EditMode.NONE);
         else
             editModeChanged(currentEditMode);
+    }
+
+    @Override
+    public boolean onBackButtonClicked() {
+        if (confirmDialog.isVisible()) {
+            confirmDialog.dismiss();
+            return true;
+        }
+        return false;
     }
 
     public interface UiEventListener {

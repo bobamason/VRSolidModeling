@@ -124,8 +124,8 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     private Vector3 center = new Vector3();
     private float projectScale = 1f;
     private String projectName;
-//    private ViewAction viewAction = ACTION_NONE;
-private InputMode currentInputMode = InputMode.VIEW;
+    //    private ViewAction viewAction = ACTION_NONE;
+    private InputMode currentInputMode = InputMode.VIEW;
     private State currentState = STATE_NONE;
     @Nullable
     private EditableNode focusedNode = null;
@@ -404,7 +404,7 @@ private InputMode currentInputMode = InputMode.VIEW;
 
         exportDialog.setVisible(false);
         mainInterface.addProcessor(exportDialog);
-        
+
         inputProcessorChooser = new InputProcessorChooser();
 
         gridEntity = new Entity(new ModelInstance(createGrid(modelBuilder, skin, 3f)));
@@ -574,10 +574,10 @@ private InputMode currentInputMode = InputMode.VIEW;
     }
 
     private void updateInterfacePosition() {
-            gradientBackground.setPosition(getVrCamera().position);
-            mainInterface.setTransformable(true);
-            mainInterface.setPosition(getVrCamera().position);
-            mainInterface.lookAt(tmp.set(getVrCamera().direction).scl(-1).add(getVrCamera().position), getVrCamera().up);
+        gradientBackground.setPosition(getVrCamera().position);
+        mainInterface.setTransformable(true);
+        mainInterface.setPosition(getVrCamera().position);
+        mainInterface.lookAt(tmp.set(getVrCamera().direction).scl(-1).add(getVrCamera().position), getVrCamera().up);
     }
 
     @Override
@@ -675,19 +675,17 @@ private InputMode currentInputMode = InputMode.VIEW;
 
     @Override
     public void onControllerBackButtonClicked() {
-        if (!mainInterface.onControllerBackButtonClicked()) {
-            final VrInputProcessor activeProcessor = inputProcessorChooser.getActiveProcessor();
-            if (activeProcessor instanceof BackButtonListener) {
-                if (((BackButtonListener) activeProcessor).onBackButtonClicked())
-                    return;
-                if (!(activeProcessor instanceof SingleNodeSelector)) {
-                    inputProcessorChooser.setActiveProcessor(singleNodeSelector);
-                } else {
-                    toggleViewControls();
-                }
-            } else {
-                toggleViewControls();
-            }
+        if (mainInterface.onBackButtonClicked())
+            return;
+        final VrInputProcessor activeProcessor = inputProcessorChooser.getActiveProcessor();
+        if (activeProcessor instanceof BackButtonListener) {
+            if (((BackButtonListener) activeProcessor).onBackButtonClicked())
+                return;
+        }
+        if (!(activeProcessor instanceof SingleNodeSelector)) {
+            inputProcessorChooser.setActiveProcessor(singleNodeSelector);
+        } else {
+            toggleViewControls();
         }
     }
 

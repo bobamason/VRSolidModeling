@@ -45,6 +45,11 @@ public class SingleNodeSelector extends ModelingInputProcessor {
         return selectedNode != null;
     }
 
+    @Override
+    public boolean onBackButtonClicked() {
+        return false;
+    }
+
     public interface OnNodeSelectedListener {
         void nodeSelected(EditableNode node);
     }

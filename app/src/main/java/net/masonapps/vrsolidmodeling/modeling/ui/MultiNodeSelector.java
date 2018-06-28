@@ -49,6 +49,12 @@ public class MultiNodeSelector extends ModelingInputProcessor {
         return !selectedNodes.isEmpty();
     }
 
+    @Override
+    public boolean onBackButtonClicked() {
+        // FIXME: 6/28/2018 notify listener that selection is complete
+        return false;
+    }
+
     public interface OnSelectionChangedListener {
         void selectionChanged(List<EditableNode> nodes);
     }
