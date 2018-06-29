@@ -1,7 +1,12 @@
 package net.masonapps.vrsolidmodeling.modeling.ui;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProjectEntity;
+import net.masonapps.vrsolidmodeling.ui.ShapeRenderableInput;
+import net.masonapps.vrsolidmodeling.ui.ShapeRendererUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +15,7 @@ import java.util.List;
  * Created by Bob Mason on 3/19/2018.
  */
 
-public class MultiNodeSelector extends ModelingInputProcessor {
+public class MultiNodeSelector extends ModelingInputProcessor implements ShapeRenderableInput {
 
     private final OnSelectionChangedListener listener;
     private List<EditableNode> selectedNodes = new ArrayList<>();
@@ -29,6 +34,7 @@ public class MultiNodeSelector extends ModelingInputProcessor {
             else
                 selectedNodes.add(node);
             listener.selectionChanged(selectedNodes);
+
             return true;
         }
         return false;
@@ -53,6 +59,18 @@ public class MultiNodeSelector extends ModelingInputProcessor {
     public boolean onBackButtonClicked() {
         // FIXME: 6/28/2018 notify listener that selection is complete
         return false;
+    }
+
+    @Override
+    public void draw(ShapeRenderer renderer) {
+        renderer.setTransformMatrix(modelingProject.getTransform());
+        for (EditableNode node : selectedNodes) {
+            ShapeRendererUtil.drawNodeBounds(renderer, node, Color.WHITE);
+        }
+    }
+
+    public List<EditableNode> getSelectedNodes() {
+        return selectedNodes;
     }
 
     public interface OnSelectionChangedListener {

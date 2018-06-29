@@ -13,6 +13,8 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.math.collision.Ray;
 
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
+import net.masonapps.vrsolidmodeling.ui.RenderableInput;
+import net.masonapps.vrsolidmodeling.ui.ShapeRenderableInput;
 
 import org.masonapps.libgdxgooglevr.gfx.Transformable;
 import org.masonapps.libgdxgooglevr.input.VrInputProcessor;
@@ -24,7 +26,7 @@ import java.util.List;
  * Created by Bob Mason on 1/17/2018.
  */
 
-public abstract class TransformWidget3D extends Transformable implements VrInputProcessor {
+public abstract class TransformWidget3D extends Transformable implements VrInputProcessor, RenderableInput, ShapeRenderableInput {
 
     protected List<DragHandle3D> processors;
     protected BoundingBox bounds = new BoundingBox();
@@ -132,18 +134,21 @@ public abstract class TransformWidget3D extends Transformable implements VrInput
         return focusedProcessor != null && focusedProcessor.touchUp();
     }
 
+    @Override
     public void update() {
         if (!updated) recalculateTransform();
         processors.forEach(DragHandle3D::update);
     }
 
+    @Override
     public void render(ModelBatch batch) {
         if (!isVisible()) return;
         processors.forEach(processor -> processor.render(batch));
     }
 
     @CallSuper
-    public void drawShapes(ShapeRenderer renderer) {
+    @Override
+    public void draw(ShapeRenderer renderer) {
         if (!isVisible()) return;
         renderer.setTransformMatrix(transform);
         processors.forEach(processor -> processor.drawShapes(renderer));

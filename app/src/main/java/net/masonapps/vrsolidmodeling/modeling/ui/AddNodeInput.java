@@ -17,6 +17,7 @@ import com.google.vr.sdk.controller.Controller;
 
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProjectEntity;
+import net.masonapps.vrsolidmodeling.ui.RenderableInput;
 
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 import org.masonapps.libgdxgooglevr.input.DaydreamControllerInputListener;
@@ -27,7 +28,7 @@ import org.masonapps.libgdxgooglevr.utils.Logger;
  * Created by Bob Mason on 3/19/2018.
  */
 
-public class AddNodeInput extends ModelingInputProcessor implements DaydreamControllerInputListener {
+public class AddNodeInput extends ModelingInputProcessor implements RenderableInput, DaydreamControllerInputListener {
 
     private final OnNodeAddedListener listener;
     private final ModelInstance modelInstance;
@@ -40,9 +41,15 @@ public class AddNodeInput extends ModelingInputProcessor implements DaydreamCont
         super(modelingProject);
         this.listener = listener;
         modelInstance = new ModelInstance(new Model());
-        material = new Material(ColorAttribute.createDiffuse(Color.CYAN), new BlendingAttribute(true, 0.5f));
+        material = new Material(ColorAttribute.createDiffuse(Color.YELLOW), new BlendingAttribute(true, 0.25f));
     }
 
+    @Override
+    public void update() {
+
+    }
+
+    @Override
     public void render(ModelBatch modelBatch) {
         if (isVisible() && previewNode != null)
             modelBatch.render(modelInstance);

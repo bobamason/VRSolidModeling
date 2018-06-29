@@ -2,14 +2,19 @@ package net.masonapps.vrsolidmodeling.modeling.ui;
 
 import android.support.annotation.Nullable;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProjectEntity;
+import net.masonapps.vrsolidmodeling.ui.ShapeRenderableInput;
+import net.masonapps.vrsolidmodeling.ui.ShapeRendererUtil;
 
 /**
  * Created by Bob Mason on 3/19/2018.
  */
 
-public class SingleNodeSelector extends ModelingInputProcessor {
+public class SingleNodeSelector extends ModelingInputProcessor implements ShapeRenderableInput {
 
     private final OnNodeSelectedListener listener;
     @Nullable
@@ -48,6 +53,13 @@ public class SingleNodeSelector extends ModelingInputProcessor {
     @Override
     public boolean onBackButtonClicked() {
         return false;
+    }
+
+    @Override
+    public void draw(ShapeRenderer renderer) {
+        if (selectedNode == null) return;
+        renderer.setTransformMatrix(modelingProject.getTransform());
+        ShapeRendererUtil.drawNodeBounds(renderer, selectedNode, Color.WHITE);
     }
 
     public interface OnNodeSelectedListener {

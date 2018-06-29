@@ -72,6 +72,8 @@ import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
 import net.masonapps.vrsolidmodeling.ui.BackButtonListener;
 import net.masonapps.vrsolidmodeling.ui.ExportDialog;
 import net.masonapps.vrsolidmodeling.ui.GroupCompleteDialog;
+import net.masonapps.vrsolidmodeling.ui.RenderableInput;
+import net.masonapps.vrsolidmodeling.ui.ShapeRenderableInput;
 
 import org.masonapps.libgdxgooglevr.GdxVr;
 import org.masonapps.libgdxgooglevr.gfx.AABBTree;
@@ -136,7 +138,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     private Vector3 hitPoint = new Vector3();
     private AABBTree.IntersectionInfo intersectionInfo = new AABBTree.IntersectionInfo();
     private SimpleGrabControls grabControls = new SimpleGrabControls();
-    private BoundingBox selectionBox = new BoundingBox();
     private Vector3 tmp = new Vector3();
     private Vector2 vec2 = new Vector2();
     private Grid gridFloor;
@@ -245,8 +246,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
         addNodeInput = new AddNodeInput(modelingProject, node -> Logger.d("node added"));
 
         multiNodeSelector = new MultiNodeSelector(modelingProject, nodes -> {
-            selectionBox.inf();
-            nodes.forEach(node -> selectionBox.ext(node.getAABB()));
             multiSelectNodes.clear();
             multiSelectNodes.addAll(nodes);
         });
@@ -452,29 +451,10 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
         return builder.end();
     }
 
-    private static void drawBounds(ShapeRenderer shapeRenderer, BoundingBox bounds) {
-        shapeRenderer.box(bounds.min.x, bounds.min.y, bounds.max.z,
-                bounds.getWidth(), bounds.getHeight(), bounds.getDepth());
-    }
-
     private void addNode(EditableNode node) {
         modelingProject.add(node);
         setSelectedNode(node);
         undoRedoCache.save(new AddAction(node, modelingProject));
-    }
-
-    protected void drawEntityBounds(ShapeRenderer shapeRenderer, EditableNode entity, Color color) {
-        shapeRenderer.setColor(color);
-        shapeRenderer.setTransformMatrix(modelingProject.getTransform());
-        final BoundingBox bounds = entity.getAABB();
-        drawBounds(shapeRenderer, bounds);
-    }
-
-    protected void drawSelectionBox(ShapeRenderer shapeRenderer, Color color) {
-        if (!selectionBox.isValid()) return;
-        shapeRenderer.setColor(color);
-        shapeRenderer.setTransformMatrix(modelingProject.getTransform());
-        drawBounds(shapeRenderer, selectionBox);
     }
 
     protected void setEditMode(EditModeTable.EditMode mode) {
@@ -519,15 +499,18 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
             public void update() {
                 super.update();
                 modelingProject.update();
-                transformUI.update();
+                final VrInputProcessor activeProcessor = inputProcessorChooser.getActiveProcessor();
+                if (activeProcessor instanceof RenderableInput)
+                    ((RenderableInput) activeProcessor).update();
             }
 
             @Override
             public void render(ModelBatch batch, Environment environment) {
                 super.render(batch, environment);
                 gridFloor.render(batch);
-                transformUI.render(batch);
-                addNodeInput.render(batch);
+                final VrInputProcessor activeProcessor = inputProcessorChooser.getActiveProcessor();
+                if (activeProcessor instanceof RenderableInput)
+                    ((RenderableInput) activeProcessor).render(batch);
             }
         };
     }
@@ -636,20 +619,11 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
         shapeRenderer.begin();
         shapeRenderer.setProjectionMatrix(camera.combined);
         shapeRenderer.setTransformMatrix(modelingProject.getTransform());
-//        AABBTree.debugAABBTree(shapeRenderer, modelingProject.getAABBTree(), Color.YELLOW);
-        transformUI.drawShapes(shapeRenderer);
-        if (focusedNode != null) {
-            drawEntityBounds(shapeRenderer, focusedNode, Color.BLACK);
+        final VrInputProcessor activeProcessor = inputProcessorChooser.getActiveProcessor();
+        if (activeProcessor instanceof ShapeRenderableInput) {
+            ((ShapeRenderableInput) activeProcessor).draw(shapeRenderer);
+            shapeRenderer.setTransformMatrix(modelingProject.getTransform());
         }
-        if (selectedNode != null) {
-            drawEntityBounds(shapeRenderer, selectedNode, Color.WHITE);
-//            debugBVH(shapeRenderer, modelingProject, Color.YELLOW);
-        }
-        if (inputProcessorChooser.getActiveProcessor() instanceof MultiNodeSelector)
-            drawSelectionBox(shapeRenderer, Color.WHITE);
-
-        // TODO: 3/23/2018 improve draw 
-//        pointInput.draw(shapeRenderer);
 
         shapeRenderer.end();
 
@@ -683,7 +657,7 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
                 return;
         }
         if (!(activeProcessor instanceof SingleNodeSelector)) {
-            inputProcessorChooser.setActiveProcessor(singleNodeSelector);
+            inputProcessorChooser.setActiveProcessor(multiNodeSelector);
         } else {
             toggleViewControls();
         }
