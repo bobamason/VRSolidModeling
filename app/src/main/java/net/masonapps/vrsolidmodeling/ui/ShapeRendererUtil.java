@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.collision.BoundingBox;
 
-import net.masonapps.vrsolidmodeling.modeling.EditableNode;
+import org.masonapps.libgdxgooglevr.gfx.AABBTree;
 
 /**
  * Created by Bob Mason on 6/29/2018.
@@ -17,9 +17,9 @@ public class ShapeRendererUtil {
                 bounds.getWidth(), bounds.getHeight(), bounds.getDepth());
     }
 
-    public static void drawNodeBounds(ShapeRenderer shapeRenderer, EditableNode node, Color color) {
+    public static void drawNodeBounds(ShapeRenderer shapeRenderer, AABBTree.AABBObject node, Color color) {
         shapeRenderer.setColor(color);
         final BoundingBox bounds = node.getAABB();
-        ShapeRendererUtil.drawBounds(shapeRenderer, bounds);
+        drawBounds(shapeRenderer, bounds);
     }
 }

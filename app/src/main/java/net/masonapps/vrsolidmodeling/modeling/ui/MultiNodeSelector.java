@@ -1,12 +1,17 @@
 package net.masonapps.vrsolidmodeling.modeling.ui;
 
+import android.support.annotation.Nullable;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.collision.Ray;
 
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.ModelingProjectEntity;
 import net.masonapps.vrsolidmodeling.ui.ShapeRenderableInput;
 import net.masonapps.vrsolidmodeling.ui.ShapeRendererUtil;
+
+import org.masonapps.libgdxgooglevr.gfx.AABBTree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,10 +24,22 @@ public class MultiNodeSelector extends ModelingInputProcessor implements ShapeRe
 
     private final OnSelectionChangedListener listener;
     private List<EditableNode> selectedNodes = new ArrayList<>();
+    @Nullable
+    private AABBTree.AABBObject focusedObj = null;
 
     public MultiNodeSelector(ModelingProjectEntity modelingProject, OnSelectionChangedListener listener) {
         super(modelingProject);
         this.listener = listener;
+    }
+
+    @Override
+    public boolean performRayTest(Ray ray) {
+        final boolean rayTest = super.performRayTest(ray);
+        if (rayTest)
+            focusedObj = intersectionInfo.object;
+        else
+            focusedObj = null;
+        return rayTest;
     }
 
     @Override
@@ -64,6 +81,8 @@ public class MultiNodeSelector extends ModelingInputProcessor implements ShapeRe
     @Override
     public void draw(ShapeRenderer renderer) {
         renderer.setTransformMatrix(modelingProject.getTransform());
+        if (focusedObj != null)
+            ShapeRendererUtil.drawNodeBounds(renderer, focusedObj, Color.BLACK);
         for (EditableNode node : selectedNodes) {
             ShapeRendererUtil.drawNodeBounds(renderer, node, Color.WHITE);
         }

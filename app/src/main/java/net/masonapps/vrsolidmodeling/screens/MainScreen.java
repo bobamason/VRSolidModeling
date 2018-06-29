@@ -67,7 +67,6 @@ import net.masonapps.vrsolidmodeling.modeling.ui.EditModeTable;
 import net.masonapps.vrsolidmodeling.modeling.ui.InputProcessorChooser;
 import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
 import net.masonapps.vrsolidmodeling.modeling.ui.MultiNodeSelector;
-import net.masonapps.vrsolidmodeling.modeling.ui.SingleNodeSelector;
 import net.masonapps.vrsolidmodeling.modeling.ui.ViewControls;
 import net.masonapps.vrsolidmodeling.ui.BackButtonListener;
 import net.masonapps.vrsolidmodeling.ui.ExportDialog;
@@ -130,8 +129,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     private InputMode currentInputMode = InputMode.VIEW;
     private State currentState = STATE_NONE;
     @Nullable
-    private EditableNode focusedNode = null;
-    @Nullable
     private EditableNode selectedNode = null;
     private List<EditableNode> multiSelectNodes = new ArrayList<>();
     private ModelingProjectEntity modelingProject;
@@ -146,7 +143,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     private EditableNode nodeToAdd = null;
     private InputProcessorChooser inputProcessorChooser;
     private AddNodeInput addNodeInput;
-    private SingleNodeSelector singleNodeSelector;
     private MultiNodeSelector multiNodeSelector;
 
     public MainScreen(SolidModelingGame game, String projectName) {
@@ -418,8 +414,7 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
             modelingProject.add(node);
         }
 
-        singleNodeSelector = new SingleNodeSelector(modelingProject, this::setSelectedNode);
-        inputProcessorChooser.setActiveProcessor(singleNodeSelector);
+        inputProcessorChooser.setActiveProcessor(multiNodeSelector);
 
         inputMultiplexer = new VrInputMultiplexer(inputProcessorChooser, mainInterface);
     }
@@ -618,7 +613,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
 
         shapeRenderer.begin();
         shapeRenderer.setProjectionMatrix(camera.combined);
-        shapeRenderer.setTransformMatrix(modelingProject.getTransform());
         final VrInputProcessor activeProcessor = inputProcessorChooser.getActiveProcessor();
         if (activeProcessor instanceof ShapeRenderableInput) {
             ((ShapeRenderableInput) activeProcessor).draw(shapeRenderer);
@@ -656,7 +650,7 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
             if (((BackButtonListener) activeProcessor).onBackButtonClicked())
                 return;
         }
-        if (!(activeProcessor instanceof SingleNodeSelector)) {
+        if (!(activeProcessor instanceof MultiNodeSelector)) {
             inputProcessorChooser.setActiveProcessor(multiNodeSelector);
         } else {
             toggleViewControls();
@@ -811,7 +805,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     }
 
     private void updateCurrentInputMode() {
-        focusedNode = null;
         switch (currentState) {
             case STATE_NONE:
                 if (mainInterface.isCursorOver())
