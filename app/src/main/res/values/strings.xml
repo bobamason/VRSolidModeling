@@ -47,4 +47,7 @@
     <string name="done">done</string>
     <string name="group">group</string>
     <string name="ungroup">ungroup</string>
+    <string name="union">union</string>
+    <string name="difference">difference</string>
+    <string name="intersection">intersection</string>
 </resources>

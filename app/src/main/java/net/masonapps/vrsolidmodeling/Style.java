@@ -65,7 +65,11 @@ public class Style {
     }
 
     public static ImageTextButton.ImageTextButtonStyle createImageTextButtonStyle(Skin skin, String name) {
-        final ImageTextButton.ImageTextButtonStyle imageTextButtonStyle = new ImageTextButton.ImageTextButtonStyle(skin.get(DEFAULT, ImageTextButton.ImageTextButtonStyle.class));
+        return createImageTextButtonStyle(skin, name, false);
+    }
+
+    public static ImageTextButton.ImageTextButtonStyle createImageTextButtonStyle(Skin skin, String name, boolean toggle) {
+        final ImageTextButton.ImageTextButtonStyle imageTextButtonStyle = new ImageTextButton.ImageTextButtonStyle(skin.get(toggle ? TOGGLE : DEFAULT, ImageTextButton.ImageTextButtonStyle.class));
         imageTextButtonStyle.imageUp = skin.newDrawable(name);
         return imageTextButtonStyle;
     }

@@ -17,22 +17,17 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.FloatAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.BaseLight;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.model.Node;
-import com.badlogic.gdx.graphics.g3d.utils.MeshPartBuilder;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.graphics.g3d.utils.shapebuilders.BoxShapeBuilder;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Interpolation;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pools;
@@ -99,8 +94,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
 
     public static final float MIN_Z = 0.5f;
     public static final float MAX_Z = 10f;
-    private static final String TAG = MainScreen.class.getSimpleName();
-    private static final float UI_ALPHA = 0.25f;
     private final MainInterface mainInterface;
     private final UndoRedoCache undoRedoCache;
     private final ShapeRenderer shapeRenderer;
@@ -133,14 +126,11 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     private List<EditableNode> multiSelectNodes = new ArrayList<>();
     private ModelingProjectEntity modelingProject;
     private Vector3 hitPoint = new Vector3();
-    private AABBTree.IntersectionInfo intersectionInfo = new AABBTree.IntersectionInfo();
     private SimpleGrabControls grabControls = new SimpleGrabControls();
     private Vector3 tmp = new Vector3();
     private Vector2 vec2 = new Vector2();
     private Grid gridFloor;
     private Vector3 cameraPosition = new Vector3();
-    @Nullable
-    private EditableNode nodeToAdd = null;
     private InputProcessorChooser inputProcessorChooser;
     private AddNodeInput addNodeInput;
     private MultiNodeSelector multiNodeSelector;
@@ -239,7 +229,7 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
         modelingProject.setPosition(projectPosition);
 
 
-        addNodeInput = new AddNodeInput(modelingProject, node -> Logger.d("node added"));
+        addNodeInput = new AddNodeInput(modelingProject, node -> undoRedoCache.save(new AddAction(node, modelingProject)));
 
         multiNodeSelector = new MultiNodeSelector(modelingProject, nodes -> {
             multiSelectNodes.clear();
@@ -431,25 +421,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
                 material,
                 VertexAttributes.Usage.Position | VertexAttributes.Usage.TextureCoordinates
         );
-    }
-
-    private static Model createGridBox(ModelBuilder builder, Skin skin, float radius) {
-        final Material material = new Material(TextureAttribute.createDiffuse(skin.getRegion(Style.Drawables.grid)), ColorAttribute.createDiffuse(Color.GRAY), FloatAttribute.createAlphaTest(0.5f), IntAttribute.createCullFace(GL20.GL_FRONT), new BlendingAttribute(true, 1f));
-        return builder.createBox(radius * 2f, radius * 2f, radius * 2f, material, VertexAttributes.Usage.Position | VertexAttributes.Usage.TextureCoordinates
-        );
-    }
-
-    private static Model createBoxModel(ModelBuilder builder, Color color, BoundingBox bounds) {
-        builder.begin();
-        final MeshPartBuilder part = builder.part("s", GL20.GL_LINES, VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal, new Material(ColorAttribute.createDiffuse(color), new BlendingAttribute(true, 0.5f)));
-        BoxShapeBuilder.build(part, bounds);
-        return builder.end();
-    }
-
-    private void addNode(EditableNode node) {
-        modelingProject.add(node);
-        setSelectedNode(node);
-        undoRedoCache.save(new AddAction(node, modelingProject));
     }
 
     protected void setEditMode(EditModeTable.EditMode mode) {
