@@ -50,4 +50,6 @@
     <string name="union">union</string>
     <string name="difference">difference</string>
     <string name="intersection">intersection</string>
+    <string name="position">position</string>
+    <string name="rotation">rotation</string>
 </resources>

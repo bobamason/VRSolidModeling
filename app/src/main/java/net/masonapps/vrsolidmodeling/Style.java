@@ -8,6 +8,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageTextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 
 import net.masonapps.vrsolidmodeling.environment.GradientSphere;
 
@@ -106,6 +107,10 @@ public class Style {
         return new WindowVR.WindowVrStyle(skin.newDrawable(Drawables.window, COLOR_WINDOW), skin.newDrawable(Drawables.drag_bar, COLOR_TITLE_BAR), skin.getFont(DEFAULT_FONT), TITLE_FONT_COLOR);
     }
 
+    public static TextField.TextFieldStyle createTextFieldStyle(Skin skin) {
+        return new TextField.TextFieldStyle(skin.getFont(Style.DEFAULT_FONT), Color.WHITE.cpy(), skin.newDrawable(Style.Drawables.white, Color.GRAY), skin.newDrawable(Style.Drawables.white, Color.BLUE), skin.newDrawable(Style.Drawables.white, Color.CLEAR));
+    }
+
     public static class Drawables {
         public static final String loading_spinner = "loading_spinner";
         public static final String circle = "circle";
@@ -114,6 +119,8 @@ public class Style {
         public static final String touch_pad_button_down = "touch_pad_button_down";
         public static final String left_arrow = "left_arrow";
         public static final String right_arrow = "right_arrow";
+        public static final String left_arrow_small = "left_arrow_small";
+        public static final String right_arrow_small = "right_arrow_small";
         public static final String ic_shape_cube = "ic_shape_cube";
         public static final String ic_shape_sphere = "ic_shape_sphere";
         public static final String ic_shape_cylinder = "ic_shape_cylinder";

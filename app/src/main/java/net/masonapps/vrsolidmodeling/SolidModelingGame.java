@@ -375,6 +375,7 @@ public class SolidModelingGame extends VrGame {
 
     private void setupSkin() {
         addFont();
+        addTextFieldStyle();
         addSliderStyle();
         addProgressBarStyle();
         addButtonStyle();
@@ -384,6 +385,10 @@ public class SolidModelingGame extends VrGame {
 
     private void addFont() {
         getSkin().add(Style.DEFAULT_FONT, new BitmapFont(Gdx.files.internal(Style.FONT_FILE), getSkin().getRegion(Style.FONT_REGION)), BitmapFont.class);
+    }
+
+    private void addTextFieldStyle() {
+        getSkin().add(Style.DEFAULT, Style.createTextFieldStyle(getSkin()));
     }
 
     private void addProgressBarStyle() {

@@ -2,18 +2,18 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-    height="96"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    height="48"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
     id="svg2"
+    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
     version="1.1"
-    viewBox="0 0 96 96"
-    width="96"
+    viewBox="0 0 48 48"
+    width="48"
     xmlns="http://www.w3.org/2000/svg"
     xmlns:cc="http://creativecommons.org/ns#"
-    xmlns:dc="http://purl.org/dc/elements/1.1/"
     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-    inkscape:export-filename="C:\Users\ims_3\AndroidStudioProjects\VRSolidModeling\app\src\main\assets\raw\pack\ic_duplicate.png"
+    inkscape:export-filename="C:\Users\ims_3\AndroidStudioProjects\VRSolidModeling\app\src\main\assets\raw\pack\left_arrow_small.png"
     inkscape:export-xdpi="90"
     inkscape:export-ydpi="90"
     inkscape:version="0.91 r13725"
@@ -205,9 +205,9 @@
       showguides="false"
       units="px"
       inkscape:bbox-nodes="true"
-      inkscape:current-layer="g4434"
-      inkscape:cx="-103.17994"
-      inkscape:cy="153.86168"
+      inkscape:current-layer="layer1"
+      inkscape:cx="-26.983483"
+      inkscape:cy="22.759262"
       inkscape:document-units="px"
       inkscape:object-nodes="false"
       inkscape:object-paths="false"
@@ -225,7 +225,7 @@
       inkscape:window-width="1016"
       inkscape:window-x="230"
       inkscape:window-y="54"
-      inkscape:zoom="0.81694335">
+      inkscape:zoom="1.1553324">
     <inkscape:grid
         id="grid4136"
         type="xygrid"/>
@@ -238,13 +238,13 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
             rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-          <dc:title/>
+          <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
       id="layer1"
-      transform="translate(0,-956.3622)"
+      transform="translate(0,-1004.3622)"
       inkscape:groupmode="layer"
       inkscape:label="Layer 1">
     <g
@@ -1495,8 +1495,13 @@
               y="1005.8222"/>
       </g>
       <g
-          id="g4429"
-          transform="matrix(0.76443175,0,0,0.79463421,3.0228701,198.04701)">
+          id="g4434"
+          transform="matrix(0.87784229,0,0,0.88888887,26.284467,123.15138)">
+      <g
+          id="g4397">
+          <g
+              id="g4429"
+              transform="matrix(0.87080761,0,0,0.89396351,-56.18726,-133.1078)">
           <path
               style="fill:#164450;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:6, 6;stroke-dashoffset:0;stroke-opacity:1"
               d="M 6.510888,1027.373 36.31909,1013.441 72,1026.3832 l -32.50019,9.979 z"
@@ -1512,25 +1517,29 @@
               d="m 6.510888,988.10999 29.808202,-23.74779 0,49.0788 -29.808202,13.932 z"
               id="path4421"
               inkscape:connector-curvature="0"/>
-      </g>
-      <g
-          id="g4434"
-          transform="matrix(0.87784229,0,0,0.88888887,26.284467,123.15138)">
+          </g>
           <path
               style="fill:#164450;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:6, 6;stroke-dashoffset:0;stroke-opacity:1"
-              d="m 11.758793,1023.1823 26.647444,-12.4547 31.897431,11.5698 -29.053984,8.9209 z"
+              d="m -17.929861,805.81692 26.6474439,-12.4547 31.8974311,11.5698 -29.053984,8.9209 z"
               id="path4438"
               inkscape:connector-curvature="0"/>
           <path
               style="fill:#5fbcd3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:6, 6;stroke-dashoffset:0;stroke-opacity:1"
-              d="m 38.406237,966.8529 0,43.8747 31.897431,11.5698 0,-37.46997 z"
+              d="m 8.7175829,749.48752 0,43.8747 31.8974311,11.5698 0,-37.46997 z"
               id="path4440"
               inkscape:connector-curvature="0"/>
           <path
               style="fill:#216778;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:6, 6;stroke-dashoffset:0;stroke-opacity:1"
-              d="m 11.758793,988.08256 26.647444,-21.22966 0,43.8747 -26.647444,12.4547 z"
+              d="m -17.929861,770.71718 26.6474439,-21.22966 0,43.8747 -26.6474439,12.4547 z"
               id="path4445"
               inkscape:connector-curvature="0"/>
       </g>
+      </g>
+      <path
+          style="fill:#b3b3b3;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2.01274014;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+          d="m -80,1005.3622 -43,22.9999 43,23.0001 0,-46 z"
+          id="path4406"
+          inkscape:connector-curvature="0"
+          sodipodi:nodetypes="ccccc"/>
   </g>
 </svg>
