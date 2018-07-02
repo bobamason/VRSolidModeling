@@ -3,17 +3,17 @@
 
 <svg
     xmlns:dc="http://purl.org/dc/elements/1.1/"
-    height="48"
+    height="72"
     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-    id="svg2"
-    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-    version="1.1"
-    viewBox="0 0 48 48"
-    width="48"
+    viewBox="0 0 72 72"
+    width="72"
     xmlns="http://www.w3.org/2000/svg"
     xmlns:cc="http://creativecommons.org/ns#"
+    id="svg2"
+    version="1.1"
     xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-    inkscape:export-filename="C:\Users\ims_3\AndroidStudioProjects\VRSolidModeling\app\src\main\assets\raw\pack\left_arrow_small.png"
+    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+    inkscape:export-filename="C:\Users\ims_3\AndroidStudioProjects\VRSolidModeling\app\src\main\assets\raw\pack\intersection.png"
     inkscape:export-xdpi="90"
     inkscape:export-ydpi="90"
     inkscape:version="0.91 r13725"
@@ -206,8 +206,8 @@
       units="px"
       inkscape:bbox-nodes="true"
       inkscape:current-layer="layer1"
-      inkscape:cx="-26.983483"
-      inkscape:cy="22.759262"
+      inkscape:cx="10.796168"
+      inkscape:cy="-42.421239"
       inkscape:document-units="px"
       inkscape:object-nodes="false"
       inkscape:object-paths="false"
@@ -225,7 +225,7 @@
       inkscape:window-width="1016"
       inkscape:window-x="230"
       inkscape:window-y="54"
-      inkscape:zoom="1.1553324">
+      inkscape:zoom="1">
     <inkscape:grid
         id="grid4136"
         type="xygrid"/>
@@ -244,7 +244,7 @@
   </metadata>
   <g
       id="layer1"
-      transform="translate(0,-1004.3622)"
+      transform="translate(0,-980.3622)"
       inkscape:groupmode="layer"
       inkscape:label="Layer 1">
     <g
@@ -1541,5 +1541,29 @@
           id="path4406"
           inkscape:connector-curvature="0"
           sodipodi:nodetypes="ccccc"/>
+      <g
+          id="g4421"
+          transform="translate(95,263.00001)">
+          <rect
+              style="opacity:1;fill:none;fill-opacity:1;stroke:#999999;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:4, 4;stroke-dashoffset:4.19999981;stroke-opacity:1"
+              height="46.000019"
+              id="rect4393"
+              width="46"
+              x="2"
+              y="1004.3622"/>
+          <ellipse
+              style="opacity:1;fill:none;fill-opacity:1;stroke:#999999;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:6, 6;stroke-dashoffset:1.60000002;stroke-opacity:1"
+              cx="47"
+              cy="1005.3622"
+              id="path4395"
+              rx="23"
+              ry="22.99999"/>
+          <path
+              style="opacity:1;fill:#ececec;fill-opacity:1;stroke:#999999;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+              d="M 24.050781,24 A 23,22.99999 0 0 0 24,25 23,22.99999 0 0 0 47,48 23,22.99999 0 0 0 48,47.964844 L 48,24 24.050781,24 Z"
+              id="rect4416"
+              transform="translate(0,980.3622)"
+              inkscape:connector-curvature="0"/>
+      </g>
   </g>
 </svg>

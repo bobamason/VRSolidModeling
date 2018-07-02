@@ -18,13 +18,13 @@ public class BooleanOperationSelector extends Table {
     public BooleanOperationSelector(Skin skin, BooleanOperationSelectedListener listener) {
         super(skin);
 
-        final VerticalImageTextButton union = new VerticalImageTextButton(Style.getStringResource(R.string.union, "union"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_shape_cube, true));
+        final VerticalImageTextButton union = new VerticalImageTextButton(Style.getStringResource(R.string.union, "union"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_union, true));
         add(union).pad(8, 8, 8, 4);
 
-        final VerticalImageTextButton difference = new VerticalImageTextButton(Style.getStringResource(R.string.difference, "difference"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_shape_torus, true));
+        final VerticalImageTextButton difference = new VerticalImageTextButton(Style.getStringResource(R.string.difference, "difference"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_difference, true));
         add(difference).pad(8, 0, 8, 4);
 
-        final VerticalImageTextButton intersection = new VerticalImageTextButton(Style.getStringResource(R.string.intersection, "intersection"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_shape_cone, true));
+        final VerticalImageTextButton intersection = new VerticalImageTextButton(Style.getStringResource(R.string.intersection, "intersection"), Style.createImageTextButtonStyle(skin, Style.Drawables.ic_intersection, true));
         add(intersection).pad(8, 0, 8, 8);
 
 

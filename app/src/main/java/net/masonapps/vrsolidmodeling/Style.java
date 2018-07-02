@@ -126,6 +126,9 @@ public class Style {
         public static final String ic_shape_cylinder = "ic_shape_cylinder";
         public static final String ic_shape_cone = "ic_shape_cone";
         public static final String ic_shape_torus = "ic_shape_torus";
+        public static final String ic_union = "ic_union";
+        public static final String ic_difference = "ic_difference";
+        public static final String ic_intersection = "ic_intersection";
         public static final String ic_export = "ic_export";
         public static final String ic_folder = "ic_folder";
         public static final String ic_pan = "ic_pan";
