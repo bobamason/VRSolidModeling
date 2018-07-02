@@ -35,6 +35,8 @@ import org.masonapps.libgdxgooglevr.gfx.AABBTree;
 import java.util.List;
 import java.util.Map;
 
+import eu.mihosoft.vvecmath.Transform;
+
 /**
  * Created by Bob Mason on 2/9/2018.
  */
@@ -636,5 +638,20 @@ public class EditableNode extends Node implements AABBTree.AABBObject {
 
     public BoundingBox getBounds() {
         return bounds;
+    }
+
+    @Nullable
+    public CSG getCSG() {
+        return csg;
+    }
+
+    @Nullable
+    public CSG getTransformedCSG() {
+        if (csg == null) return null;
+        return csg.transformed(Transform.unity()
+                .translate(translation.x, translation.y, translation.z)
+                .rot(rotation.getPitch(), rotation.getYaw(), rotation.getRoll())
+                .scale(scale.x, scale.y, scale.z)
+                .translate(-origin.x, -origin.y, -origin.z));
     }
 }
