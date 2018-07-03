@@ -11,7 +11,6 @@ import com.badlogic.gdx.graphics.g3d.attributes.BlendingAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.model.NodePart;
 import com.badlogic.gdx.math.Quaternion;
-import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.Ray;
 import com.google.vr.sdk.controller.Controller;
 
@@ -22,7 +21,6 @@ import net.masonapps.vrsolidmodeling.ui.RenderableInput;
 import org.masonapps.libgdxgooglevr.input.DaydreamButtonEvent;
 import org.masonapps.libgdxgooglevr.input.DaydreamControllerInputListener;
 import org.masonapps.libgdxgooglevr.input.DaydreamTouchEvent;
-import org.masonapps.libgdxgooglevr.utils.Logger;
 
 /**
  * Created by Bob Mason on 3/19/2018.
@@ -137,13 +135,11 @@ public class AddNodeInput extends ModelingInputProcessor implements RenderableIn
                     if (previewNode != null) {
                         final EditableNode copy = previewNode.copy();
 
-                        previewNode.getPosition().mul(modelingProject.getInverseTransform());
-                        previewNode.getRotation().mul(new Quaternion(modelingProject.getRotation()).conjugate());
-                        previewNode.invalidate();
+                        copy.getPosition().mul(modelingProject.getInverseTransform());
+                        copy.getRotation().mul(new Quaternion(modelingProject.getRotation()).conjugate());
+                        copy.invalidate();
                         modelingProject.add(copy);
                         listener.nodeAdded(copy);
-                        final Vector3 cpy = previewNode.getPosition().cpy().mul(modelingProject.getTransform());
-                        Logger.d("equal =  " + getHitPoint3D().epsilonEquals(cpy, 1e-3f) + ", hitPoint = " + getHitPoint3D() + ", position = " + cpy);
                     }
                     break;
             }

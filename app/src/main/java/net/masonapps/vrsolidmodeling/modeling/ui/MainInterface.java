@@ -4,7 +4,7 @@ import android.content.SharedPreferences;
 import android.support.annotation.Nullable;
 
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
@@ -38,7 +38,7 @@ public class MainInterface extends CylindricalWindowUiContainer implements BackB
     public static final String WINDOW_VIEW_CONTROLS = "winViewControls";
     private static final float PADDING = 8f;
     private final Skin skin;
-    private final UiEventListener eventListener;
+    private UiEventListener eventListener = null;
     private final WindowTableVR mainTable;
     private final ColorPickerSimple colorPicker;
     private final ConfirmDialog confirmDialog;
@@ -51,10 +51,9 @@ public class MainInterface extends CylindricalWindowUiContainer implements BackB
     private EditableNode entity = null;
     private EditModeTable.EditMode currentEditMode = EditModeTable.EditMode.NONE;
 
-    public MainInterface(Batch spriteBatch, Skin skin, UiEventListener listener) {
+    public MainInterface(SpriteBatch spriteBatch, Skin skin) {
         super(2f, 4f);
         this.skin = skin;
-        this.eventListener = listener;
 //        final WindowVR.WindowVrStyle windowStyleWithClose = Style.createWindowVrStyle(skin);
 //        windowStyleWithClose.closeDrawable = skin.newDrawable(Style.Drawables.ic_close);
         container = new Container<>();
@@ -65,7 +64,7 @@ public class MainInterface extends CylindricalWindowUiContainer implements BackB
         confirmDialog = new ConfirmDialog(spriteBatch, skin);
         primitiveSelector = new PrimitiveSelector(spriteBatch, skin, Primitives.createListItems());
         viewControls = new ViewControls(spriteBatch, skin, Style.createWindowVrStyle(skin));
-        editModeTable = new EditModeTable(skin);
+        editModeTable = new EditModeTable(spriteBatch, skin);
         editModeTable.setListener(this::editModeChanged);
         initMainTable();
         initConfirmDialog();
@@ -160,7 +159,6 @@ public class MainInterface extends CylindricalWindowUiContainer implements BackB
         final Container<Table> optionContainer = new Container<>();
         final Table optionsTable = new Table(skin);
         optionsTable.add(buttonBarTable).left().expandX().row();
-        optionsTable.add(editModeTable).left().expandX();
         optionContainer.setActor(optionsTable);
         mainTable.getTable().add(optionContainer).left().expand();
         mainTable.getTable().add(container).expand();
@@ -171,11 +169,18 @@ public class MainInterface extends CylindricalWindowUiContainer implements BackB
         colorPicker.setColorListener(eventListener::onColorChanged);
         mainTable.resizeToFitTable();
         addProcessor(mainTable);
+        editModeTable.setPosition(0, 0, -getRadius());
+        hideEditModeTable();
+        addProcessor(editModeTable);
     }
 
     private void editModeChanged(EditModeTable.EditMode editMode) {
         setEditMode(editMode);
         eventListener.onEditModeChanged(editMode);
+    }
+
+    public void setEventListener(UiEventListener eventListener) {
+        this.eventListener = eventListener;
     }
 
     public void setEditMode(EditModeTable.EditMode editMode) {
@@ -276,6 +281,14 @@ public class MainInterface extends CylindricalWindowUiContainer implements BackB
             editModeChanged(EditModeTable.EditMode.NONE);
         else
             editModeChanged(currentEditMode);
+    }
+
+    public void showEditModeTable() {
+        editModeTable.setVisible(true);
+    }
+
+    public void hideEditModeTable() {
+        editModeTable.setVisible(false);
     }
 
     @Override
