@@ -31,6 +31,7 @@ public class Style {
     public static final Color COLOR_ACCENT = new Color(0xffc107ff);
     public static final Color COLOR_UP = new Color(0x00000000);
     public static final Color COLOR_DOWN = new Color(0xcccccc99);
+    public static final Color COLOR_CHECKED = new Color(COLOR_PRIMARY_LIGHT);
     public static final Color COLOR_OVER = new Color(0xcccccc66);
     public static final Color COLOR_UP_2 = new Color(Color.WHITE);
     public static final Color COLOR_DOWN_2 = new Color(Color.LIGHT_GRAY);
@@ -126,9 +127,9 @@ public class Style {
         public static final String ic_shape_cylinder = "ic_shape_cylinder";
         public static final String ic_shape_cone = "ic_shape_cone";
         public static final String ic_shape_torus = "ic_shape_torus";
-        public static final String ic_union = "ic_union";
-        public static final String ic_difference = "ic_difference";
-        public static final String ic_intersection = "ic_intersection";
+        public static final String ic_union = "union";
+        public static final String ic_difference = "difference";
+        public static final String ic_intersection = "intersection";
         public static final String ic_export = "ic_export";
         public static final String ic_folder = "ic_folder";
         public static final String ic_pan = "ic_pan";

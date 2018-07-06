@@ -432,12 +432,21 @@ public class SolidModelingGame extends VrGame {
         textButtonStyle.fontColor = Style.FONT_COLOR;
         getSkin().add(Style.DEFAULT, textButtonStyle, TextButton.TextButtonStyle.class);
 
+        final ImageTextButton.ImageTextButtonStyle imageTextToggleStyle = new ImageTextButton.ImageTextButtonStyle();
+        imageTextToggleStyle.font = getSkin().getFont(Style.DEFAULT_FONT);
+        imageTextToggleStyle.up = getSkin().newDrawable(Style.Drawables.button, Style.COLOR_UP);
+        imageTextToggleStyle.over = getSkin().newDrawable(Style.Drawables.button, Style.COLOR_OVER);
+        imageTextToggleStyle.down = getSkin().newDrawable(Style.Drawables.button, Style.COLOR_DOWN);
+        imageTextToggleStyle.checked = getSkin().newDrawable(Style.Drawables.button, Style.COLOR_CHECKED);
+        imageTextToggleStyle.fontColor = Style.FONT_COLOR;
+        getSkin().add(Style.TOGGLE, imageTextToggleStyle, ImageTextButton.ImageTextButtonStyle.class);
+
         final TextButton.TextButtonStyle toggleStyle = new TextButton.TextButtonStyle();
         toggleStyle.font = getSkin().getFont(Style.DEFAULT_FONT);
         toggleStyle.up = getSkin().newDrawable(Style.Drawables.button, Style.COLOR_UP);
         toggleStyle.over = getSkin().newDrawable(Style.Drawables.button, Style.COLOR_OVER);
         toggleStyle.down = getSkin().newDrawable(Style.Drawables.button, Style.COLOR_DOWN);
-        toggleStyle.checked = getSkin().newDrawable(Style.Drawables.button, Style.COLOR_DOWN);
+        toggleStyle.checked = getSkin().newDrawable(Style.Drawables.button, Style.COLOR_CHECKED);
         toggleStyle.fontColor = Style.FONT_COLOR;
         getSkin().add(Style.TOGGLE, toggleStyle, TextButton.TextButtonStyle.class);
 

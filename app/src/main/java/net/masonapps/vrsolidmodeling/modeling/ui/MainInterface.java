@@ -38,7 +38,7 @@ public class MainInterface extends CylindricalWindowUiContainer implements BackB
     public static final String WINDOW_VIEW_CONTROLS = "winViewControls";
     private static final float PADDING = 8f;
     private final Skin skin;
-    private UiEventListener eventListener = null;
+    private final UiEventListener eventListener;
     private final WindowTableVR mainTable;
     private final ColorPickerSimple colorPicker;
     private final ConfirmDialog confirmDialog;
@@ -51,9 +51,10 @@ public class MainInterface extends CylindricalWindowUiContainer implements BackB
     private EditableNode entity = null;
     private EditModeTable.EditMode currentEditMode = EditModeTable.EditMode.NONE;
 
-    public MainInterface(SpriteBatch spriteBatch, Skin skin) {
+    public MainInterface(SpriteBatch spriteBatch, Skin skin, UiEventListener eventListener) {
         super(2f, 4f);
         this.skin = skin;
+        this.eventListener = eventListener;
 //        final WindowVR.WindowVrStyle windowStyleWithClose = Style.createWindowVrStyle(skin);
 //        windowStyleWithClose.closeDrawable = skin.newDrawable(Style.Drawables.ic_close);
         container = new Container<>();
@@ -177,10 +178,6 @@ public class MainInterface extends CylindricalWindowUiContainer implements BackB
     private void editModeChanged(EditModeTable.EditMode editMode) {
         setEditMode(editMode);
         eventListener.onEditModeChanged(editMode);
-    }
-
-    public void setEventListener(UiEventListener eventListener) {
-        this.eventListener = eventListener;
     }
 
     public void setEditMode(EditModeTable.EditMode editMode) {

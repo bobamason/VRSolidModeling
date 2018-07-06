@@ -64,18 +64,17 @@ public class ModelingProjectEntity extends Entity {
 
 
     public void remove(EditableNode node) {
-        if (modelInstance != null) {
+        if (modelInstance == null) return;
 
-            modelInstance.nodes.removeValue(node, true);
-            modelInstance.model.nodes.removeValue(node, true);
+        modelInstance.nodes.removeValue(node, true);
+        modelInstance.model.nodes.removeValue(node, true);
 
-            final NodePart nodePart = node.parts.get(0);
-            modelInstance.model.meshParts.removeValue(nodePart.meshPart, true);
-            modelInstance.model.meshes.removeValue(nodePart.meshPart.mesh, true);
+        final NodePart nodePart = node.parts.get(0);
+        modelInstance.model.meshParts.removeValue(nodePart.meshPart, true);
+        modelInstance.model.meshes.removeValue(nodePart.meshPart.mesh, true);
 
-            modelInstance.model.materials.removeValue(nodePart.material, true);
-            modelInstance.materials.removeValue(nodePart.material, true);
-        }
+        modelInstance.model.materials.removeValue(nodePart.material, true);
+        modelInstance.materials.removeValue(nodePart.material, true);
         aabbTree.remove(node);
     }
 

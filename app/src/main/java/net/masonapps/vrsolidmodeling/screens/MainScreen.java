@@ -138,7 +138,7 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     private Vector3 cameraPosition = new Vector3();
     private InputProcessorChooser inputProcessorChooser;
     private AddNodeInput addNodeInput;
-    private MultiNodeSelector multiNodeSelector;
+    private final MultiNodeSelector multiNodeSelector;
 
     public MainScreen(SolidModelingGame game, String projectName) {
         this(game, projectName, new ArrayList<>());
@@ -160,8 +160,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
 
         modelingProject = new ModelingProjectEntity(getSolidModelingGame().getMeshCache());
         undoRedoCache = new UndoRedoCache();
-
-        mainInterface = new MainInterface(spriteBatch, skin);
 
         final ModelBuilder modelBuilder = new ModelBuilder();
 
@@ -255,31 +253,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
             }
         });
         booleanOperationTable.setVisible(false);
-
-        multiNodeSelector = new MultiNodeSelector(modelingProject, nodes -> {
-            multiSelectNodes.clear();
-            multiSelectNodes.addAll(nodes);
-            final int count = multiSelectNodes.size();
-            booleanOperationTable.setVisible(false);
-            if (count == 0) {
-                mainInterface.hideEditModeTable();
-            } else {
-                mainInterface.showEditModeTable();
-            }
-            if (count == 2) {
-                final BoundingBox bb = new BoundingBox();
-                bb.ext(multiSelectNodes.get(0).getAABB());
-                bb.ext(multiSelectNodes.get(1).getAABB());
-                final Vector3 pos = new Vector3();
-                bb.getCenter(pos);
-                pos.add(GdxVr.graphics.getRight())
-                        .add(0, 0.5f, 0);
-                booleanOperationTable.setPosition(pos);
-                booleanOperationTable.lookAt(cameraPosition, Vector3.Y);
-                booleanOperationTable.invalidate();
-                booleanOperationTable.setVisible(true);
-            }
-        });
 
         exportDialog = new ExportDialog(spriteBatch, skin, (projectName1, fileType, transform) -> getSolidModelingGame().exportFile(modelingProject, projectName1, fileType, transform));
         exportDialog.setPosition(0, 0, -2);
@@ -377,7 +350,35 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
                 }
             }
         };
-        mainInterface.setEventListener(uiEventListener);
+
+        mainInterface = new MainInterface(spriteBatch, skin, uiEventListener);
+
+
+        multiNodeSelector = new MultiNodeSelector(modelingProject, nodes -> {
+            multiSelectNodes.clear();
+            multiSelectNodes.addAll(nodes);
+            final int count = multiSelectNodes.size();
+            booleanOperationTable.setVisible(false);
+            if (count == 0) {
+                mainInterface.hideEditModeTable();
+            } else {
+                mainInterface.showEditModeTable();
+            }
+            if (count == 2) {
+                final BoundingBox bb = new BoundingBox();
+                bb.ext(multiSelectNodes.get(0).getAABB());
+                bb.ext(multiSelectNodes.get(1).getAABB());
+                final Vector3 pos = new Vector3();
+                bb.getCenter(pos);
+                pos.add(GdxVr.graphics.getRight())
+                        .add(0, 0.5f, 0);
+                booleanOperationTable.setPosition(pos);
+                booleanOperationTable.lookAt(cameraPosition, Vector3.Y);
+                booleanOperationTable.invalidate();
+                booleanOperationTable.setVisible(true);
+            }
+        });
+        
         mainInterface.loadWindowPositions(PreferenceManager.getDefaultSharedPreferences(GdxVr.app.getContext()));
 
 

@@ -11,8 +11,8 @@ public class AddAction extends Action {
 
     private final ModelingProjectEntity project;
 
-    public AddAction(EditableNode entity, ModelingProjectEntity project) {
-        super(entity);
+    public AddAction(EditableNode node, ModelingProjectEntity project) {
+        super(node);
         this.project = project;
     }
 
