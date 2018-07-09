@@ -17,6 +17,7 @@ import net.masonapps.vrsolidmodeling.Style;
 import net.masonapps.vrsolidmodeling.modeling.EditableNode;
 import net.masonapps.vrsolidmodeling.modeling.primitives.Primitives;
 import net.masonapps.vrsolidmodeling.ui.BackButtonListener;
+import net.masonapps.vrsolidmodeling.ui.BooleanOperationSelector;
 import net.masonapps.vrsolidmodeling.ui.ColorPickerSimple;
 import net.masonapps.vrsolidmodeling.ui.ConfirmDialog;
 import net.masonapps.vrsolidmodeling.ui.PrimitiveSelector;
@@ -46,9 +47,8 @@ public class MainInterface extends CylindricalWindowUiContainer implements BackB
     private final ViewControls viewControls;
     private final Container<Table> container;
     private final Table emptyTable;
+    private final BooleanOperationTable booleanOperationTable;
     private EditModeTable editModeTable;
-    @Nullable
-    private EditableNode entity = null;
     private EditModeTable.EditMode currentEditMode = EditModeTable.EditMode.NONE;
 
     public MainInterface(SpriteBatch spriteBatch, Skin skin, UiEventListener eventListener) {
@@ -67,6 +67,18 @@ public class MainInterface extends CylindricalWindowUiContainer implements BackB
         viewControls = new ViewControls(spriteBatch, skin, Style.createWindowVrStyle(skin));
         editModeTable = new EditModeTable(spriteBatch, skin);
         editModeTable.setListener(this::editModeChanged);
+        booleanOperationTable = new BooleanOperationTable(spriteBatch, skin, new BooleanOperationTable.BooleanOperationTableListener() {
+            @Override
+            public void onSelectedOperationChanged(BooleanOperationSelector.BooleanOperation booleanOperation) {
+                eventListener.onBooleanOperationChanged(booleanOperation);
+            }
+
+            @Override
+            public void onDoneClicked(BooleanOperationSelector.BooleanOperation booleanOperation) {
+                eventListener.onPerformBooleanClicked(booleanOperation);
+            }
+        });
+        booleanOperationTable.setVisible(false);
         initMainTable();
         initConfirmDialog();
         initShapeSelector();
@@ -173,6 +185,9 @@ public class MainInterface extends CylindricalWindowUiContainer implements BackB
         editModeTable.setPosition(0, 0, -getRadius());
         hideEditModeTable();
         addProcessor(editModeTable);
+        booleanOperationTable.setPosition(0, 0, -getRadius());
+        hideBooleanOpsTable();
+        addProcessor(booleanOperationTable);
     }
 
     private void editModeChanged(EditModeTable.EditMode editMode) {
@@ -273,15 +288,24 @@ public class MainInterface extends CylindricalWindowUiContainer implements BackB
     }
 
     public void setEntity(@Nullable EditableNode entity) {
-        this.entity = entity;
         if (entity == null)
             editModeChanged(EditModeTable.EditMode.NONE);
         else
             editModeChanged(currentEditMode);
     }
 
+    public void showBooleanOpsTable() {
+        booleanOperationTable.setVisible(true);
+        hideEditModeTable();
+    }
+
+    public void hideBooleanOpsTable() {
+        booleanOperationTable.setVisible(false);
+    }
+
     public void showEditModeTable() {
         editModeTable.setVisible(true);
+        hideBooleanOpsTable();
     }
 
     public void hideEditModeTable() {
@@ -317,5 +341,9 @@ public class MainInterface extends CylindricalWindowUiContainer implements BackB
         void onGroupClicked();
 
         void onUnGroupClicked();
+
+        void onBooleanOperationChanged(BooleanOperationSelector.BooleanOperation booleanOperation);
+
+        void onPerformBooleanClicked(BooleanOperationSelector.BooleanOperation booleanOperation);
     }
 }

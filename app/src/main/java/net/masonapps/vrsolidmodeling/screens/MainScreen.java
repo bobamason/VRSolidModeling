@@ -28,7 +28,6 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pools;
@@ -60,7 +59,6 @@ import net.masonapps.vrsolidmodeling.modeling.transform.SimpleGrabControls;
 import net.masonapps.vrsolidmodeling.modeling.transform.TransformWidget3D;
 import net.masonapps.vrsolidmodeling.modeling.transform.TranslateWidget;
 import net.masonapps.vrsolidmodeling.modeling.ui.AddNodeInput;
-import net.masonapps.vrsolidmodeling.modeling.ui.BooleanOperationTable;
 import net.masonapps.vrsolidmodeling.modeling.ui.EditModeTable;
 import net.masonapps.vrsolidmodeling.modeling.ui.InputProcessorChooser;
 import net.masonapps.vrsolidmodeling.modeling.ui.MainInterface;
@@ -111,7 +109,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
     private final Entity gradientBackground;
     private final ExportDialog exportDialog;
     private final VrInputMultiplexer inputMultiplexer;
-    private final BooleanOperationTable booleanOperationTable;
     private TransformWidget3D transformUI;
     private boolean isTouchPadClicked = false;
     private Quaternion rotation = new Quaternion();
@@ -237,23 +234,6 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
 
         addNodeInput = new AddNodeInput(modelingProject, node -> undoRedoCache.save(new AddAction(node, modelingProject)));
 
-        booleanOperationTable = new BooleanOperationTable(spriteBatch, skin, new BooleanOperationTable.BooleanOperationTableListener() {
-            @Override
-            public void onSelectedOperationChanged(BooleanOperationSelector.BooleanOperation booleanOperation) {
-                Logger.d("booleanOperation = " + booleanOperation.name());
-            }
-
-            @Override
-            public void onDoneClicked(BooleanOperationSelector.BooleanOperation booleanOperation) {
-                if (multiSelectNodes.size() != 2) return;
-                modelingProject.remove(multiSelectNodes.get(0));
-                modelingProject.remove(multiSelectNodes.get(1));
-                final EditableNode node = CSGUtil.apply(multiSelectNodes.get(0), multiSelectNodes.get(1), booleanOperation);
-                modelingProject.add(node);
-            }
-        });
-        booleanOperationTable.setVisible(false);
-
         exportDialog = new ExportDialog(spriteBatch, skin, (projectName1, fileType, transform) -> getSolidModelingGame().exportFile(modelingProject, projectName1, fileType, transform));
         exportDialog.setPosition(0, 0, -2);
 
@@ -349,6 +329,20 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
                     }
                 }
             }
+
+            @Override
+            public void onBooleanOperationChanged(BooleanOperationSelector.BooleanOperation booleanOperation) {
+                Logger.d("booleanOperation = " + booleanOperation.name());
+            }
+
+            @Override
+            public void onPerformBooleanClicked(BooleanOperationSelector.BooleanOperation booleanOperation) {
+                if (multiSelectNodes.size() != 2) return;
+                modelingProject.remove(multiSelectNodes.get(0));
+                modelingProject.remove(multiSelectNodes.get(1));
+                final EditableNode node = CSGUtil.apply(multiSelectNodes.get(0), multiSelectNodes.get(1), booleanOperation);
+                modelingProject.add(node);
+            }
         };
 
         mainInterface = new MainInterface(spriteBatch, skin, uiEventListener);
@@ -358,24 +352,12 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
             multiSelectNodes.clear();
             multiSelectNodes.addAll(nodes);
             final int count = multiSelectNodes.size();
-            booleanOperationTable.setVisible(false);
             if (count == 0) {
                 mainInterface.hideEditModeTable();
+            } else if (count == 2) {
+                mainInterface.showBooleanOpsTable();
             } else {
                 mainInterface.showEditModeTable();
-            }
-            if (count == 2) {
-                final BoundingBox bb = new BoundingBox();
-                bb.ext(multiSelectNodes.get(0).getAABB());
-                bb.ext(multiSelectNodes.get(1).getAABB());
-                final Vector3 pos = new Vector3();
-                bb.getCenter(pos);
-                pos.add(GdxVr.graphics.getRight())
-                        .add(0, 0.5f, 0);
-                booleanOperationTable.setPosition(pos);
-                booleanOperationTable.lookAt(cameraPosition, Vector3.Y);
-                booleanOperationTable.invalidate();
-                booleanOperationTable.setVisible(true);
             }
         });
         
@@ -452,7 +434,7 @@ public class MainScreen extends VrWorldScreen implements SolidModelingGame.OnCon
 
         inputProcessorChooser.setActiveProcessor(multiNodeSelector);
 
-        inputMultiplexer = new VrInputMultiplexer(inputProcessorChooser, booleanOperationTable, mainInterface);
+        inputMultiplexer = new VrInputMultiplexer(inputProcessorChooser, mainInterface);
     }
 
     private static Model createGrid(ModelBuilder builder, Skin skin, float radius) {
